@@ -1,0 +1,157 @@
+{
+  "_comment": "계획서 §15 '열린 결정' 수치는 전부 여기 모여 있다. 디자이너는 이 파일만 만지면 된다.",
+
+  "interventionsPerHalf": 2,
+  "carryOverUnused": true,
+  "substitutionLimit": 3,
+
+  "halfMinutes": 45,
+  "scenesPerHalf": [7, 8],
+  "sceneCountJitter": 1,
+
+  "prd": { "step": 0.09, "cap": 0.95 },
+
+  "speeds": [1, 1.5, 2],
+  "defaultSpeed": 1.5,
+  "sceneTransitionSec": 0.9,
+
+  "adaptationPenalty": { "scenes": 2, "successMultiplier": 0.8 },
+  "encourageMorale": { "first": 20, "later": 10 },
+  "substitutionMorale": 5,
+
+  "moraleStart": 60,
+  "moraleGoalFor": 8,
+  "moraleGoalAgainst": -10,
+  "moraleSuccessSlopePerPoint": 0.00125,
+
+  "momentumGoal": 2,
+  "momentumSave": 1,
+  "momentumMiss": -1,
+  "momentumClear": -1,
+  "momentumFlow": 1,
+
+  "repeatSuppression": { "lastN": 2, "multiplier": 0.15 },
+
+  "cutin": { "messageSec": 0.5, "bannerSec": 1.5, "fullSec": 3.2 },
+  "outcomeCueLeadRatio": 0.78,
+
+  "opponentAI": {
+    "losingPushMinute": 70,
+    "winningParkMinute": 75,
+    "counterSwitchProb": 0.5,
+    "timewasteAtMomentum": -3,
+    "timewasteWeightMultiplier": 3.0
+  },
+
+  "goodCallThreshold": 0.6,
+
+  "motion": {
+    "_comment": "모션 엔진 v2 (계획서 §2). 속도는 실제 축구 m/s. 위치는 0-100 좌표, 계산은 meterScale로 미터 환산. 디자이너는 이 블록만 만지면 움직임이 바뀐다.",
+    "meterScale": [1.05, 0.68],
+    "player": {
+      "_comment": "선수 운동학 (계획서 §2.1). sprint 실축 8-9.5, accel 0→sprint 1.5초.",
+      "sprint": 8.3,
+      "run": 6.5,
+      "jog": 3.8,
+      "walk": 1.5,
+      "accel": 5.5,
+      "reactionMin": 0.15,
+      "reactionMax": 0.35,
+      "arrivalRadius": 1.2
+    },
+    "actor": {
+      "_comment": "웨이포인트 배우 (계획서 §2.2). 순항속도=경로길이/duration. catchup=캐럿 추격 여유, speedCap으로 클램프(≤8.8 게이트).",
+      "catchup": 1.2,
+      "speedCap": 8.3
+    },
+    "shape": {
+      "_comment": "축구 형상 모델 (계획서 §2.3-B). 경기의 지리는 볼과 점유가 정한다. 팀별 backLine/frontLine(자기 골문 거리 d, x단위≈m)을 계산하고 필드 플레이어를 depthRank로 그 사이에 사상. buffer=공 뒤로 물러선 거리, length=팀 세로 길이(전후), width=진형 가로 폭계수(1=원본), yGain=블록중심이 공 y를 따르는 게인.",
+      "defend": {
+        "_comment": "수비 측(장면 side 반대팀): back=clamp(d_ball−18, 6, 45), front=min(back+28, d_ball+8), 폭 0.62, y게인 0.5.",
+        "buffer": 18,
+        "backClampLo": 6,
+        "backClampHi": 45,
+        "length": 28,
+        "width": 0.62,
+        "yGain": 0.5
+      },
+      "attack": {
+        "_comment": "공격 측(장면 side팀): back=clamp(d_ball−24, 14, 48)←48=하프라인 캡, front=상대 backLine x−offsideGap(오프사이드), back+minLength 이상 보장. 폭 빌드업 0.95 / 파이널서드(d_ball>60) 1.12, y게인 0.25.",
+        "buffer": 24,
+        "backClampLo": 14,
+        "backClampHi": 48,
+        "minLength": 26,
+        "offsideGap": 1.5,
+        "width": 0.95,
+        "widthFinalThird": 1.12,
+        "finalThirdDist": 60,
+        "yGain": 0.25
+      },
+      "neutral": {
+        "_comment": "중립 장면: 양 팀 모두 back=clamp(d_ball−20, 10, 40), length 30, 폭 0.85. y게인은 계획서 미명시 — 수비/공격 중간값 0.4로 설정(디자이너 튜닝).",
+        "buffer": 20,
+        "backClampLo": 10,
+        "backClampHi": 40,
+        "length": 30,
+        "width": 0.85,
+        "yGain": 0.4
+      },
+      "defendFrontAhead": 8,
+      "lineHeight": 5,
+      "tactic": {
+        "_comment": "카드 연동(자기 팀 상태): lineHeight low/mid/high=back −5/0/+5. attack{back+3, 폭+0.06} / counter{back−3} / park{back−6, length−4} / balanced{}.",
+        "attackBack": 3,
+        "attackWidth": 0.06,
+        "counterBack": 3,
+        "parkBack": 6,
+        "parkLength": 4
+      },
+      "smoothTau": 2.5,
+      "runThreshold": 8,
+      "runRamp": 4,
+      "refMaxSpeed": 6.0
+    },
+    "press": {
+      "_comment": "압박자 1인 규칙 (계획서 §2.3). standoff=캐리어 골문쪽 접근거리(m), hysteresisSec=역할 재지정 지연, engageDist=이 존거리(m) 밖이면 압박 안 함, recoverRadius=복귀 완료 판정(m).",
+      "standoff": 2.2,
+      "hysteresisSec": 1.0,
+      "engageDist": 18,
+      "recoverRadius": 3
+    },
+    "gk": {
+      "_comment": "골키퍼 (계획서 §2.3-B). 수비 GK 현행: advance=박스 안 전진(m), trackClampY=공 y 추종 한계(단위), boxX=자기 박스 경계. 공격 GK 스위퍼: 자기 backLine×sweeperRatio만큼 전진(자기 골문 거리), 최대 sweeperMaxX.",
+      "advance": 4,
+      "trackClampY": 9,
+      "boxX": 16,
+      "sweeperRatio": 0.3,
+      "sweeperMaxX": 18
+    },
+    "idle": {
+      "_comment": "유휴 미세 흔들림 (계획서 §2.3). 목표에만 얹어 실제 속도는 jog 상한 유지.",
+      "driftRadius": 0.6,
+      "freq": 0.6
+    },
+    "ball": {
+      "_comment": "공 물리 (계획서 §2.4). 속도 m/s, distRef=해당 최대속도에 도달하는 거리(m). loftHeight=포물선 최대 z.",
+      "passMin": 16,
+      "passMax": 22,
+      "passDistRef": 45,
+      "loftMin": 14,
+      "loftMax": 18,
+      "loftDistRef": 40,
+      "loftHeight": 0.9,
+      "shotMin": 27,
+      "shotMax": 33,
+      "shotDistRef": 30,
+      "looseSpeed": 8,
+      "collectSpeed": 7,
+      "carryAhead": 1.1,
+      "carryAheadAmp": 0.45,
+      "touchFreq": 3.2,
+      "offsetTau": 0.25,
+      "carryAttachDist": 1.6,
+      "carryMaxDist": 2.0,
+      "goalY": [46, 54]
+    }
+  }
+}

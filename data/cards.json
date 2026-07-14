@@ -1,0 +1,41 @@
+{
+  "_comment": "개입 카드 4종 (계획서 §8 고정). costsToken=개입권 소모 여부. 교체는 별도 3회 쿼터.",
+  "cards": [
+    {
+      "id": "line_adjust",
+      "name": "라인 조정",
+      "costsToken": true,
+      "options": [
+        { "value": "up", "label": "올리기" },
+        { "value": "down", "label": "내리기" }
+      ],
+      "risk": "올리면 뒷공간 피격 장면 가중치가 올라간다."
+    },
+    {
+      "id": "tactic",
+      "name": "전술 변경",
+      "costsToken": true,
+      "options": [
+        { "value": "balanced", "label": "밸런스" },
+        { "value": "attack", "label": "공격" },
+        { "value": "counter", "label": "역습" },
+        { "value": "park", "label": "잠금" }
+      ],
+      "risk": "적용 후 2장면 동안 적응 페널티."
+    },
+    {
+      "id": "encourage",
+      "name": "독려",
+      "costsToken": true,
+      "options": null,
+      "risk": "경기당 효과 체감 (2회째부터 절반)."
+    },
+    {
+      "id": "substitution",
+      "name": "교체",
+      "costsToken": false,
+      "options": null,
+      "risk": "3회 제한."
+    }
+  ]
+}

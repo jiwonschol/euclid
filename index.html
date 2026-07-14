@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>그라운드의 유클리드 — 프로토타입 v0.1</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <!-- 로딩 실패 안내 (file:// 직접 열기 등) -->
+  <div id="screen-error" class="screen hidden">
+    <h1>데이터를 불러오지 못했습니다</h1>
+    <p>브라우저 보안 정책 때문에 파일을 직접 열면 JSON을 읽을 수 없습니다.</p>
+    <p><b>start.command</b>를 더블클릭하거나, 터미널에서 <code>npm start</code> 실행 후<br/>
+      <code>http://localhost:8642</code>로 접속해 주세요.</p>
+  </div>
+
+  <!-- 참모 선택 (경기 시작 전) -->
+  <div id="screen-select" class="screen hidden">
+    <h1>그라운드의 유클리드</h1>
+    <p class="subtitle">프로토타입 v0.1 — 벤치에 앉을 참모를 선택하세요</p>
+    <div id="advisor-choices"></div>
+  </div>
+
+  <!-- 경기 화면 (§5 단일 화면) -->
+  <div id="screen-match" class="hidden">
+    <div class="match-left">
+      <div id="scoreboard">
+        <span class="team home">수원</span>
+        <span id="score">0 : 0</span>
+        <span class="team away">인천</span>
+        <span id="clock">0'</span>
+        <span id="speed-controls"></span>
+      </div>
+      <div id="pitch-wrap">
+        <canvas id="pitch"></canvas>
+        <div id="banner" class="hidden"></div>
+        <div id="scene-transition" class="hidden"><div class="st-minute"></div></div>
+      </div>
+      <div id="strip">
+        <div id="strip-l1"></div>
+        <div id="strip-l2"></div>
+      </div>
+    </div>
+    <div class="match-right">
+      <div id="advisor-panel">
+        <div id="advisor-face">😐</div>
+        <div id="advisor-name"></div>
+        <div id="advisor-hint"></div>
+      </div>
+      <div id="tokens-row">
+        <span id="tokens"></span>
+        <span id="subs"></span>
+      </div>
+      <div id="cards"></div>
+      <button id="debug-toggle">디버그</button>
+    </div>
+  </div>
+
+  <!-- 경기 후 브리핑 (§11) -->
+  <div id="screen-briefing" class="screen hidden">
+    <h1 id="briefing-score"></h1>
+    <p id="briefing-summary"></p>
+    <div id="briefing-items"></div>
+    <button id="btn-again">한 경기 더</button>
+  </div>
+
+  <!-- 풀 컷인 오버레이 -->
+  <div id="cutin" class="hidden">
+    <div class="cutin-title"></div>
+    <div class="cutin-sub"></div>
+  </div>
+
+  <!-- 디버그 패널 (§9 PRD 상시 표시) -->
+  <div id="debug" class="hidden"><pre id="debug-pre"></pre></div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

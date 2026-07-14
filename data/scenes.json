@@ -1,0 +1,2277 @@
+{
+  "_comment": "장면 풀. side=공격 주체. weight의 키는 조건식(만족 시 곱연산). requires는 하드 필터. outcome.table 확률 합=1. counter가 정의된 장면에서만 참모 신호가 발화한다(계획서 §10). 좌표: x0=홈골대, x100=상대골대.",
+  "scenes": [
+    {
+      "id": "home_right_wing_cross",
+      "side": "home",
+      "tags": [
+        "home_attack",
+        "right_flank"
+      ],
+      "weight": {
+        "base": 10,
+        "momentum>0": 1.4,
+        "tactic=attack": 1.5
+      },
+      "duration": 14,
+      "waypoints": {
+        "h9": [
+          [
+            42,
+            85
+          ],
+          [
+            60,
+            88
+          ],
+          [
+            76,
+            86
+          ],
+          [
+            82,
+            80
+          ]
+        ],
+        "h10": [
+          [
+            62,
+            38
+          ],
+          [
+            72,
+            44
+          ],
+          [
+            84,
+            50
+          ]
+        ],
+        "h11": [
+          [
+            62,
+            62
+          ],
+          [
+            74,
+            62
+          ],
+          [
+            82,
+            58
+          ]
+        ],
+        "ball": [
+          "h9",
+          "h9",
+          "h9",
+          "cross:h10",
+          "shot:away_goal"
+        ]
+      },
+      "narration": [
+        {
+          "text": "수원, 오른쪽 측면입니다. 9번이 터치라인을 타고 질주합니다."
+        },
+        {
+          "when": "score_diff<0&minute>=70",
+          "text": "시간이 없습니다. 수원, 다시 오른쪽. 9번이 필사적으로 달립니다."
+        }
+      ],
+      "outcome": {
+        "focal": "goal",
+        "table": [
+          [
+            "goal",
+            0.4
+          ],
+          [
+            "save",
+            0.26
+          ],
+          [
+            "miss",
+            0.18
+          ],
+          [
+            "clear",
+            0.16
+          ]
+        ]
+      }
+    },
+    {
+      "id": "home_left_overlap",
+      "side": "home",
+      "tags": [
+        "home_attack",
+        "left_flank"
+      ],
+      "weight": {
+        "base": 10,
+        "momentum>0": 1.3,
+        "tactic=attack": 1.4
+      },
+      "duration": 15,
+      "waypoints": {
+        "h6": [
+          [
+            42,
+            15
+          ],
+          [
+            58,
+            12
+          ],
+          [
+            70,
+            16
+          ]
+        ],
+        "h2": [
+          [
+            18,
+            15
+          ],
+          [
+            40,
+            10
+          ],
+          [
+            62,
+            8
+          ],
+          [
+            76,
+            12
+          ]
+        ],
+        "h11": [
+          [
+            62,
+            62
+          ],
+          [
+            74,
+            55
+          ],
+          [
+            84,
+            48
+          ]
+        ],
+        "ball": [
+          "h6",
+          "h6",
+          "pass:h2",
+          "h2",
+          "cross:h11",
+          "shot:away_goal"
+        ]
+      },
+      "narration": [
+        {
+          "text": "왼쪽에서 풀백이 오버래핑합니다. 수원의 유기적인 움직임."
+        }
+      ],
+      "outcome": {
+        "focal": "goal",
+        "table": [
+          [
+            "goal",
+            0.38
+          ],
+          [
+            "save",
+            0.28
+          ],
+          [
+            "miss",
+            0.18
+          ],
+          [
+            "clear",
+            0.16
+          ]
+        ]
+      }
+    },
+    {
+      "id": "home_center_combo",
+      "side": "home",
+      "tags": [
+        "home_attack",
+        "center"
+      ],
+      "weight": {
+        "base": 9,
+        "momentum>=2": 1.5,
+        "morale>=75": 1.3
+      },
+      "duration": 12,
+      "waypoints": {
+        "h10": [
+          [
+            62,
+            38
+          ],
+          [
+            72,
+            42
+          ],
+          [
+            80,
+            46
+          ],
+          [
+            86,
+            48
+          ]
+        ],
+        "h11": [
+          [
+            62,
+            62
+          ],
+          [
+            70,
+            56
+          ],
+          [
+            78,
+            52
+          ]
+        ],
+        "ball": [
+          "h10",
+          "pass:h11",
+          "pass:h10",
+          "shot:away_goal"
+        ]
+      },
+      "narration": [
+        {
+          "text": "중앙에서 투톱의 원투! 벽패스가 통합니다!"
+        }
+      ],
+      "outcome": {
+        "focal": "goal",
+        "table": [
+          [
+            "goal",
+            0.46
+          ],
+          [
+            "save",
+            0.26
+          ],
+          [
+            "miss",
+            0.16
+          ],
+          [
+            "clear",
+            0.12
+          ]
+        ]
+      },
+      "counter": {
+        "card": "encourage",
+        "window": "before_outcome",
+        "label": "독려",
+        "table": [
+          [
+            "goal",
+            0.5
+          ],
+          [
+            "save",
+            0.26
+          ],
+          [
+            "miss",
+            0.14
+          ],
+          [
+            "clear",
+            0.1
+          ]
+        ]
+      },
+      "advisor": {
+        "level": 1,
+        "kim": "감독님, 애들 발이 풀렸어요! 지금 밀어붙여야 해요!",
+        "euclid": "중앙 침투 성공률 현재 +11%p. 독려 시 기대 득점 0.42."
+      }
+    },
+    {
+      "id": "home_counter_fast",
+      "side": "home",
+      "tags": [
+        "home_attack",
+        "counter_attack"
+      ],
+      "weight": {
+        "base": 4,
+        "tactic=counter": 3.0,
+        "opp.lineHeight=high": 2.5
+      },
+      "duration": 11,
+      "waypoints": {
+        "h10": [
+          [
+            62,
+            38
+          ],
+          [
+            78,
+            40
+          ],
+          [
+            88,
+            46
+          ]
+        ],
+        "h11": [
+          [
+            62,
+            62
+          ],
+          [
+            76,
+            58
+          ],
+          [
+            86,
+            52
+          ]
+        ],
+        "h7": [
+          [
+            42,
+            38
+          ],
+          [
+            58,
+            42
+          ]
+        ],
+        "ball": [
+          "h7",
+          "pass:h10",
+          "h10",
+          "shot:away_goal"
+        ]
+      },
+      "narration": [
+        {
+          "text": "역습! 상대 진영이 텅 비었습니다! 수원이 단숨에 넘어갑니다!"
+        }
+      ],
+      "outcome": {
+        "focal": "goal",
+        "table": [
+          [
+            "goal",
+            0.54
+          ],
+          [
+            "save",
+            0.24
+          ],
+          [
+            "miss",
+            0.12
+          ],
+          [
+            "clear",
+            0.1
+          ]
+        ]
+      }
+    },
+    {
+      "id": "home_longshot",
+      "side": "home",
+      "tags": [
+        "home_attack",
+        "longshot"
+      ],
+      "weight": {
+        "base": 6,
+        "momentum<=-1": 1.4
+      },
+      "duration": 10,
+      "waypoints": {
+        "h7": [
+          [
+            42,
+            38
+          ],
+          [
+            54,
+            44
+          ],
+          [
+            66,
+            50
+          ]
+        ],
+        "ball": [
+          "h7",
+          "h7",
+          "shot:away_goal"
+        ]
+      },
+      "narration": [
+        {
+          "text": "마땅한 공간이 없자 7번, 과감하게 중거리로 노려봅니다."
+        }
+      ],
+      "outcome": {
+        "focal": "goal",
+        "table": [
+          [
+            "goal",
+            0.22
+          ],
+          [
+            "save",
+            0.36
+          ],
+          [
+            "miss",
+            0.32
+          ],
+          [
+            "clear",
+            0.1
+          ]
+        ]
+      }
+    },
+    {
+      "id": "home_freekick",
+      "side": "home",
+      "tags": [
+        "home_attack",
+        "set_piece"
+      ],
+      "weight": {
+        "base": 5
+      },
+      "duration": 13,
+      "waypoints": {
+        "h8": [
+          [
+            42,
+            62
+          ],
+          [
+            74,
+            55
+          ]
+        ],
+        "h10": [
+          [
+            62,
+            38
+          ],
+          [
+            82,
+            42
+          ],
+          [
+            88,
+            50
+          ]
+        ],
+        "h4": [
+          [
+            18,
+            62
+          ],
+          [
+            76,
+            60
+          ],
+          [
+            84,
+            54
+          ]
+        ],
+        "ball": [
+          "h8",
+          "h8",
+          "cross:h10",
+          "shot:away_goal"
+        ]
+      },
+      "narration": [
+        {
+          "text": "위험 지역에서 프리킥을 얻어냈습니다. 키커가 공을 내려놓습니다."
+        }
+      ],
+      "outcome": {
+        "focal": "goal",
+        "table": [
+          [
+            "goal",
+            0.4
+          ],
+          [
+            "save",
+            0.24
+          ],
+          [
+            "miss",
+            0.22
+          ],
+          [
+            "clear",
+            0.14
+          ]
+        ]
+      },
+      "counter": {
+        "card": "encourage",
+        "window": "before_outcome",
+        "label": "독려",
+        "table": [
+          [
+            "goal",
+            0.46
+          ],
+          [
+            "save",
+            0.24
+          ],
+          [
+            "miss",
+            0.18
+          ],
+          [
+            "clear",
+            0.12
+          ]
+        ]
+      },
+      "advisor": {
+        "level": 1,
+        "kim": "세트피스예요! 이럴 때 한마디 해주시면 애들이 날아다녀요!",
+        "euclid": "세트피스 집중도 보정 가능. 독려 시 기대 득점 +8%p."
+      }
+    },
+    {
+      "id": "home_corner",
+      "side": "home",
+      "tags": [
+        "home_attack",
+        "set_piece"
+      ],
+      "weight": {
+        "base": 5
+      },
+      "duration": 12,
+      "waypoints": {
+        "h9": [
+          [
+            42,
+            85
+          ],
+          [
+            98,
+            97
+          ]
+        ],
+        "h10": [
+          [
+            62,
+            38
+          ],
+          [
+            86,
+            44
+          ],
+          [
+            92,
+            50
+          ]
+        ],
+        "h11": [
+          [
+            62,
+            62
+          ],
+          [
+            88,
+            58
+          ],
+          [
+            93,
+            52
+          ]
+        ],
+        "h3": [
+          [
+            18,
+            38
+          ],
+          [
+            80,
+            40
+          ],
+          [
+            90,
+            46
+          ]
+        ],
+        "ball": [
+          "h9",
+          "h9",
+          "cross:h10",
+          "shot:away_goal"
+        ]
+      },
+      "narration": [
+        {
+          "text": "수원의 코너킥. 장신 수비수까지 올라와 있습니다."
+        }
+      ],
+      "outcome": {
+        "focal": "goal",
+        "table": [
+          [
+            "goal",
+            0.36
+          ],
+          [
+            "save",
+            0.24
+          ],
+          [
+            "miss",
+            0.22
+          ],
+          [
+            "clear",
+            0.18
+          ]
+        ]
+      }
+    },
+    {
+      "id": "home_press_high",
+      "side": "home",
+      "tags": [
+        "home_attack",
+        "press"
+      ],
+      "requires": [
+        "lineHeight=high"
+      ],
+      "weight": {
+        "base": 8
+      },
+      "duration": 12,
+      "waypoints": {
+        "h10": [
+          [
+            68,
+            38
+          ],
+          [
+            76,
+            46
+          ],
+          [
+            84,
+            48
+          ]
+        ],
+        "h11": [
+          [
+            68,
+            62
+          ],
+          [
+            78,
+            56
+          ]
+        ],
+        "h7": [
+          [
+            48,
+            38
+          ],
+          [
+            62,
+            44
+          ],
+          [
+            74,
+            48
+          ]
+        ],
+        "ball": [
+          "point:78,52",
+          "h10",
+          "h10",
+          "shot:away_goal"
+        ]
+      },
+      "narration": [
+        {
+          "text": "전방 압박이 통했습니다! 상대 진영에서 공을 끊어냅니다!"
+        }
+      ],
+      "outcome": {
+        "focal": "goal",
+        "table": [
+          [
+            "goal",
+            0.46
+          ],
+          [
+            "save",
+            0.24
+          ],
+          [
+            "miss",
+            0.18
+          ],
+          [
+            "clear",
+            0.12
+          ]
+        ]
+      }
+    },
+    {
+      "id": "opp_left_cross_barrage",
+      "side": "away",
+      "tags": [
+        "opp_attack",
+        "left_flank"
+      ],
+      "weight": {
+        "base": 10,
+        "momentum<0": 1.5,
+        "opp.tactic=attack": 1.4
+      },
+      "duration": 14,
+      "waypoints": {
+        "a7": [
+          [
+            58,
+            62
+          ],
+          [
+            40,
+            70
+          ],
+          [
+            24,
+            78
+          ],
+          [
+            16,
+            72
+          ]
+        ],
+        "a10": [
+          [
+            38,
+            62
+          ],
+          [
+            26,
+            56
+          ],
+          [
+            16,
+            50
+          ]
+        ],
+        "ball": [
+          "a7",
+          "a7",
+          "a7",
+          "cross:a10",
+          "shot:home_goal"
+        ]
+      },
+      "narration": [
+        {
+          "text": "인천이 또 왼쪽입니다. 벌써 몇 번째 크로스인지."
+        },
+        {
+          "when": "momentum<=-2",
+          "text": "완전히 흐름을 내줬습니다. 인천, 왼쪽에서 또 올라옵니다."
+        }
+      ],
+      "outcome": {
+        "focal": "goal",
+        "table": [
+          [
+            "goal",
+            0.28
+          ],
+          [
+            "save",
+            0.34
+          ],
+          [
+            "miss",
+            0.16
+          ],
+          [
+            "clear",
+            0.22
+          ]
+        ]
+      },
+      "counter": {
+        "card": "line_adjust",
+        "choice": [
+          "down"
+        ],
+        "window": "before_outcome",
+        "label": "라인 내리기",
+        "table": [
+          [
+            "goal",
+            0.05
+          ],
+          [
+            "save",
+            0.35
+          ],
+          [
+            "miss",
+            0.18
+          ],
+          [
+            "clear",
+            0.42
+          ]
+        ]
+      },
+      "advisor": {
+        "level": 2,
+        "kim": "왼쪽! 왼쪽이 뚫려요!",
+        "euclid": "좌측 크로스 허용 시즌 평균 3.1배. 라인 하강 시 실점 확률 18%→5%."
+      }
+    },
+    {
+      "id": "opp_right_cut",
+      "side": "away",
+      "tags": [
+        "opp_attack",
+        "right_flank"
+      ],
+      "weight": {
+        "base": 10,
+        "momentum<0": 1.4,
+        "opp.tactic=attack": 1.3
+      },
+      "duration": 13,
+      "waypoints": {
+        "a9": [
+          [
+            58,
+            15
+          ],
+          [
+            42,
+            12
+          ],
+          [
+            28,
+            18
+          ],
+          [
+            20,
+            28
+          ]
+        ],
+        "a11": [
+          [
+            38,
+            38
+          ],
+          [
+            26,
+            40
+          ],
+          [
+            18,
+            44
+          ]
+        ],
+        "ball": [
+          "a9",
+          "a9",
+          "a9",
+          "shot:home_goal"
+        ]
+      },
+      "narration": [
+        {
+          "text": "오른쪽에서 인천의 윙어가 안으로 파고듭니다. 위험합니다."
+        }
+      ],
+      "outcome": {
+        "focal": "goal",
+        "table": [
+          [
+            "goal",
+            0.32
+          ],
+          [
+            "save",
+            0.32
+          ],
+          [
+            "miss",
+            0.18
+          ],
+          [
+            "clear",
+            0.18
+          ]
+        ]
+      },
+      "counter": {
+        "card": "line_adjust",
+        "choice": [
+          "down"
+        ],
+        "window": "before_outcome",
+        "label": "라인 내리기",
+        "table": [
+          [
+            "goal",
+            0.08
+          ],
+          [
+            "save",
+            0.36
+          ],
+          [
+            "miss",
+            0.2
+          ],
+          [
+            "clear",
+            0.36
+          ]
+        ]
+      },
+      "advisor": {
+        "level": 2,
+        "kim": "쟤 발 빨라요! 뒤로 물러서야 하는 거 아니에요?!",
+        "euclid": "역측 침투 반복 패턴. 라인 하강 시 차단률 +28%p."
+      }
+    },
+    {
+      "id": "opp_center_through",
+      "side": "away",
+      "tags": [
+        "opp_attack",
+        "center",
+        "punish_high_line"
+      ],
+      "weight": {
+        "base": 5,
+        "lineHeight=high": 2.8,
+        "opp.tactic=counter": 1.6
+      },
+      "duration": 11,
+      "waypoints": {
+        "a10": [
+          [
+            38,
+            62
+          ],
+          [
+            24,
+            54
+          ],
+          [
+            14,
+            50
+          ]
+        ],
+        "a8": [
+          [
+            58,
+            38
+          ],
+          [
+            44,
+            44
+          ]
+        ],
+        "ball": [
+          "a8",
+          "pass:a10",
+          "a10",
+          "shot:home_goal"
+        ]
+      },
+      "narration": [
+        {
+          "text": "한 번에 갈라집니다! 수원 수비 뒷공간, 인천 공격수가 파고듭니다!"
+        },
+        {
+          "when": "lineHeight=high",
+          "text": "올린 라인의 뒷공간이 그대로 노출됐습니다! 인천의 스루패스!"
+        }
+      ],
+      "outcome": {
+        "focal": "goal",
+        "table": [
+          [
+            "goal",
+            0.48
+          ],
+          [
+            "save",
+            0.26
+          ],
+          [
+            "miss",
+            0.14
+          ],
+          [
+            "clear",
+            0.12
+          ]
+        ]
+      },
+      "counter": {
+        "card": "line_adjust",
+        "choice": [
+          "down"
+        ],
+        "window": "before_outcome",
+        "label": "라인 내리기",
+        "table": [
+          [
+            "goal",
+            0.15
+          ],
+          [
+            "save",
+            0.4
+          ],
+          [
+            "miss",
+            0.2
+          ],
+          [
+            "clear",
+            0.25
+          ]
+        ]
+      },
+      "advisor": {
+        "level": 3,
+        "kim": "뒷공간!! 뒷공간 다 죽었어요!!",
+        "euclid": "뒷공간 노출 임계 초과. 즉시 라인 하강 권장. 실점 확률 38%."
+      }
+    },
+    {
+      "id": "opp_counter_break",
+      "side": "away",
+      "tags": [
+        "opp_attack",
+        "counter_attack"
+      ],
+      "weight": {
+        "base": 4,
+        "tactic=attack": 2.6,
+        "lineHeight=high": 1.8,
+        "opp.tactic=counter": 2.0
+      },
+      "duration": 11,
+      "waypoints": {
+        "a10": [
+          [
+            38,
+            62
+          ],
+          [
+            22,
+            58
+          ],
+          [
+            12,
+            52
+          ]
+        ],
+        "a11": [
+          [
+            38,
+            38
+          ],
+          [
+            24,
+            42
+          ],
+          [
+            14,
+            46
+          ]
+        ],
+        "ball": [
+          "a11",
+          "a11",
+          "pass:a10",
+          "shot:home_goal"
+        ]
+      },
+      "narration": [
+        {
+          "text": "차단당했습니다! 인천의 역습이 시작됩니다. 수원 진영이 비어 있어요!"
+        }
+      ],
+      "outcome": {
+        "focal": "goal",
+        "table": [
+          [
+            "goal",
+            0.46
+          ],
+          [
+            "save",
+            0.24
+          ],
+          [
+            "miss",
+            0.16
+          ],
+          [
+            "clear",
+            0.14
+          ]
+        ]
+      },
+      "counter": {
+        "card": "line_adjust",
+        "choice": [
+          "down"
+        ],
+        "window": "before_outcome",
+        "label": "라인 내리기",
+        "table": [
+          [
+            "goal",
+            0.12
+          ],
+          [
+            "save",
+            0.38
+          ],
+          [
+            "miss",
+            0.22
+          ],
+          [
+            "clear",
+            0.28
+          ]
+        ]
+      },
+      "advisor": {
+        "level": 3,
+        "kim": "역습이다!! 다 넘어와요!!",
+        "euclid": "공수 전환 3초 경과, 수비 복귀 인원 부족. 실점 확률 35%."
+      }
+    },
+    {
+      "id": "opp_longshot",
+      "side": "away",
+      "tags": [
+        "opp_attack",
+        "longshot"
+      ],
+      "weight": {
+        "base": 6
+      },
+      "duration": 10,
+      "waypoints": {
+        "a8": [
+          [
+            58,
+            38
+          ],
+          [
+            46,
+            42
+          ],
+          [
+            36,
+            48
+          ]
+        ],
+        "ball": [
+          "a8",
+          "a8",
+          "shot:home_goal"
+        ]
+      },
+      "narration": [
+        {
+          "text": "인천 미드필더, 거리를 두고 한 방 노려봅니다."
+        }
+      ],
+      "outcome": {
+        "focal": "goal",
+        "table": [
+          [
+            "goal",
+            0.19
+          ],
+          [
+            "save",
+            0.36
+          ],
+          [
+            "miss",
+            0.33
+          ],
+          [
+            "clear",
+            0.12
+          ]
+        ]
+      }
+    },
+    {
+      "id": "opp_corner",
+      "side": "away",
+      "tags": [
+        "opp_attack",
+        "set_piece"
+      ],
+      "weight": {
+        "base": 5
+      },
+      "duration": 12,
+      "waypoints": {
+        "a7": [
+          [
+            58,
+            62
+          ],
+          [
+            2,
+            97
+          ]
+        ],
+        "a10": [
+          [
+            38,
+            62
+          ],
+          [
+            14,
+            56
+          ],
+          [
+            8,
+            50
+          ]
+        ],
+        "a3": [
+          [
+            82,
+            62
+          ],
+          [
+            20,
+            60
+          ],
+          [
+            10,
+            52
+          ]
+        ],
+        "ball": [
+          "a7",
+          "a7",
+          "cross:a10",
+          "shot:home_goal"
+        ]
+      },
+      "narration": [
+        {
+          "text": "인천의 코너킥입니다. 문전이 혼잡해집니다."
+        }
+      ],
+      "outcome": {
+        "focal": "goal",
+        "table": [
+          [
+            "goal",
+            0.3
+          ],
+          [
+            "save",
+            0.24
+          ],
+          [
+            "miss",
+            0.24
+          ],
+          [
+            "clear",
+            0.22
+          ]
+        ]
+      },
+      "counter": {
+        "card": "encourage",
+        "window": "before_outcome",
+        "label": "독려(집중)",
+        "table": [
+          [
+            "goal",
+            0.1
+          ],
+          [
+            "save",
+            0.36
+          ],
+          [
+            "miss",
+            0.26
+          ],
+          [
+            "clear",
+            0.28
+          ]
+        ]
+      },
+      "advisor": {
+        "level": 2,
+        "kim": "세트피스 집중! 한 번 소리쳐 주세요!",
+        "euclid": "상대 세트피스 득점률 20%. 집중 지시 시 10%로 하강."
+      }
+    },
+    {
+      "id": "opp_freekick",
+      "side": "away",
+      "tags": [
+        "opp_attack",
+        "set_piece"
+      ],
+      "weight": {
+        "base": 5
+      },
+      "duration": 13,
+      "waypoints": {
+        "a8": [
+          [
+            58,
+            38
+          ],
+          [
+            30,
+            45
+          ]
+        ],
+        "a10": [
+          [
+            38,
+            62
+          ],
+          [
+            16,
+            55
+          ],
+          [
+            9,
+            49
+          ]
+        ],
+        "ball": [
+          "a8",
+          "a8",
+          "cross:a10",
+          "shot:home_goal"
+        ]
+      },
+      "narration": [
+        {
+          "text": "위험한 위치에서 인천의 프리킥. 수비벽이 만들어집니다."
+        }
+      ],
+      "outcome": {
+        "focal": "goal",
+        "table": [
+          [
+            "goal",
+            0.32
+          ],
+          [
+            "save",
+            0.28
+          ],
+          [
+            "miss",
+            0.24
+          ],
+          [
+            "clear",
+            0.16
+          ]
+        ]
+      }
+    },
+    {
+      "id": "opp_press_trap",
+      "side": "away",
+      "tags": [
+        "opp_attack",
+        "press"
+      ],
+      "weight": {
+        "base": 4,
+        "opp.tactic=counter": 2.2,
+        "momentum<0": 1.3
+      },
+      "duration": 13,
+      "waypoints": {
+        "a10": [
+          [
+            38,
+            62
+          ],
+          [
+            30,
+            52
+          ],
+          [
+            24,
+            46
+          ]
+        ],
+        "a11": [
+          [
+            38,
+            38
+          ],
+          [
+            30,
+            40
+          ]
+        ],
+        "h3": [
+          [
+            18,
+            38
+          ],
+          [
+            24,
+            42
+          ],
+          [
+            20,
+            40
+          ]
+        ],
+        "ball": [
+          "h3",
+          "h3",
+          "point:26,44",
+          "a10",
+          "shot:home_goal"
+        ]
+      },
+      "narration": [
+        {
+          "text": "인천의 전방 압박. 수원의 빌드업이 뒤에서부터 꼬이고 있습니다."
+        }
+      ],
+      "outcome": {
+        "focal": "goal",
+        "table": [
+          [
+            "goal",
+            0.22
+          ],
+          [
+            "save",
+            0.24
+          ],
+          [
+            "miss",
+            0.09
+          ],
+          [
+            "turnover",
+            0.2
+          ],
+          [
+            "flow_gain",
+            0.25
+          ]
+        ]
+      },
+      "counter": {
+        "card": "tactic",
+        "choice": [
+          "counter"
+        ],
+        "window": "before_outcome",
+        "label": "전술: 역습 전환",
+        "table": [
+          [
+            "goal",
+            0.04
+          ],
+          [
+            "save",
+            0.1
+          ],
+          [
+            "miss",
+            0.08
+          ],
+          [
+            "turnover",
+            0.58
+          ],
+          [
+            "flow_gain",
+            0.2
+          ]
+        ]
+      },
+      "advisor": {
+        "level": 2,
+        "kim": "뒤에서 돌리다 뺏기겠어요! 그냥 길게 차라고 해요!",
+        "euclid": "압박 이탈 경로 봉쇄됨. 역습 전환 시 탈압박 성공률 74%."
+      }
+    },
+    {
+      "id": "mid_stalemate",
+      "side": "neutral",
+      "tags": [
+        "flow",
+        "midfield"
+      ],
+      "weight": {
+        "base": 12
+      },
+      "duration": 12,
+      "waypoints": {
+        "h7": [
+          [
+            42,
+            38
+          ],
+          [
+            50,
+            44
+          ],
+          [
+            46,
+            50
+          ],
+          [
+            52,
+            42
+          ]
+        ],
+        "a8": [
+          [
+            58,
+            38
+          ],
+          [
+            52,
+            44
+          ],
+          [
+            56,
+            50
+          ],
+          [
+            50,
+            44
+          ]
+        ],
+        "ball": [
+          "h7",
+          "a8",
+          "h7",
+          "a8"
+        ]
+      },
+      "narration": [
+        {
+          "text": "중원에서 볼이 오갑니다. 양 팀 모두 쉽게 열리지 않는 흐름."
+        },
+        {
+          "when": "minute>=80",
+          "text": "종료가 가까워지자 중원 싸움이 더 거칠어집니다."
+        }
+      ],
+      "outcome": {
+        "focal": null,
+        "table": [
+          [
+            "flow_gain",
+            0.4
+          ],
+          [
+            "flow_loss",
+            0.4
+          ],
+          [
+            "foul",
+            0.2
+          ]
+        ]
+      }
+    },
+    {
+      "id": "home_possession",
+      "side": "home",
+      "tags": [
+        "flow",
+        "possession"
+      ],
+      "weight": {
+        "base": 11,
+        "momentum>=0": 1.3,
+        "tactic=balanced": 1.2
+      },
+      "duration": 13,
+      "waypoints": {
+        "h7": [
+          [
+            42,
+            38
+          ],
+          [
+            48,
+            42
+          ],
+          [
+            44,
+            46
+          ]
+        ],
+        "h8": [
+          [
+            42,
+            62
+          ],
+          [
+            50,
+            58
+          ],
+          [
+            46,
+            54
+          ]
+        ],
+        "h3": [
+          [
+            18,
+            38
+          ],
+          [
+            26,
+            42
+          ]
+        ],
+        "ball": [
+          "h3",
+          "pass:h7",
+          "h7",
+          "pass:h8",
+          "h8"
+        ]
+      },
+      "narration": [
+        {
+          "text": "수원이 차분하게 공을 돌립니다. 점유율을 가져가는 시간."
+        }
+      ],
+      "outcome": {
+        "focal": null,
+        "table": [
+          [
+            "flow_gain",
+            0.65
+          ],
+          [
+            "flow_loss",
+            0.35
+          ]
+        ]
+      }
+    },
+    {
+      "id": "opp_possession",
+      "side": "away",
+      "tags": [
+        "flow",
+        "possession"
+      ],
+      "weight": {
+        "base": 11,
+        "momentum<0": 1.3
+      },
+      "duration": 13,
+      "waypoints": {
+        "a8": [
+          [
+            58,
+            38
+          ],
+          [
+            52,
+            42
+          ],
+          [
+            56,
+            46
+          ]
+        ],
+        "a7": [
+          [
+            58,
+            62
+          ],
+          [
+            50,
+            58
+          ],
+          [
+            54,
+            54
+          ]
+        ],
+        "a4": [
+          [
+            82,
+            38
+          ],
+          [
+            74,
+            42
+          ]
+        ],
+        "ball": [
+          "a4",
+          "pass:a8",
+          "a8",
+          "pass:a7",
+          "a7"
+        ]
+      },
+      "narration": [
+        {
+          "text": "인천이 볼을 소유하며 수원 진영을 두드릴 곳을 찾습니다."
+        }
+      ],
+      "outcome": {
+        "focal": null,
+        "table": [
+          [
+            "flow_gain",
+            0.6
+          ],
+          [
+            "flow_loss",
+            0.4
+          ]
+        ]
+      }
+    },
+    {
+      "id": "home_buildup_patient",
+      "side": "home",
+      "tags": [
+        "flow",
+        "buildup"
+      ],
+      "weight": {
+        "base": 9,
+        "tactic=park": 1.5
+      },
+      "duration": 12,
+      "waypoints": {
+        "h3": [
+          [
+            18,
+            38
+          ],
+          [
+            24,
+            44
+          ],
+          [
+            20,
+            50
+          ]
+        ],
+        "h4": [
+          [
+            18,
+            62
+          ],
+          [
+            24,
+            56
+          ],
+          [
+            20,
+            50
+          ]
+        ],
+        "h1": [
+          [
+            4,
+            50
+          ],
+          [
+            8,
+            50
+          ]
+        ],
+        "ball": [
+          "h1",
+          "pass:h3",
+          "h3",
+          "pass:h4",
+          "h4"
+        ]
+      },
+      "narration": [
+        {
+          "text": "수원, 뒤에서부터 신중하게. 서두르지 않겠다는 의도가 보입니다."
+        }
+      ],
+      "outcome": {
+        "focal": null,
+        "table": [
+          [
+            "flow_gain",
+            0.55
+          ],
+          [
+            "flow_loss",
+            0.45
+          ]
+        ]
+      }
+    },
+    {
+      "id": "midfield_foul",
+      "side": "neutral",
+      "tags": [
+        "flow",
+        "foul"
+      ],
+      "weight": {
+        "base": 6,
+        "minute>=60": 1.3
+      },
+      "duration": 11,
+      "waypoints": {
+        "h8": [
+          [
+            42,
+            62
+          ],
+          [
+            50,
+            58
+          ],
+          [
+            54,
+            56
+          ]
+        ],
+        "a7": [
+          [
+            58,
+            62
+          ],
+          [
+            52,
+            58
+          ],
+          [
+            54,
+            56
+          ]
+        ],
+        "ball": [
+          "h8",
+          "h8",
+          "point:54,56"
+        ]
+      },
+      "narration": [
+        {
+          "text": "중원에서 거친 태클이 나옵니다. 휘슬이 울립니다."
+        }
+      ],
+      "outcome": {
+        "focal": null,
+        "table": [
+          [
+            "foul",
+            0.96
+          ],
+          [
+            "red_home",
+            0.02
+          ],
+          [
+            "red_away",
+            0.02
+          ]
+        ]
+      }
+    },
+    {
+      "id": "opp_harsh_tackle",
+      "side": "away",
+      "tags": [
+        "flow",
+        "foul",
+        "card_risk"
+      ],
+      "weight": {
+        "base": 1.5,
+        "momentum>=2": 1.8,
+        "minute>=70": 1.4
+      },
+      "duration": 11,
+      "waypoints": {
+        "h10": [
+          [
+            62,
+            38
+          ],
+          [
+            70,
+            42
+          ],
+          [
+            74,
+            44
+          ]
+        ],
+        "a3": [
+          [
+            82,
+            62
+          ],
+          [
+            74,
+            48
+          ],
+          [
+            73,
+            44
+          ]
+        ],
+        "ball": [
+          "h10",
+          "h10",
+          "point:74,44"
+        ]
+      },
+      "narration": [
+        {
+          "text": "인천 수비수의 태클이 깊게 들어갔습니다! 주심이 달려옵니다."
+        }
+      ],
+      "outcome": {
+        "focal": null,
+        "table": [
+          [
+            "foul",
+            0.85
+          ],
+          [
+            "red_away",
+            0.15
+          ]
+        ]
+      }
+    },
+    {
+      "id": "home_harsh_tackle",
+      "side": "home",
+      "tags": [
+        "flow",
+        "foul",
+        "card_risk"
+      ],
+      "weight": {
+        "base": 1.5,
+        "momentum<=-2": 1.8,
+        "minute>=70": 1.4
+      },
+      "duration": 11,
+      "waypoints": {
+        "a10": [
+          [
+            38,
+            62
+          ],
+          [
+            32,
+            54
+          ],
+          [
+            30,
+            50
+          ]
+        ],
+        "h3": [
+          [
+            18,
+            38
+          ],
+          [
+            28,
+            46
+          ],
+          [
+            29,
+            49
+          ]
+        ],
+        "ball": [
+          "a10",
+          "a10",
+          "point:30,50"
+        ]
+      },
+      "narration": [
+        {
+          "text": "수원 수비수가 늦은 태클! 이건 위험합니다. 주심이 카드를 꺼내려 합니다."
+        }
+      ],
+      "outcome": {
+        "focal": null,
+        "table": [
+          [
+            "foul",
+            0.85
+          ],
+          [
+            "red_home",
+            0.15
+          ]
+        ]
+      }
+    },
+    {
+      "id": "opp_timewaste",
+      "side": "away",
+      "tags": [
+        "flow",
+        "timewaste"
+      ],
+      "weight": {
+        "base": 1.5,
+        "opp.tactic=park": 4.0,
+        "minute>=75&score_diff<0": 2.0
+      },
+      "duration": 12,
+      "waypoints": {
+        "a1": [
+          [
+            96,
+            50
+          ],
+          [
+            94,
+            54
+          ],
+          [
+            95,
+            48
+          ]
+        ],
+        "a3": [
+          [
+            82,
+            62
+          ],
+          [
+            88,
+            58
+          ],
+          [
+            86,
+            54
+          ]
+        ],
+        "a4": [
+          [
+            82,
+            38
+          ],
+          [
+            88,
+            42
+          ]
+        ],
+        "ball": [
+          "a1",
+          "a1",
+          "pass:a3",
+          "a3",
+          "pass:a4",
+          "a4"
+        ]
+      },
+      "narration": [
+        {
+          "text": "인천이 노골적으로 시간을 흘려보냅니다. 골키퍼까지 공을 돌립니다."
+        },
+        {
+          "when": "momentum<=-2",
+          "text": "흐름을 완전히 쥔 인천, 이제는 경기를 죽이는 데 집중합니다."
+        }
+      ],
+      "outcome": {
+        "focal": null,
+        "table": [
+          [
+            "timewaste",
+            1.0
+          ]
+        ]
+      },
+      "counter": {
+        "card": "line_adjust",
+        "choice": [
+          "up"
+        ],
+        "window": "before_outcome",
+        "label": "라인 올리기(압박)",
+        "table": [
+          [
+            "turnover",
+            0.65
+          ],
+          [
+            "timewaste",
+            0.35
+          ]
+        ]
+      },
+      "advisor": {
+        "level": 2,
+        "kim": "이대로 두면 이 페이스로 끝나요! 올려서 잡아야죠!",
+        "euclid": "볼 순환 템포 -34%. 압박 라인 상승 시 탈취 확률 65%."
+      }
+    },
+    {
+      "id": "home_wing_switch",
+      "side": "home",
+      "tags": [
+        "home_attack",
+        "switch_play"
+      ],
+      "weight": {
+        "base": 7,
+        "opp.tactic=park": 1.4
+      },
+      "duration": 15,
+      "waypoints": {
+        "h8": [
+          [
+            42,
+            62
+          ],
+          [
+            52,
+            60
+          ]
+        ],
+        "h6": [
+          [
+            42,
+            15
+          ],
+          [
+            60,
+            12
+          ],
+          [
+            74,
+            14
+          ],
+          [
+            80,
+            20
+          ]
+        ],
+        "h10": [
+          [
+            62,
+            38
+          ],
+          [
+            76,
+            40
+          ],
+          [
+            85,
+            46
+          ]
+        ],
+        "ball": [
+          "h8",
+          "cross:h6",
+          "h6",
+          "cross:h10",
+          "shot:away_goal"
+        ]
+      },
+      "narration": [
+        {
+          "text": "수원이 좌우로 크게 흔듭니다. 반대편 측면이 열렸습니다!"
+        }
+      ],
+      "outcome": {
+        "focal": "goal",
+        "table": [
+          [
+            "goal",
+            0.36
+          ],
+          [
+            "save",
+            0.26
+          ],
+          [
+            "miss",
+            0.2
+          ],
+          [
+            "clear",
+            0.18
+          ]
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "_comment": "참모 2인 (계획서 §10). 신호는 3단계로 통일, 표현만 다르다. faces는 교체 가능한 에셋 슬롯(지금은 이모지). signalDelayBeats: 장면 시작 후 신호까지의 비트 수(1비트=2초).",
+  "advisors": [
+    {
+      "id": "gimseongju",
+      "name": "김성주",
+      "tagline": "요란하지만 빠르다. 말은 모호하다.",
+      "hintField": "kim",
+      "signalDelayBeats": 0,
+      "faces": {
+        "0": { "emoji": "😐", "label": "관전" },
+        "1": { "emoji": "🧐", "label": "주시" },
+        "2": { "emoji": "😲", "label": "감지" },
+        "3": { "emoji": "🔥", "label": "긴급" }
+      },
+      "idleLines": [
+        "흐음...",
+        "나쁘지 않아요, 이 흐름.",
+        "쟤들 뭔가 꾸미는 거 같은데..."
+      ]
+    },
+    {
+      "id": "euclid",
+      "name": "유클리드",
+      "tagline": "느리지만 정확하다. 숫자로 말한다.",
+      "hintField": "euclid",
+      "signalDelayBeats": 1,
+      "faces": {
+        "0": { "emoji": "📖", "label": "관전" },
+        "1": { "emoji": "📈", "label": "분석" },
+        "2": { "emoji": "👁️", "label": "고개를 든다" },
+        "3": { "emoji": "🧍", "label": "일어선다" }
+      },
+      "idleLines": [
+        "…(태블릿을 본다)",
+        "표본이 더 필요합니다.",
+        "현재까지는 기대 범위 내 흐름입니다."
+      ]
+    }
+  ]
+}

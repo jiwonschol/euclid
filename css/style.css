@@ -1,0 +1,222 @@
+/* 프로토타입 — 예쁘게 만들지 않는다. 읽히기만 하면 된다. */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  background: #0f1115;
+  color: #e5e7eb;
+  font-family: -apple-system, "Apple SD Gothic Neo", "Pretendard", sans-serif;
+  overflow: hidden;
+}
+.hidden { display: none !important; }
+
+/* 전체 화면형 스크린 (선택/브리핑/에러) */
+.screen {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  text-align: center;
+  padding: 24px;
+}
+.screen h1 { font-size: 34px; }
+.subtitle { color: #9ca3af; }
+
+#advisor-choices { display: flex; gap: 20px; margin-top: 12px; }
+.advisor-card {
+  width: 260px;
+  padding: 24px 20px;
+  background: #1a1d24;
+  border: 1px solid #2c313c;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.advisor-card:hover { border-color: #3b82f6; }
+.advisor-card .face { font-size: 44px; }
+.advisor-card .name { font-size: 20px; font-weight: 700; margin: 10px 0 6px; }
+.advisor-card .tagline { color: #9ca3af; font-size: 13px; line-height: 1.5; }
+
+/* 경기 화면: 좌(스코어보드/피치/스트립) + 우(참모/카드) */
+#screen-match {
+  display: grid;
+  grid-template-columns: 1fr 240px;
+  height: 100vh;
+  gap: 8px;
+  padding: 8px;
+}
+.match-left { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.match-right { display: flex; flex-direction: column; gap: 8px; }
+
+#scoreboard {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #1a1d24;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 18px;
+  font-weight: 700;
+}
+#scoreboard .home { color: #60a5fa; }
+#scoreboard .away { color: #f87171; }
+#clock { margin-left: auto; font-variant-numeric: tabular-nums; }
+#speed-controls button {
+  background: #262b35;
+  color: #9ca3af;
+  border: none;
+  border-radius: 5px;
+  padding: 4px 10px;
+  margin-left: 4px;
+  cursor: pointer;
+  font-weight: 700;
+}
+#speed-controls button.active { background: #3b82f6; color: #fff; }
+
+#pitch-wrap { position: relative; flex: 1; min-height: 0; border-radius: 8px; overflow: hidden; }
+#pitch { display: block; width: 100%; height: 100%; }
+
+/* 하이라이트 컷 전환: 장면 사이 짧은 암전 + 경기 시간 */
+#scene-transition {
+  position: absolute;
+  inset: 0;
+  background: rgba(6, 8, 12, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+}
+#scene-transition .st-minute {
+  font-size: 46px;
+  font-weight: 900;
+  letter-spacing: 3px;
+  color: #e5e7eb;
+}
+
+#banner {
+  position: absolute;
+  left: 0; right: 0; top: 42%;
+  background: rgba(10, 12, 16, 0.88);
+  color: #fff;
+  text-align: center;
+  font-size: 22px;
+  font-weight: 800;
+  padding: 16px;
+  cursor: pointer;
+}
+
+#strip {
+  background: #1a1d24;
+  border-radius: 8px;
+  padding: 10px 16px;
+  min-height: 64px;
+  font-size: 15px;
+  line-height: 1.6;
+}
+#strip-l1 { color: #6b7280; }
+#strip-l2 { color: #e5e7eb; font-weight: 600; }
+
+/* 참모 패널 */
+#advisor-panel {
+  background: #1a1d24;
+  border-radius: 8px;
+  padding: 14px;
+  text-align: center;
+  min-height: 150px;
+}
+#advisor-face { font-size: 40px; transition: transform 0.2s; }
+#advisor-face.sig-2 { transform: scale(1.25); }
+#advisor-face.sig-3 { transform: scale(1.5); animation: shake 0.4s infinite; }
+@keyframes shake {
+  0%, 100% { rotate: 0deg; } 25% { rotate: -6deg; } 75% { rotate: 6deg; }
+}
+#advisor-name { font-weight: 700; margin-top: 6px; }
+#advisor-hint { font-size: 13px; color: #cbd5e1; margin-top: 8px; line-height: 1.5; min-height: 40px; }
+#advisor-hint.sig-3 { color: #fca5a5; font-weight: 700; }
+
+#tokens-row {
+  display: flex;
+  justify-content: space-between;
+  background: #1a1d24;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 14px;
+}
+
+/* 카드 (항상 노출, 불가 시 비활성 §5) */
+#cards { display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.card-block { background: #1a1d24; border-radius: 8px; padding: 10px 12px; }
+.card-title { font-size: 13px; font-weight: 700; color: #9ca3af; margin-bottom: 6px; }
+.card-opts { display: flex; flex-wrap: wrap; gap: 4px; }
+.card-opts button {
+  background: #262b35;
+  color: #e5e7eb;
+  border: none;
+  border-radius: 5px;
+  padding: 6px 10px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.card-opts button:hover:not(:disabled) { background: #3b82f6; }
+.card-opts button:disabled { opacity: 0.35; cursor: default; }
+.card-opts button.current { outline: 1px solid #3b82f6; }
+
+#debug-toggle {
+  background: #262b35; color: #6b7280; border: none;
+  border-radius: 6px; padding: 8px; cursor: pointer;
+}
+
+/* 풀 컷인: 화면 전체 전환 = "접수됐다"는 피드백 그 자체 (§5) */
+#cutin {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  cursor: pointer;
+  z-index: 50;
+  background: #111318;
+}
+#cutin.cutin-mood-home { background: #0c2a5e; }
+#cutin.cutin-mood-away { background: #4a0e0e; }
+#cutin.cutin-mood-user { background: #1f2937; }
+.cutin-title { font-size: 64px; font-weight: 900; letter-spacing: -1px; }
+.cutin-sub { font-size: 20px; color: #cbd5e1; }
+
+/* 브리핑 */
+#briefing-items { max-width: 640px; display: flex; flex-direction: column; gap: 12px; }
+.briefing-item {
+  background: #1a1d24;
+  border-radius: 8px;
+  padding: 14px 18px;
+  text-align: left;
+  line-height: 1.6;
+  border-left: 3px solid #6b7280;
+}
+.briefing-item.hit { border-left-color: #34d399; }
+.briefing-item.miss { border-left-color: #f87171; }
+.briefing-item.judgment { border-left-color: #fbbf24; }
+#btn-again {
+  margin-top: 12px;
+  background: #3b82f6; color: #fff; border: none;
+  font-size: 18px; font-weight: 700;
+  padding: 14px 40px; border-radius: 8px; cursor: pointer;
+}
+
+/* 디버그 패널 (§9: 기본P/보정/실효P/주사위 상시 표시) */
+#debug {
+  position: fixed;
+  right: 8px; bottom: 8px;
+  background: rgba(0,0,0,0.85);
+  border: 1px solid #374151;
+  border-radius: 8px;
+  padding: 10px;
+  max-width: 380px;
+  max-height: 45vh;
+  overflow: auto;
+  z-index: 60;
+}
+#debug pre { font-size: 11px; color: #a7f3d0; white-space: pre-wrap; }
