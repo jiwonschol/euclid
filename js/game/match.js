@@ -13,6 +13,7 @@ import { stepPositioning } from './ai.js';
 import { stepPlay, placeKickoff } from './decide.js';
 import { stepCommentary } from './commentary.js';
 import { stepDirectives, stepOpponentAI } from './directives.js';
+import { stepEffects, stepResolve } from './effects.js';
 
 export const SIM_HZ = 15;               // 시뮬 주파수(계획서 §3 권장 10~20Hz)
 export const SIM_DT = 1 / SIM_HZ;       // 한 틱 = 1/15 경기초
@@ -115,6 +116,9 @@ export function createMatch(seed = 1, cfg = null, commentaryCfg = null, cardsCfg
     },
     // 교체 누적 효과(§8-D): fw=슛 정확도, mf=볼 지키기, df=실점 감소. 유저팀(A) 위주.
     subBoost: { A: { fw: 0, mf: 0, df: 0 }, B: { fw: 0, mf: 0, df: 0 } },
+    // 활성 카드 효과(§12 TacticalModifier). resolve()가 tactics(스탠스)+effects → resolved 로 합성.
+    effects: { A: [], B: [] },
+    resolved: null,
     possessionTeamId: null,
     players,
     ball: {
@@ -207,6 +211,8 @@ export function tick(state) {
 
     case 'IN_PLAY': {
       if (state.cfg) {
+        stepEffects(state);               // 활성 카드 효과 만료(지속시간)
+        stepResolve(state);               // 스탠스+효과 → state.resolved 캐시(AI가 읽는 소스)
         stepPlay(state, SIM_DT);          // 공 물리·소유·utility 의사결정
         stepPositioning(state, SIM_DT);   // 22명 형상·압박·GK 배치
         clampPlayers(state);              // 선수는 피치를 벗어나지 않는다

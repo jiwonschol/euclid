@@ -10,6 +10,7 @@ import {
 } from './shape.js';
 import { assignAttackTargets } from './attack.js';
 import { assignMarking } from './defend.js';
+import { resolvedFor } from './effects.js';
 
 const other = (t) => (t === 'A' ? 'B' : 'A');
 const dist2 = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
@@ -28,7 +29,7 @@ function assignDefenders(state, defTeam, carrier, cfg) {
     const d = dist2(p.position, carrier.position);
     if (d < bd) { bd = d; best = p; }
   }
-  const pressBonus = (state.tactics && state.tactics[defTeam] && state.tactics[defTeam].press === 'high') ? 8 : 0;
+  const pressBonus = resolvedFor(state, defTeam).press === 'high' ? 8 : 0;
   const desired = best && bd <= P.engageDist + pressBonus ? best.id : null;
 
   // 히스테리시스: 현재 압박자가 유효하고 지정 후 hysteresisSec 미만이면 유지
@@ -92,7 +93,7 @@ export function stepPositioning(state, dt) {
 
   // 팀 back 먼저(공격 front 오프사이드에 상대 back 필요) → 형상
   const dirA = state.attackDirection.A, dirB = state.attackDirection.B;
-  const tacA = state.tactics ? state.tactics.A : null, tacB = state.tactics ? state.tactics.B : null;
+  const tacA = resolvedFor(state, 'A'), tacB = resolvedFor(state, 'B');
   const backA = teamBackDist('A', dirA, ball.x, poss, cfg, tacA);
   const backB = teamBackDist('B', dirB, ball.x, poss, cfg, tacB);
   const shape = {

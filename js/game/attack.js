@@ -4,6 +4,7 @@
 
 import { dBallOwn } from './shape.js';
 import { FIELD, oppGoalX } from './field.js';
+import { resolvedFor } from './effects.js';
 
 const dist2 = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
@@ -30,7 +31,7 @@ export function assignAttackTargets(state, team) {
   const carrierId = state.ball.carrierId;
   const carrier = carrierId ? state.players[carrierId] : null;
   const olX = offsideLineX(state, team);
-  const zone = (state.tactics && state.tactics[team] && state.tactics[team].attackZone) || 'central';
+  const zone = resolvedFor(state, team).attackZone || 'central';
   const finalThird = dBallOwn(dir, ball.x) > 62;
   const goalX = oppGoalX(dir);
   // 측면=공 있는 쪽으로 전개(동적), 중앙=0. (명시적 wing_left/right 도 허용)

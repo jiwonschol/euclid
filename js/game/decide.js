@@ -6,6 +6,7 @@ import { seek } from './movement.js';
 import { stepBallPhysics, launchPass, launchCross, launchShot } from './ball.js';
 import { FIELD, oppGoalX, anchorToWorld, penaltyBoxOf } from './field.js';
 import { dBallOwn } from './shape.js';
+import { resolvedFor } from './effects.js';
 
 const other = (t) => (t === 'A' ? 'B' : 'A');
 const dist2 = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
@@ -178,12 +179,12 @@ function decideAction(state, carrier, dir) {
   const dGoal = dist2(carrier.position, goal);
   const pressure = nearestOpp(state, carrier.teamId, carrier.position)?.d ?? 99;
   const noise = () => (state.rng.float() - 0.5) * 2 * A.noise;
-  const tac = state.tactics ? state.tactics[carrier.teamId] : null;   // 전술 바이어스
-  let shotMul = tac?.tactic === 'attack' ? 1.3 : tac?.tactic === 'park' ? 0.5 : 1;
+  const tac = resolvedFor(state, carrier.teamId);   // 전술 바이어스(스탠스+활성 카드 효과)
+  let shotMul = (tac.tactic === 'attack' ? 1.3 : tac.tactic === 'park' ? 0.5 : 1) * tac.shotBias;
   if (carrier._crossFinish) { shotMul *= 2.5; carrier._crossFinish = false; }   // 크로스 원터치 마무리
 
-  const fwdW = A.wForward * (tac?.tactic === 'attack' ? 1.4 : tac?.tactic === 'counter' ? 1.2 : tac?.tactic === 'park' ? 0.5 : 1);
-  const throughMul = tac?.tactic === 'counter' ? 0.3 : 0.15;          // 역습은 스루 선호
+  const fwdW = A.wForward * (tac.tactic === 'attack' ? 1.4 : tac.tactic === 'counter' ? 1.2 : tac.tactic === 'park' ? 0.5 : 1);
+  const throughMul = (tac.tactic === 'counter' ? 0.3 : 0.15) * tac.throughBias;          // 역습은 스루 선호
   const zone = tac ? tac.attackZone : null;                           // 측면/중앙 전개 편향
   const wingSide = zone === 'wing' ? (carrier.position.z < 0 ? -1 : 1) : 0;
   const carrierFinal = dBallOwn(dir, carrier.position.x) > 62;
@@ -225,12 +226,12 @@ function decideAction(state, carrier, dir) {
     if (isCross) zoneBonus = 0.7 * (culmReady ? 1.3 : 0.22);
     else if (wingSide !== 0 && Math.sign(mate.position.z) === wingSide && Math.abs(mate.position.z) > 16) zoneBonus = 0.5;
     else if (zone === 'central' && Math.abs(mate.position.z) < 12 && prog > 4) zoneBonus = 0.22;
-    const u = A.wPass * (0.3 + fwdW * clamp(prog / 20, -0.4, 1) + Math.min(1, open / 8) * 0.5)
+    const u = A.wPass * tac.passBias * (0.3 + fwdW * clamp(prog / 20, -0.4, 1) + Math.min(1, open / 8) * 0.5)
       + (through ? throughMul : 0) + zoneBonus - turnover + noise();
     opts.push({ kind: through ? 'through' : 'pass', mate, lp, aerial: (d > 28 && through) || isCross, u });
   }
   // 드리블
-  opts.push({ kind: 'dribble', u: A.wDribble * (0.3 + clamp(pressure / 6, 0, 1) * 0.5) + (dGoal > A.shotMaxDist ? 0.2 : 0) + noise() });
+  opts.push({ kind: 'dribble', u: A.wDribble * tac.dribbleBias * (0.3 + clamp(pressure / 6, 0, 1) * 0.5) + (dGoal > A.shotMaxDist ? 0.2 : 0) + noise() });
 
   opts.sort((x, y) => y.u - x.u);
   const pick = opts[0];
