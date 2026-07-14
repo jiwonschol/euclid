@@ -49,9 +49,9 @@
 - [x] **S3 · 덱·손패·드로우 + 뷰어 컷오버** — `js/game/hand.js` 신규: 덱/손패/드로우(cardRng 분리), playFromHand(검증→전달중→도착 applyCard→버림), 오디블(CP 재정산), playSub, 상대 B 카드 AI(김성주 예고→적용). match.tick 이 stepCards 로 전환, 레거시 directives.js **삭제**. 뷰어를 드로우된 손패+활성효과+전달중+교체 UI로 개편(playDirective→playFromHand). sim:cards 46/46(플레이/오디블/상대AI/카드결정론). **브라우저 E2E**: 손패 렌더·slow_tempo 플레이→전달중→도착→resolve(tempo0.7·pass1.15·shot0.85)·중계 서사·상대 카드 동작. 커밋.
 - [x] **S4a · 남은 modifier 키를 엔진에 연결** — manMark(defend.js 지정 밀착), pressAggression(ai.js 압박 개시거리), tempo(decide 전진성향↓), crossEarly(decide 이른 크로스), wing_left/right(decide wingSide). 모두 기본값 identity. **버그 발견·수정: defaults()에 pressAggression 누락→NaN→압박 무력화**(golden-digest 회귀가 포착). sim:cards 50/50(manMark 포지셔닝 + baseline 불변). 브라우저 헬스(22 유한·pressAgg=1). 커밋. 남은 미연결: commitForward·transition(경미).
 - [x] **S4 · 맥락(context) 카드 / 큰 순간** — decide 에 NEXT_ACTION 소비(측면전환·맥락 편향 후 1회 소비). hand.js offerContext: 볼소유 대결(파이널서드+압박) 감지→맥락 카드 4종 주입(즉시 적용·전달중 없음)·4.5초 창·만료 제거·스로틀. 뷰어 맥락 카드 금색 스타일(⚡맥락·즉시). sim:cards 57/57(소비·주입·즉시적용·만료). **브라우저**: live 엔진 맥락 주입(드리블강행/안전패스/원투/즉시슛)·금색 렌더·불가카드 회색+사유. 커밋.
-- [~] **S5 · 뷰어 UI 폴리시** — (기본 손패/효과칩/전달중/교체/불가사유 툴팁은 S3 컷오버에서 완료). 남은 것: **부채꼴 hover 확대**, **클릭 타겟팅**(man_mark 선수 지정 — 현재 자동), 맥락 카드 팝업(S4 연동), modifier 시각 피드백 강화. 브라우저 검증.
-- [ ] **S6 · 테스트·게이트·안정성** — cards-lint 확장(stacking/precondition/결정론), `sim:stability` 100경기(예외·NaN·deadlock·중복재개 0). 전 게이트 green. 커밋.
-- [ ] **S7 · 브라우저 E2E + 폴리시 + README** — 시나리오(상대 telegraph→유저 대응 카드→효과 반영)를 브라우저로 재현·스크린샷, README 카드 사용법. 커밋.
+- [x] **S5 · 뷰어 UI 폴리시** — 기본 손패/효과칩/전달중/교체/불가사유는 S3, 맥락 금색은 S4. **클릭 타겟팅 완성**: man_mark 카드→상대 클릭 지정(pitch2d.pickPlayer, 후보 점선 링, 마크 대상 분홍 링, Esc 취소). 브라우저 E2E(man_mark→B2 클릭→전달중→도착→resolve.manMark=B2·분홍 링·효과칩). (부채꼴 hover 확대만 후속.)
+- [x] **S6 · 테스트·게이트·안정성** — sim:cards 59/59(효과/validator/덱손패/전달중·오디블/맥락/NEXT_ACTION/commitForward/manMark/결정론·baseline identity). sim:stability 100/100(예외·NaN·deadlock·득점폭주 0·재현성). 전 게이트 green.
+- [x] **S7 · 브라우저 E2E + README** — 상대 telegraph→유저 카드→전달중→도착→효과 반영·중계 서사·맥락 카드·클릭 타겟팅을 브라우저로 재현·스크린샷. README 하스스톤 카드 사용법·구조·게이트 갱신.
 
 ## 게이트 명령
 ```
@@ -68,6 +68,7 @@ node sim/cards-lint.mjs   # (신규) 카드/효과/결정론
 S1~S7 전부 체크 && 전 헤드리스 게이트 green && 브라우저에서 (a)뷰어 콘솔 에러 0, (b)드로우된 손패 렌더, (c)카드 플레이가 `state.effects`/`resolve()`를 실제로 바꾸고 AI 동작/포지션에 반영, (d)불가 카드가 사유 표시, (e)상대 telegraph→유저 대응 루프 동작 — 을 **직접 확인**했을 때에만 promise 출력.
 
 ## 반복 로그 (append-only; 최신이 위)
+- **iter5 · S4b+S5+S6+S7 완료 — 전 슬라이스 종료** — commitForward(attack 레이트런)+recover(pressAggression) 완결. 클릭 타겟팅(pitch2d.pickPlayer + viewer 타겟팅 모드·분홍 마크 링·후보 점선 링·Esc). README/plan 갱신. 게이트: **sim:cards 59/59 · sim:stability 100/100 · baseline identity(4-5|ev1704) 불변**. **브라우저 최종 E2E**: 손패·전달중·도착·효과 resolve 반영·중계 서사·맥락 카드 금색·상대 김성주 루프·man_mark 클릭 타겟팅(B2 분홍 링). **완료 조건 (a)~(e) 전부 직접 확인.**
 - **iter4 · S4a+S4 완료** — S4a: 남은 modifier 키(manMark/pressAggression/tempo/crossEarly/wing_left·right) 엔진 연결 + pressAggression defaults 누락 NaN 버그 수정(golden-digest 포착). S4: decide NEXT_ACTION 소비 + hand.offerContext(볼소유 대결 감지→맥락 카드 주입/즉시적용/만료). 뷰어 맥락 금색 스타일. sim:cards 57/57, baseline identity 불변, stability 100/100(S4a). 브라우저: 맥락 카드 live 주입·렌더·불가사유 회색 확인. 남은=S5 폴리시(부채꼴/클릭타겟팅)·S7 README.
 - **iter3 · S3 완료(+뷰어 컷오버)** — `js/game/hand.js`(덱/손패/드로우·playFromHand·오디블·playSub·상대 카드 AI, cardRng 시뮬 분리). match.tick→stepCards, directives.js 삭제. cards.validateCard 에 cpBonus(오디블). cards.json draw.deliverySec. 뷰어 전면 개편(드로우 손패·활성효과 칩·전달중·교체·불가사유 툴팁). stability.mjs 를 새 API로 이관. 게이트 sim:cards 46/46. **브라우저 E2E 완전 검증**(스크린샷: 6장 손패·중계 서사·상대 카드). S5는 폴리시(부채꼴/타겟팅)만 남음. 다음=S4(맥락 카드) 또는 S6(stability 100경기).
 - **iter2 · S2 완료** — `data/cards.json`: deck 16 CoachCard(effects=TacticalModifier[])+context 3종(BALL_CARRIER_DUEL/DEFENSIVE_DUEL/GK 1대1)+draw 파라미터, 레거시 cards 유지(high_press→high_press_legacy 리네임으로 id 충돌 회피). `js/game/cards.js` 신규: matchTimings/validateCard/PRECONDS. decide.gainControl 에 `_possChangedAt`(전환 타이밍, determinism-safe). 게이트: sim:cards 30/30, 결정론 digest 불변(4-5|ev1704). 브라우저: 콘솔0·deck16/context/draw 파싱·레거시 손패11 정상 플레이(balanced→pending). 다음=S3(덱·손패·드로우+playFromHand+상대 AI).

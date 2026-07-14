@@ -48,12 +48,17 @@ function drawPlayers(ctx, L, state, opts) {
   const { toPx } = L;
   const carrierId = state.ball?.carrierId;
   const presserId = state._press?.presserId;
+  const marked = state.resolved?.A?.manMark;                 // 활성 밀착 마크 대상
   for (const p of Object.values(state.players)) {
     if (p.sentOff) continue;
     const [px, py] = toPx(p.position.x, p.position.z);
     const isGK = p.role === 'GK';
     const fill = isGK ? (p.teamId === 'A' ? COL.gkA : COL.gkB) : (p.teamId === 'A' ? COL.A : COL.B);
     const r = 9;
+    if (opts.markTeam && p.teamId === opts.markTeam && !isGK) {  // 타겟팅 후보(점선 금링)
+      ctx.beginPath(); ctx.arc(px, py, r + 6, 0, 7); ctx.strokeStyle = '#ffd54a'; ctx.lineWidth = 2; ctx.setLineDash([3, 3]); ctx.stroke(); ctx.setLineDash([]);
+    }
+    if (p.id === marked) { ctx.beginPath(); ctx.arc(px, py, r + 5, 0, 7); ctx.strokeStyle = '#ff8fb0'; ctx.lineWidth = 2.5; ctx.stroke(); }  // 마크 중
     if (p.id === presserId) { ctx.beginPath(); ctx.arc(px, py, r + 4, 0, 7); ctx.strokeStyle = '#ffdf6b'; ctx.lineWidth = 2; ctx.stroke(); }
     ctx.beginPath(); ctx.arc(px, py, r, 0, 7); ctx.fillStyle = fill; ctx.fill();
     if (p.id === carrierId) { ctx.strokeStyle = COL.carrier; ctx.lineWidth = 2.5; ctx.stroke(); }
@@ -88,3 +93,20 @@ export function draw(view, state, opts = {}) {
 }
 
 export function makeView(canvas) { return { canvas, ctx: canvas.getContext('2d') }; }
+
+/** 캔버스 클릭(clientX,clientY) → 가장 가까운 team 선수 id(30px 이내). 타겟팅용. */
+export function pickPlayer(view, state, clientX, clientY, team) {
+  const { canvas } = view;
+  const rect = canvas.getBoundingClientRect();
+  const px = (clientX - rect.left) * (canvas.width / rect.width);
+  const py = (clientY - rect.top) * (canvas.height / rect.height);
+  const L = layout(canvas);
+  let best = null, bd = Infinity;
+  for (const p of Object.values(state.players)) {
+    if (p.sentOff || p.role === 'GK' || (team && p.teamId !== team)) continue;
+    const [ex, ey] = L.toPx(p.position.x, p.position.z);
+    const d = Math.hypot(ex - px, ey - py);
+    if (d < bd) { bd = d; best = p; }
+  }
+  return best && bd < 30 ? best.id : null;
+}

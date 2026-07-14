@@ -133,13 +133,13 @@
 
 <script type="module">
   import { createMatch, tick, SIM_DT } from './js/game/match.js';
-  import { makeView, draw } from './js/ui/pitch2d.js';
+  import { makeView, draw, pickPlayer } from './js/ui/pitch2d.js';
   import { playFromHand, playSub } from './js/game/hand.js';
   import { validateCard } from './js/game/cards.js';
   import { resolvedFor } from './js/game/effects.js';
   const $ = (id) => document.getElementById(id);
   const view = makeView($('pitch'));
-  let cfg = null, com = null, cards = null, state = null, playing = true, speed = 1, acc = 0, last = performance.now(), seed = 1, feedId = 0;
+  let cfg = null, com = null, cards = null, state = null, playing = true, speed = 1, acc = 0, last = performance.now(), seed = 1, feedId = 0, targeting = null;
 
   const fmt = (s) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
 
@@ -199,7 +199,12 @@
   function playCard(i) {
     if (!state || !state.cards) return;
     const slot = state.cards.A.hand[i]; if (!slot) return;
-    const r = playFromHand(state, 'A', i, defaultTarget(slot.card), cards);
+    if (slot.card.targetType === 'OPPONENT_PLAYER') {        // 클릭 타겟팅 모드 진입
+      targeting = { slot, name: slot.card.name };
+      toast(`${slot.card.name}: 마크할 상대(빨강) 선수를 클릭 · Esc 취소`);
+      return;
+    }
+    const r = playFromHand(state, 'A', i, null, cards);
     if (!r.ok) toast(r.reason);
   }
 
@@ -273,7 +278,7 @@
   function frame(now) {
     const dt = Math.min(0.1, (now - last) / 1000); last = now;
     if (playing && state) { acc += dt * speed; let n = 0; while (acc >= SIM_DT && n < 2000) { tick(state); acc -= SIM_DT; n++; } }
-    if (state) { draw(view, state); hud(); stats(); feed(); deck(); }
+    if (state) { draw(view, state, targeting ? { markTeam: 'B' } : {}); hud(); stats(); feed(); deck(); }
     requestAnimationFrame(frame);
   }
   function newGame() { state = createMatch(seed, cfg, com, cards); acc = 0; feedId = 0; handSig = ''; $('feed').innerHTML = ''; }
@@ -282,6 +287,15 @@
   $('play').onclick = () => { playing = !playing; $('play').textContent = playing ? '❚❚ 일시정지' : '▶ 재생'; $('play').classList.toggle('on', playing); };
   $('restart').onclick = () => { seed++; newGame(); };
   for (const b of document.querySelectorAll('.spd')) b.onclick = () => { speed = +b.dataset.s; for (const x of document.querySelectorAll('.spd')) x.classList.toggle('on', x === b); };
+  $('pitch').addEventListener('click', (e) => {                 // 클릭 타겟팅(밀착 마크)
+    if (!targeting || !state) return;
+    const tid = pickPlayer(view, state, e.clientX, e.clientY, 'B');
+    if (!tid) { toast('상대(빨강) 선수를 정확히 클릭하세요'); return; }
+    const idx = state.cards.A.hand.indexOf(targeting.slot);
+    if (idx >= 0) { const r = playFromHand(state, 'A', idx, tid, cards); toast(r.ok ? `${targeting.name} → ${state.players[tid].shirtNumber}번 밀착 마크` : r.reason); }
+    targeting = null;
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && targeting) { targeting = null; toast('타겟팅 취소'); } });
 
   Promise.all([fetch('./data/engine.json').then(r => r.json()), fetch('./data/commentary.json').then(r => r.json()), fetch('./data/cards.json').then(r => r.json())])
     .then(([e, c, cd]) => { cfg = e; com = c; cards = cd; newGame(); requestAnimationFrame(frame); })
