@@ -11,6 +11,7 @@ import { createRng } from './rng.js';
 import { FIELD, FORMATION_433, anchorToWorld } from './field.js';
 import { stepPositioning } from './ai.js';
 import { stepPlay, placeKickoff } from './decide.js';
+import { stepCommentary } from './commentary.js';
 
 export const SIM_HZ = 15;               // 시뮬 주파수(계획서 §3 권장 10~20Hz)
 export const SIM_DT = 1 / SIM_HZ;       // 한 틱 = 1/15 경기초
@@ -74,9 +75,10 @@ function makePlayer(teamId, spec, shirt, attackDir) {
  * 새 경기 상태 생성. 같은 seed → 같은 초기 상태·킥오프 팀.
  * @param {number} [seed]
  * @param {any} [cfg]  data/engine.json (선수 운동학·형상·압박·GK). 없으면 시계/단계만 도는 골격 모드.
+ * @param {any} [commentaryCfg]  data/commentary.json. 주면 실시간 중계(state.feed)·스탯(state.stats) 생성.
  * @returns {MatchState}
  */
-export function createMatch(seed = 1, cfg = null) {
+export function createMatch(seed = 1, cfg = null, commentaryCfg = null) {
   const rng = createRng(seed);
   const attackDir = { A: /** @type {1} */ (1), B: /** @type {-1} */ (-1) };
 
@@ -95,6 +97,7 @@ export function createMatch(seed = 1, cfg = null) {
   const state = {
     seed,
     cfg,
+    commentaryCfg,
     phase: 'PRE_KICKOFF',
     half: 1,
     clockSeconds: 0,
@@ -196,6 +199,7 @@ export function tick(state) {
         stepPlay(state, SIM_DT);          // 공 물리·소유·utility 의사결정
         stepPositioning(state, SIM_DT);   // 22명 형상·압박·GK 배치
         clampPlayers(state);              // 선수는 피치를 벗어나지 않는다
+        if (state.commentaryCfg) stepCommentary(state, SIM_DT, state.commentaryCfg);  // 실시간 중계
       }
       state.clockSeconds += SIM_DT;
       const half1End = state.half === 1 && state.clockSeconds >= HALF_SECONDS;
