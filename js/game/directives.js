@@ -9,6 +9,7 @@ function ensure(state, C) {
   state.pending = { A: null };
   state.activeDirective = { A: 'balanced' };
   state._dir = { oppNext: C.opponentAI.decideEvery, oppTelegraph: null, cpAcc: 0 };
+  state.subUsed = 0;
 }
 const cardById = (C, id) => C.cards.find((c) => c.id === id);
 function log(state, type, data) {
@@ -20,6 +21,16 @@ export function playDirective(state, cardId, C) {
   ensure(state, C);
   const card = cardById(C, cardId);
   if (!card) return { ok: false, reason: '없는 카드' };
+  // 교체(즉시, 한도): 전달 없이 subBoost 즉시 반영
+  if (card.sub) {
+    if ((state.subUsed || 0) >= (C.substitutionLimit || 3)) return { ok: false, reason: '교체 소진' };
+    if (state.cp.A < card.cost) return { ok: false, reason: 'CP 부족' };
+    state.cp.A -= card.cost;
+    state.subBoost.A[card.sub] += 1;
+    state.subUsed = (state.subUsed || 0) + 1;
+    log(state, 'SUB', { name: card.name, sub: card.sub });
+    return { ok: true };
+  }
   const cur = state.pending.A;
   const refund = cur ? cardById(C, cur.cardId).cost : 0;
   if (state.cp.A + refund < card.cost) return { ok: false, reason: 'CP 부족' };

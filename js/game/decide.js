@@ -63,7 +63,8 @@ function updatePossession(state, dt) {
     if (!carrier) { b.mode = 'LOOSE'; b.carrierId = null; return; }
     // 태클 경합: 캐리어 근처 상대가 controlRadius 내면 매 틱 소량 확률로 탈취(루즈볼)
     const opp = nearestOpp(state, carrier.teamId, carrier.position);
-    if (opp && opp.d <= ctl.controlRadius && state.rng.chance(cfg.action.turnoverBase * dt)) {  // turnoverBase=압박 중 초당 탈취율
+    const mf = carrier.teamId === 'A' ? (state.subBoost?.A?.mf || 0) : 0;
+    if (opp && opp.d <= ctl.controlRadius && state.rng.chance(cfg.action.turnoverBase * dt * (1 - 0.18 * mf))) {  // mf 교체=볼 지키기↑
       b.mode = 'LOOSE'; b.carrierId = null; b.ownerId = null; carrier.hasBall = false;
       b.velocity = { x: (state.rng.float() - 0.5) * 5, y: 0, z: (state.rng.float() - 0.5) * 5 };
       b.lastTouchPlayerId = opp.p.id; b.lastTouchTeamId = opp.p.teamId;
@@ -82,7 +83,8 @@ function updatePossession(state, dt) {
       if (Math.abs(crossZ) <= FIELD.goalHalfWidth + 0.3) {          // 온타겟일 때만 GK 관여
         const defTeam = other(b.lastTouchTeamId);
         const gk = Object.values(state.players).find((p) => p.teamId === defTeam && p.role === 'GK' && !p.sentOff);
-        if (gk && Math.abs(gk.position.z - crossZ) <= cfg.gk.diveReach && state.rng.chance(cfg.gk.saveProb)) {
+        const df = defTeam === 'A' ? (state.subBoost?.A?.df || 0) : 0;
+        if (gk && Math.abs(gk.position.z - crossZ) <= cfg.gk.diveReach && state.rng.chance(Math.min(0.98, cfg.gk.saveProb + 0.03 * df))) {
           if (state.rng.chance(cfg.gk.catchRatio)) { gainControl(state, gk, 'SAVE'); return; }  // 캐치
           b.mode = 'LOOSE';                                                                      // 파리: 골문서 멀리 걷어냄
           b.position = { x: gk.position.x, y: 0, z: gk.position.z };
@@ -197,7 +199,8 @@ function decideAction(state, carrier, dir) {
 
   if (pick.kind === 'shot') {
     const dg = dist2(carrier.position, goal);
-    const wide = FIELD.goalHalfWidth * 0.6 + dg * 0.16;           // 거리 비례 좌우 산포(원거리일수록 빗나감)
+    const fw = carrier.teamId === 'A' ? (state.subBoost?.A?.fw || 0) : 0;
+    const wide = (FIELD.goalHalfWidth * 0.6 + dg * 0.16) * Math.max(0.5, 1 - 0.12 * fw);   // fw 교체=슛 정확도↑
     const aimZ = (state.rng.float() - 0.5) * 2 * wide;
     const aimY = 0.25 + state.rng.float() * (0.5 + dg * 0.05);     // 가끔 크로스바 위로
     launchShot(b, carrier.position, { x: goal.x, z: aimZ, y: aimY }, carrier.teamId, carrier.id, cfg.ball);

@@ -1,6 +1,7 @@
 {
-  "_comment": "감독 지시 카드 (계획서 §0.1 오디블, 연속 엔진용). set = 도착 시 유저팀(A) tactics 에 반영. delivery=전달 시간(초, '전달 중'). cost=CP. 전달 중 다른 카드를 내면 오디블(교체)=비용 1회만.",
+  "_comment": "감독 지시 카드 (계획서 §0.1 오디블, 연속 엔진용). set=도착 시 유저팀(A) tactics 반영. delivery=전달 시간(초). cost=CP. 전달 중 다른 카드=오디블(비용 1회). sub 카드는 즉시(교체, substitutionLimit 회).",
   "cp": { "max": 10, "start": 3, "regenSec": 11 },
+  "substitutionLimit": 3,
   "cards": [
     { "id": "attack",     "name": "공격",       "cost": 2, "delivery": 2.5, "set": { "tactic": "attack" },  "desc": "라인 올리고 전진·슛 강화. 뒷공간 위험." },
     { "id": "counter",    "name": "역습",       "cost": 2, "delivery": 2.5, "set": { "tactic": "counter" }, "desc": "내려서서 빠른 역습·스루 선호." },
@@ -8,7 +9,10 @@
     { "id": "balanced",   "name": "안정",       "cost": 1, "delivery": 1.5, "set": { "tactic": "balanced", "press": "normal" }, "desc": "균형 잡힌 기본 대형으로." },
     { "id": "line_up",    "name": "라인 올리기", "cost": 1, "delivery": 1.5, "set": { "lineHeight": "high" }, "desc": "수비 라인을 끌어올린다." },
     { "id": "line_down",  "name": "라인 내리기", "cost": 1, "delivery": 1.5, "set": { "lineHeight": "low" },  "desc": "수비 라인을 낮춘다." },
-    { "id": "high_press", "name": "높은 압박",   "cost": 2, "delivery": 1.5, "set": { "press": "high" },     "desc": "전방 압박 강화. 탈취↑, 뒷공간 위험." }
+    { "id": "high_press", "name": "높은 압박",   "cost": 2, "delivery": 1.5, "set": { "press": "high" },     "desc": "전방 압박 강화. 탈취↑, 뒷공간 위험." },
+    { "id": "sub_fw",     "name": "공격수 투입", "cost": 2, "delivery": 0,   "sub": "fw", "desc": "교체(즉시). 슛 정확도↑." },
+    { "id": "sub_mf",     "name": "미드필더 투입", "cost": 2, "delivery": 0, "sub": "mf", "desc": "교체(즉시). 볼 지키기·중원↑." },
+    { "id": "sub_df",     "name": "수비수 투입", "cost": 2, "delivery": 0,   "sub": "df", "desc": "교체(즉시). 실점 위험↓." }
   ],
   "opponentAI": {
     "_comment": "상대(인천) 감독 AI. decideEvery 초마다 점수차·시간·모멘텀으로 전술 선택. telegraphSec 만큼 김성주 신호를 먼저 흘리고(유저가 읽고 대응할 창) 그 뒤 실제 반영.",

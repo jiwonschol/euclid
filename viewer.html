@@ -111,6 +111,7 @@
     <div class="deckhead">
       <span class="cp">CP <b id="cp">3</b></span>
       <span class="dchip active" id="active">전술: 균형</span>
+      <span class="dchip" id="subs">교체 0/3</span>
       <span class="dchip pending" id="pending" style="display:none"></span>
       <span class="hint">카드 = '전달 중' → 도착. 전달 중 다른 카드 = 오디블(교체·비용 1회).</span>
     </div>
@@ -182,7 +183,13 @@
     if (p) { pe.style.display = ''; pe.textContent = `전달 중: ${p.name} (${Math.max(0, p.applyAt - state.clockSeconds).toFixed(1)}s)`; }
     else pe.style.display = 'none';
     const refund = p ? cardCost(p.cardId) : 0;
-    for (const b of $('hand').children) { b.disabled = cardCost(b.dataset.id) > cp + refund; b.classList.toggle('audible', !!p); }
+    const subLimit = cards.substitutionLimit || 3, subUsed = state.subUsed || 0;
+    $('subs').textContent = `교체 ${subUsed}/${subLimit}`;
+    for (const b of $('hand').children) {
+      const c = cards.cards.find((x) => x.id === b.dataset.id), isSub = !!c.sub;
+      b.disabled = c.cost > cp + (isSub ? 0 : refund) || (isSub && subUsed >= subLimit);
+      b.classList.toggle('audible', !!p && !isSub);
+    }
   }
 
   function frame(now) {

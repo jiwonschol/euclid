@@ -112,6 +112,8 @@ export function createMatch(seed = 1, cfg = null, commentaryCfg = null, cardsCfg
       A: { tactic: 'balanced', lineHeight: 'mid', press: 'normal' },
       B: { tactic: 'balanced', lineHeight: 'mid', press: 'normal' },
     },
+    // 교체 누적 효과(§8-D): fw=슛 정확도, mf=볼 지키기, df=실점 감소. 유저팀(A) 위주.
+    subBoost: { A: { fw: 0, mf: 0, df: 0 }, B: { fw: 0, mf: 0, df: 0 } },
     possessionTeamId: null,
     players,
     ball: {
