@@ -143,11 +143,15 @@ function decideAction(state, carrier, dir) {
   const dGoal = dist2(carrier.position, goal);
   const pressure = nearestOpp(state, carrier.teamId, carrier.position)?.d ?? 99;
   const noise = () => (state.rng.float() - 0.5) * 2 * A.noise;
+  const tac = state.tactics ? state.tactics[carrier.teamId] : null;   // 전술 바이어스
+  const shotMul = tac?.tactic === 'attack' ? 1.3 : tac?.tactic === 'park' ? 0.5 : 1;
+  const fwdW = A.wForward * (tac?.tactic === 'attack' ? 1.4 : tac?.tactic === 'counter' ? 1.2 : tac?.tactic === 'park' ? 0.5 : 1);
+  const throughMul = tac?.tactic === 'counter' ? 0.3 : 0.15;          // 역습은 스루 선호
   const opts = [];
 
   // 슛
   if (dGoal <= A.shotMaxDist) {
-    const u = A.wShot * (1 - dGoal / A.shotMaxDist) * shotAngleQuality(carrier.position)
+    const u = A.wShot * shotMul * (1 - dGoal / A.shotMaxDist) * shotAngleQuality(carrier.position)
       * (0.55 + 0.45 * clamp(pressure / 5, 0, 1)) + noise();
     opts.push({ kind: 'shot', u });
   }
@@ -162,8 +166,8 @@ function decideAction(state, carrier, dir) {
     const lane = laneMinDist(state, carrier.position, lp, defTeam);
     const turnover = lane < cfg.control.interceptRadius * 1.6 ? 0.7 : 0;
     const through = prog > 12 && open > 6 && d <= A.throughMaxDist;
-    const u = A.wPass * (0.3 + A.wForward * clamp(prog / 20, -0.4, 1) + Math.min(1, open / 8) * 0.5)
-      + (through ? 0.15 : 0) - turnover + noise();
+    const u = A.wPass * (0.3 + fwdW * clamp(prog / 20, -0.4, 1) + Math.min(1, open / 8) * 0.5)
+      + (through ? throughMul : 0) - turnover + noise();
     opts.push({ kind: through ? 'through' : 'pass', mate, lp, aerial: d > 28 && through, u });
   }
   // 드리블

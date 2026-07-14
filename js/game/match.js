@@ -12,6 +12,7 @@ import { FIELD, FORMATION_433, anchorToWorld } from './field.js';
 import { stepPositioning } from './ai.js';
 import { stepPlay, placeKickoff } from './decide.js';
 import { stepCommentary } from './commentary.js';
+import { stepDirectives, stepOpponentAI } from './directives.js';
 
 export const SIM_HZ = 15;               // 시뮬 주파수(계획서 §3 권장 10~20Hz)
 export const SIM_DT = 1 / SIM_HZ;       // 한 틱 = 1/15 경기초
@@ -76,9 +77,10 @@ function makePlayer(teamId, spec, shirt, attackDir) {
  * @param {number} [seed]
  * @param {any} [cfg]  data/engine.json (선수 운동학·형상·압박·GK). 없으면 시계/단계만 도는 골격 모드.
  * @param {any} [commentaryCfg]  data/commentary.json. 주면 실시간 중계(state.feed)·스탯(state.stats) 생성.
+ * @param {any} [cardsCfg]  data/cards.json. 주면 지시 카드·CP·상대 AI(김성주 신호) 활성.
  * @returns {MatchState}
  */
-export function createMatch(seed = 1, cfg = null, commentaryCfg = null) {
+export function createMatch(seed = 1, cfg = null, commentaryCfg = null, cardsCfg = null) {
   const rng = createRng(seed);
   const attackDir = { A: /** @type {1} */ (1), B: /** @type {-1} */ (-1) };
 
@@ -98,12 +100,18 @@ export function createMatch(seed = 1, cfg = null, commentaryCfg = null) {
     seed,
     cfg,
     commentaryCfg,
+    cardsCfg,
     phase: 'PRE_KICKOFF',
     half: 1,
     clockSeconds: 0,
     score: { A: 0, B: 0 },
     attackDirection: attackDir,
     kickoffFirstHalf,
+    // 팀 전술 상태(카드·상대 AI가 바꾼다). tactic: balanced|attack|counter|park, lineHeight: low|mid|high, press: normal|high
+    tactics: {
+      A: { tactic: 'balanced', lineHeight: 'mid', press: 'normal' },
+      B: { tactic: 'balanced', lineHeight: 'mid', press: 'normal' },
+    },
     possessionTeamId: null,
     players,
     ball: {
@@ -199,6 +207,10 @@ export function tick(state) {
         stepPlay(state, SIM_DT);          // 공 물리·소유·utility 의사결정
         stepPositioning(state, SIM_DT);   // 22명 형상·압박·GK 배치
         clampPlayers(state);              // 선수는 피치를 벗어나지 않는다
+        if (state.cardsCfg) {             // 지시 도착·CP 회복 + 상대 AI(김성주 신호) — 중계 전에
+          stepDirectives(state, SIM_DT, state.cardsCfg);
+          stepOpponentAI(state, SIM_DT, state.cardsCfg);
+        }
         if (state.commentaryCfg) stepCommentary(state, SIM_DT, state.commentaryCfg);  // 실시간 중계
       }
       state.clockSeconds += SIM_DT;

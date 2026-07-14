@@ -26,7 +26,8 @@ function assignDefenders(state, defTeam, carrier, cfg) {
     const d = dist2(p.position, carrier.position);
     if (d < bd) { bd = d; best = p; }
   }
-  const desired = best && bd <= P.engageDist ? best.id : null;
+  const pressBonus = (state.tactics && state.tactics[defTeam] && state.tactics[defTeam].press === 'high') ? 8 : 0;
+  const desired = best && bd <= P.engageDist + pressBonus ? best.id : null;
 
   // 히스테리시스: 현재 압박자가 유효하고 지정 후 hysteresisSec 미만이면 유지
   const curValid = ps.presserId && state.players[ps.presserId] && !state.players[ps.presserId].sentOff
@@ -89,11 +90,12 @@ export function stepPositioning(state, dt) {
 
   // 팀 back 먼저(공격 front 오프사이드에 상대 back 필요) → 형상
   const dirA = state.attackDirection.A, dirB = state.attackDirection.B;
-  const backA = teamBackDist('A', dirA, ball.x, poss, cfg);
-  const backB = teamBackDist('B', dirB, ball.x, poss, cfg);
+  const tacA = state.tactics ? state.tactics.A : null, tacB = state.tactics ? state.tactics.B : null;
+  const backA = teamBackDist('A', dirA, ball.x, poss, cfg, tacA);
+  const backB = teamBackDist('B', dirB, ball.x, poss, cfg, tacB);
   const shape = {
-    A: teamShape('A', dirA, ball.x, ball.z, poss, cfg, backB),
-    B: teamShape('B', dirB, ball.x, ball.z, poss, cfg, backA),
+    A: teamShape('A', dirA, ball.x, ball.z, poss, cfg, backB, tacA),
+    B: teamShape('B', dirB, ball.x, ball.z, poss, cfg, backA, tacB),
   };
   const back = { A: backA, B: backB };
 

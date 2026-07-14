@@ -96,6 +96,10 @@ function emitEvent(state, C, e) {
     case 'HALFTIME': push(state, `— 전반 종료. ${T('A')} ${e.score.A} : ${e.score.B} ${T('B')} —`, 'sys'); break;
     case 'SECOND_HALF': push(state, `— 후반 시작 —`, 'sys'); break;
     case 'FULLTIME': push(state, `— 경기 종료! 최종 ${T('A')} ${e.score.A} : ${e.score.B} ${T('B')} —`, 'sys'); break;
+    case 'DIRECTIVE_PENDING': push(state, fill(C.directive.pending, { NAME: e.name, SEC: e.sec }), 'directive'); break;
+    case 'DIRECTIVE_AUDIBLE': push(state, fill(C.directive.audible, { NAME: e.name, FROM: e.from }), 'directive'); break;
+    case 'DIRECTIVE_ARRIVED': push(state, fill(C.directive.arrived, { NAME: e.name }), 'directive'); break;
+    case 'SIGNAL': { const sig = C.signal[e.key]; if (sig) push(state, fill(e.telegraph ? sig.tele : sig.done, { O: nm.B }), 'signal'); break; }
     default: break;
   }
 }

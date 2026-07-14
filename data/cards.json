@@ -1,49 +1,20 @@
 {
-  "_comment": "개입 카드 4종 (계획서 §8 고정). costsToken=개입권 소모 여부. 교체는 별도 3회 쿼터. delivery.scenes=지시 도착까지 장면 수(계획서 §8-B: 0=즉시, 1=다음 장면부터, 2=다다음 장면부터). counter 창은 발동 즉시 유효(불변).",
+  "_comment": "감독 지시 카드 (계획서 §0.1 오디블, 연속 엔진용). set = 도착 시 유저팀(A) tactics 에 반영. delivery=전달 시간(초, '전달 중'). cost=CP. 전달 중 다른 카드를 내면 오디블(교체)=비용 1회만.",
+  "cp": { "max": 10, "start": 3, "regenSec": 11 },
   "cards": [
-    {
-      "id": "line_adjust",
-      "name": "라인 조정",
-      "costsToken": true,
-      "delivery": { "scenes": 1 },
-      "options": [
-        { "value": "up", "label": "올리기" },
-        { "value": "down", "label": "내리기" }
-      ],
-      "risk": "올리면 뒷공간 피격 장면 가중치가 올라간다."
-    },
-    {
-      "id": "tactic",
-      "name": "전술 변경",
-      "costsToken": true,
-      "delivery": { "scenes": 2 },
-      "options": [
-        { "value": "balanced", "label": "밸런스" },
-        { "value": "attack", "label": "공격" },
-        { "value": "counter", "label": "역습" },
-        { "value": "park", "label": "잠금" }
-      ],
-      "risk": "적용 후 2장면 동안 적응 페널티."
-    },
-    {
-      "id": "encourage",
-      "name": "독려",
-      "costsToken": true,
-      "delivery": { "scenes": 0 },
-      "options": null,
-      "risk": "경기당 효과 체감 (2회째부터 절반)."
-    },
-    {
-      "id": "substitution",
-      "name": "교체",
-      "costsToken": false,
-      "delivery": { "scenes": 0 },
-      "options": [
-        { "value": "fw", "label": "공격수" },
-        { "value": "mf", "label": "미드필더" },
-        { "value": "df", "label": "수비수" }
-      ],
-      "risk": "합계 3회. 공격수=득점 확률↑ · 미드필더=우리 장면 빈도↑ · 수비수=실점 확률↓ (§8-D)"
-    }
-  ]
+    { "id": "attack",     "name": "공격",       "cost": 2, "delivery": 2.5, "set": { "tactic": "attack" },  "desc": "라인 올리고 전진·슛 강화. 뒷공간 위험." },
+    { "id": "counter",    "name": "역습",       "cost": 2, "delivery": 2.5, "set": { "tactic": "counter" }, "desc": "내려서서 빠른 역습·스루 선호." },
+    { "id": "park",       "name": "잠그기",     "cost": 2, "delivery": 2.5, "set": { "tactic": "park" },    "desc": "라인 내리고 압축. 실점 위험↓, 점유 내줌." },
+    { "id": "balanced",   "name": "안정",       "cost": 1, "delivery": 1.5, "set": { "tactic": "balanced", "press": "normal" }, "desc": "균형 잡힌 기본 대형으로." },
+    { "id": "line_up",    "name": "라인 올리기", "cost": 1, "delivery": 1.5, "set": { "lineHeight": "high" }, "desc": "수비 라인을 끌어올린다." },
+    { "id": "line_down",  "name": "라인 내리기", "cost": 1, "delivery": 1.5, "set": { "lineHeight": "low" },  "desc": "수비 라인을 낮춘다." },
+    { "id": "high_press", "name": "높은 압박",   "cost": 2, "delivery": 1.5, "set": { "press": "high" },     "desc": "전방 압박 강화. 탈취↑, 뒷공간 위험." }
+  ],
+  "opponentAI": {
+    "_comment": "상대(인천) 감독 AI. decideEvery 초마다 점수차·시간·모멘텀으로 전술 선택. telegraphSec 만큼 김성주 신호를 먼저 흘리고(유저가 읽고 대응할 창) 그 뒤 실제 반영.",
+    "decideEvery": 22,
+    "telegraphSec": 3,
+    "losingPushMin": 55,
+    "winningParkMin": 70
+  }
 }

@@ -24,13 +24,23 @@ export function roleOf(team, possTeam) {
   return team === possTeam ? 'attack' : 'defend';
 }
 
-/** 팀 backLine(자기 골문 거리 m). 오프사이드 참조로 분리 — 공격 front가 상대 back을 읽는다. */
-export function teamBackDist(team, dir, ballX, possTeam, cfg) {
+/** 전술→라인 이동(m). lineHeight low/mid/high = ∓lineHeight, tactic attack+/counter−/park−. */
+export function cardBackShift(tac, S) {
+  if (!tac) return 0;
+  const lh = tac.lineHeight === 'low' ? -S.lineHeight : tac.lineHeight === 'high' ? S.lineHeight : 0;
+  const T = S.tactic || {};
+  const tb = tac.tactic === 'attack' ? (T.attackBack || 0)
+    : tac.tactic === 'counter' ? -(T.counterBack || 0)
+    : tac.tactic === 'park' ? -(T.parkBack || 0) : 0;
+  return lh + tb;
+}
+
+/** 팀 backLine(자기 골문 거리 m). 오프사이드 참조로 분리 — 공격 front가 상대 back을 읽는다. tac=팀 전술 상태. */
+export function teamBackDist(team, dir, ballX, possTeam, cfg, tac) {
   const S = cfg.shape;
   const C = S[roleOf(team, possTeam)];
   const d = dBallOwn(dir, ballX);
-  // 카드 연동(cardBackShift)은 Stage 6 — 지금은 0.
-  return clamp(d - C.buffer, C.backClampLo, C.backClampHi);
+  return clamp(d - C.buffer, C.backClampLo, C.backClampHi) + cardBackShift(tac, S);
 }
 
 /**
@@ -53,23 +63,25 @@ export function depthRanks(players) {
  * 팀 라인/폭/중심 원시 목표(미스무딩). back/front=자기 골문 거리(m), cy=측면 중심 z(m), width=폭계수.
  * @param {number} oppBackDist 상대 팀 backLine 거리(공격 front 오프사이드 계산용)
  */
-export function teamShape(team, dir, ballX, ballZ, possTeam, cfg, oppBackDist) {
-  const S = cfg.shape;
+export function teamShape(team, dir, ballX, ballZ, possTeam, cfg, oppBackDist, tac) {
+  const S = cfg.shape, T = S.tactic || {};
   const role = roleOf(team, possTeam);
   const d = dBallOwn(dir, ballX);
-  const back = teamBackDist(team, dir, ballX, possTeam, cfg);
+  const back = teamBackDist(team, dir, ballX, possTeam, cfg, tac);
+  const wMod = (tac && tac.tactic === 'attack') ? (T.attackWidth || 0) : 0;       // 공격 시 폭 확대
+  const lenMod = (tac && tac.tactic === 'park') ? -(T.parkLength || 0) : 0;       // 잠그기 시 세로 압축
 
   let front, width, yGain;
   if (role === 'defend') {
-    front = Math.min(back + S.defend.length, d + S.defendFrontAhead);
-    width = S.defend.width; yGain = S.defend.yGain;
+    front = Math.min(back + S.defend.length + lenMod, d + S.defendFrontAhead);
+    width = S.defend.width + wMod; yGain = S.defend.yGain;
   } else if (role === 'attack') {
     // front = 상대 backLine 앞 offsideGap(오프사이드 라인), 최소 back+minLength 보장
     front = Math.max(FIELD.length - oppBackDist - S.attack.offsideGap, back + S.attack.minLength);
-    width = (d > S.attack.finalThirdDist ? S.attack.widthFinalThird : S.attack.width);
+    width = (d > S.attack.finalThirdDist ? S.attack.widthFinalThird : S.attack.width) + wMod;
     yGain = S.attack.yGain;
   } else {
-    front = back + S.neutral.length; width = S.neutral.width; yGain = S.neutral.yGain;
+    front = back + S.neutral.length + lenMod; width = S.neutral.width + wMod; yGain = S.neutral.yGain;
   }
   return { back, front, cy: ballZ * yGain, width };
 }

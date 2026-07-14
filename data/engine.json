@@ -28,6 +28,7 @@
     "neutral": { "buffer": 20, "backClampLo": 10, "backClampHi": 40, "length": 30, "width": 0.85, "yGain": 0.4 },
     "defendFrontAhead": 8,
     "lineHeight": 9,
+    "tactic": { "attackBack": 4, "attackWidth": 0.08, "counterBack": 5, "parkBack": 8, "parkLength": 5 },
     "smoothTau": 2.5,
     "runThreshold": 8,
     "runRamp": 4

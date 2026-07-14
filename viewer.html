@@ -45,6 +45,21 @@
   .line.sys { color: #c8d2de; font-weight: 700; text-align: center; border-bottom: none; margin: 6px 0; }
   canvas { width: 100%; height: auto; display: block; border-radius: 10px; background: #256; box-shadow: 0 6px 20px rgba(0,0,0,0.4); }
   .legend { font-size: 12px; color: #7d8a9c; margin-top: 8px; line-height: 1.7; }
+
+  .deck { margin-top: 14px; background: #12161c; border: 1px solid #212a34; border-radius: 12px; padding: 12px 14px; }
+  .deckhead { display: flex; align-items: center; gap: 14px; margin-bottom: 10px; flex-wrap: wrap; }
+  .cp { font-weight: 700; font-size: 14px; } .cp b { color: #ffd54a; font-size: 19px; margin-left: 2px; }
+  .dchip { font-size: 12px; padding: 3px 11px; border-radius: 999px; border: 1px solid #2f3b49; color: #aab6c4; }
+  .dchip.active { color: #8fb0ff; border-color: #38507f; }
+  .dchip.pending { color: #ffcf6b; border-color: #7a6a2a; background: rgba(255,207,107,0.07); }
+  .hint { color: #6f7c8c; font-size: 12px; margin-left: auto; }
+  .hand { display: grid; grid-template-columns: repeat(auto-fit, minmax(132px, 1fr)); gap: 8px; }
+  .card { text-align: left; background: #1a2230; border: 1px solid #2b3646; border-radius: 10px; padding: 9px 11px; cursor: pointer; color: #e8ecf1; transition: border-color .1s, background .1s; }
+  .card:hover:not(:disabled) { border-color: #3a63c4; background: #1f2938; }
+  .card:disabled { opacity: 0.38; cursor: not-allowed; }
+  .card .cn { font-weight: 700; display: flex; justify-content: space-between; align-items: baseline; }
+  .card .cn .cc { color: #ffd54a; font-variant-numeric: tabular-nums; font-size: 12px; }
+  .card .cd { font-size: 11px; color: #8090a2; margin-top: 4px; line-height: 1.4; }
   @media (max-width: 820px) { .main { grid-template-columns: 1fr; } .statrow { grid-template-columns: 1fr 1fr; } }
 </style>
 </head>
@@ -91,14 +106,25 @@
         경기는 <b>글(중계)</b>로 읽고, 바둑판은 그 실현입니다.</div>
     </div>
   </div>
+
+  <div class="deck">
+    <div class="deckhead">
+      <span class="cp">CP <b id="cp">3</b></span>
+      <span class="dchip active" id="active">전술: 균형</span>
+      <span class="dchip pending" id="pending" style="display:none"></span>
+      <span class="hint">카드 = '전달 중' → 도착. 전달 중 다른 카드 = 오디블(교체·비용 1회).</span>
+    </div>
+    <div class="hand" id="hand"></div>
+  </div>
 </div>
 
 <script type="module">
   import { createMatch, tick, SIM_DT } from './js/game/match.js';
   import { makeView, draw } from './js/ui/pitch2d.js';
+  import { playDirective } from './js/game/directives.js';
   const $ = (id) => document.getElementById(id);
   const view = makeView($('pitch'));
-  let cfg = null, com = null, state = null, playing = true, speed = 1, acc = 0, last = performance.now(), seed = 1, feedId = 0;
+  let cfg = null, com = null, cards = null, state = null, playing = true, speed = 1, acc = 0, last = performance.now(), seed = 1, feedId = 0;
 
   const fmt = (s) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
 
@@ -134,20 +160,45 @@
     box.scrollTop = box.scrollHeight;
   }
 
+  const TAC = { balanced: '균형', attack: '공격', counter: '역습', park: '잠그기' };
+  const LH = { low: '라인↓', mid: '', high: '라인↑' };
+  const tacLabel = (t) => ['전술: ' + (TAC[t.tactic] || t.tactic), LH[t.lineHeight], t.press === 'high' ? '압박↑' : ''].filter(Boolean).join(' · ');
+  const cardCost = (id) => { const c = cards.cards.find((x) => x.id === id); return c ? c.cost : 0; };
+  function buildHand() {
+    const h = $('hand'); h.innerHTML = '';
+    for (const c of cards.cards) {
+      const b = document.createElement('button'); b.className = 'card'; b.dataset.id = c.id;
+      b.innerHTML = `<div class="cn"><span>${c.name}</span><span class="cc">${c.cost} CP</span></div><div class="cd">${c.desc}</div>`;
+      b.onclick = () => { if (!state) return; const r = playDirective(state, c.id, cards); if (!r.ok) b.animate([{ borderColor: '#c4504a' }, { borderColor: '#2b3646' }], { duration: 450 }); };
+      h.appendChild(b);
+    }
+  }
+  function deck() {
+    if (!state || !state.cp) return;
+    const cp = Math.floor(state.cp.A);
+    $('cp').textContent = cp;
+    $('active').textContent = tacLabel(state.tactics.A);
+    const p = state.pending.A, pe = $('pending');
+    if (p) { pe.style.display = ''; pe.textContent = `전달 중: ${p.name} (${Math.max(0, p.applyAt - state.clockSeconds).toFixed(1)}s)`; }
+    else pe.style.display = 'none';
+    const refund = p ? cardCost(p.cardId) : 0;
+    for (const b of $('hand').children) { b.disabled = cardCost(b.dataset.id) > cp + refund; b.classList.toggle('audible', !!p); }
+  }
+
   function frame(now) {
     const dt = Math.min(0.1, (now - last) / 1000); last = now;
     if (playing && state) { acc += dt * speed; let n = 0; while (acc >= SIM_DT && n < 2000) { tick(state); acc -= SIM_DT; n++; } }
-    if (state) { draw(view, state); hud(); stats(); feed(); }
+    if (state) { draw(view, state); hud(); stats(); feed(); deck(); }
     requestAnimationFrame(frame);
   }
-  function newGame() { state = createMatch(seed, cfg, com); acc = 0; feedId = 0; $('feed').innerHTML = ''; }
+  function newGame() { state = createMatch(seed, cfg, com, cards); acc = 0; feedId = 0; $('feed').innerHTML = ''; }
 
   $('play').onclick = () => { playing = !playing; $('play').textContent = playing ? '❚❚ 일시정지' : '▶ 재생'; $('play').classList.toggle('on', playing); };
   $('restart').onclick = () => { seed++; newGame(); };
   for (const b of document.querySelectorAll('.spd')) b.onclick = () => { speed = +b.dataset.s; for (const x of document.querySelectorAll('.spd')) x.classList.toggle('on', x === b); };
 
-  Promise.all([fetch('./data/engine.json').then(r => r.json()), fetch('./data/commentary.json').then(r => r.json())])
-    .then(([e, c]) => { cfg = e; com = c; newGame(); requestAnimationFrame(frame); })
+  Promise.all([fetch('./data/engine.json').then(r => r.json()), fetch('./data/commentary.json').then(r => r.json()), fetch('./data/cards.json').then(r => r.json())])
+    .then(([e, c, cd]) => { cfg = e; com = c; cards = cd; buildHand(); newGame(); requestAnimationFrame(frame); })
     .catch((err) => { document.body.insertAdjacentHTML('beforeend', `<p style="color:#f88">로드 실패: ${err}. tools/serve.py 로 실행하세요.</p>`); });
 </script>
 </body>
