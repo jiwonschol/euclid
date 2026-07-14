@@ -15,4 +15,8 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
 
 
 PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 8642
-HTTPServer(("", PORT), NoCacheHandler).serve_forever()
+try:
+    HTTPServer(("", PORT), NoCacheHandler).serve_forever()
+except OSError:
+    # start.command를 두 번 더블클릭하는 흔한 경우 — 스택트레이스 대신 안내 한 줄
+    print(f"포트 {PORT}는 이미 사용 중 — 서버가 이미 떠 있습니다. 브라우저에서 http://localhost:{PORT} 를 열면 됩니다.")

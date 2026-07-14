@@ -22,7 +22,7 @@
     <div id="advisor-choices"></div>
   </div>
 
-  <!-- 경기 화면 (§5 단일 화면) -->
+  <!-- 경기 화면 (§5 단일 화면). 피치는 70% 축소·중앙, 참모/중계 메시지는 분리해 피치 아래 중앙 (2026-07-14 디자이너 지시) -->
   <div id="screen-match" class="hidden">
     <div class="match-left">
       <div id="scoreboard">
@@ -37,17 +37,23 @@
         <div id="banner" class="hidden"></div>
         <div id="scene-transition" class="hidden"><div class="st-minute"></div></div>
       </div>
-      <div id="strip">
-        <div id="strip-l1"></div>
-        <div id="strip-l2"></div>
+      <div id="message-row">
+        <div id="advisor-panel">
+          <div class="msg-label">참모</div>
+          <div id="advisor-head">
+            <span id="advisor-face">😐</span>
+            <span id="advisor-name"></span>
+          </div>
+          <div id="advisor-hint"></div>
+        </div>
+        <div id="strip">
+          <div class="msg-label">중계</div>
+          <div id="strip-l1"></div>
+          <div id="strip-l2"></div>
+        </div>
       </div>
     </div>
     <div class="match-right">
-      <div id="advisor-panel">
-        <div id="advisor-face">😐</div>
-        <div id="advisor-name"></div>
-        <div id="advisor-hint"></div>
-      </div>
       <div id="tokens-row">
         <span id="tokens"></span>
         <span id="subs"></span>
@@ -74,6 +80,25 @@
   <!-- 디버그 패널 (§9 PRD 상시 표시) -->
   <div id="debug" class="hidden"><pre id="debug-pre"></pre></div>
 
-  <script type="module" src="js/main.js"></script>
+  <script type="module">
+    // 캐시 마이그레이션 안전망 (2026-07-14): no-store 서버(tools/serve.py) 도입 이전에
+    // 브라우저가 캐시해 둔 옛 모듈이 새 모듈과 섞여 로드되면 조용히 고장 난다(실제 발생).
+    // 최초 1회 전 파일을 네트워크에서 강제 재적재한 뒤 새로고침한다. 이후엔 no-store라 재발 없음.
+    const REGIME = "euclid-cache-no-store-v1";
+    if (localStorage.getItem(REGIME)) {
+      import("./js/main.js");
+    } else {
+      const files = ["./", "css/style.css", "js/main.js", "js/ui/renderer.js", "js/ui/cutin.js",
+        "js/engine/match.js", "js/engine/motion.js", "js/engine/rng.js", "js/engine/conditions.js",
+        "js/engine/sceneSelector.js", "js/engine/outcome.js", "js/engine/opponentAI.js",
+        "js/engine/briefing.js", "js/engine/prd.js",
+        "data/config.json", "data/formations.json", "data/scenes.json", "data/cards.json",
+        "data/caster.json", "data/advisors.json"];
+      Promise.allSettled(files.map((f) => fetch(f, { cache: "reload" }))).then(() => {
+        localStorage.setItem(REGIME, "1");
+        location.reload();
+      });
+    }
+  </script>
 </body>
 </html>
