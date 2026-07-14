@@ -9,6 +9,7 @@
 
 import { createRng } from './rng.js';
 import { FIELD, FORMATION_433, anchorToWorld } from './field.js';
+import { stepPlay, stepPositioning } from './ai.js';
 
 export const SIM_HZ = 15;               // 시뮬 주파수(계획서 §3 권장 10~20Hz)
 export const SIM_DT = 1 / SIM_HZ;       // 한 틱 = 1/15 경기초
@@ -71,9 +72,10 @@ function makePlayer(teamId, spec, shirt, attackDir) {
 /**
  * 새 경기 상태 생성. 같은 seed → 같은 초기 상태·킥오프 팀.
  * @param {number} [seed]
+ * @param {any} [cfg]  data/engine.json (선수 운동학·형상·압박·GK). 없으면 시계/단계만 도는 골격 모드.
  * @returns {MatchState}
  */
-export function createMatch(seed = 1) {
+export function createMatch(seed = 1, cfg = null) {
   const rng = createRng(seed);
   const attackDir = { A: /** @type {1} */ (1), B: /** @type {-1} */ (-1) };
 
@@ -91,6 +93,7 @@ export function createMatch(seed = 1) {
   /** @type {MatchState} */
   const state = {
     seed,
+    cfg,
     phase: 'PRE_KICKOFF',
     half: 1,
     clockSeconds: 0,
@@ -103,8 +106,9 @@ export function createMatch(seed = 1) {
       position: { x: 0, y: 0, z: 0 },
       velocity: { x: 0, y: 0, z: 0 },
       mode: 'DEAD_BALL',
-      ownerId: null, lastTouchPlayerId: null, lastTouchTeamId: null,
+      ownerId: null, carrierId: null, lastTouchPlayerId: null, lastTouchTeamId: null,
     },
+    depthRank: null,
     eventLog: [],
     rng,
     tickCount: 0,
@@ -125,6 +129,7 @@ function startKickoff(state, kickingTeam) {
   state.ball.velocity = { x: 0, y: 0, z: 0 };
   state.ball.mode = 'DEAD_BALL';
   state.ball.ownerId = null;
+  state.ball.carrierId = null;
   logEvent(state, 'KICKOFF', { team: kickingTeam });
 }
 
@@ -139,7 +144,11 @@ function resetToFormation(state) {
     p.position = { x: w.x, z: w.z };
     p.velocity = { x: 0, z: 0 };
     p.hasBall = false;
+    p._shape = null;                 // 형상 이징 재초기화(새 진영)
   }
+  state._press = null;
+  state.possessionTeamId = null;
+  state.ball.carrierId = null;
 }
 
 function assertFinite(state) {
@@ -173,8 +182,12 @@ export function tick(state) {
       break;
 
     case 'IN_PLAY': {
+      if (state.cfg) {
+        // Stage 2: placeholder 경기 구동 + 22명 포지셔닝. (공 물리·규칙은 Stage 3~)
+        stepPlay(state, SIM_DT);
+        stepPositioning(state, SIM_DT);
+      }
       state.clockSeconds += SIM_DT;
-      // TODO(Stage 2~): 선수 AI · 공 물리 · 규칙(오프사이드/아웃/득점/반칙)이 여기서 돈다.
       const half1End = state.half === 1 && state.clockSeconds >= HALF_SECONDS;
       const half2End = state.half === 2 && state.clockSeconds >= 2 * HALF_SECONDS;
       if (half1End) {

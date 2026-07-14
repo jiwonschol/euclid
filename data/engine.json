@@ -1,0 +1,69 @@
+{
+  "_comment": "연속 경기 엔진 튜너블 (docs/match_engine_v1_plan.md). 값은 실축 m·m/s. 구 config.json motion 블록에서 계승했으나 좌표가 미터-네이티브라 meterScale 없음. 디자이너는 이 파일만 만지면 움직임이 바뀐다.",
+
+  "player": {
+    "_comment": "선수 운동학(§2.1-B). sprint 실축 8~9.5 m/s. 가속은 힘-속도 관계로 성분 분해(정지 accelBase, 제동 brake>가속, 측면 lateralAccel). jog=재정렬 트로트, run=추격.",
+    "sprint": 8.3,
+    "run": 6.5,
+    "jog": 3.2,
+    "walk": 1.5,
+    "accelBase": 4.5,
+    "brake": 6.5,
+    "lateralAccel": 4.5,
+    "reactionMin": 0.15,
+    "reactionMax": 0.35,
+    "arrivalRadius": 1.2
+  },
+
+  "separation": {
+    "_comment": "겹침 분리(§2.7). 두 선수가 dist(m) 미만이면 목표점에 상호 반발 보정. 실이동은 운동학 캡이 지배 → 부드럽게 벌어짐. 평형거리 ≈ dist×s/(1+s).",
+    "dist": 1.6,
+    "strength": 12
+  },
+
+  "shape": {
+    "_comment": "축구 형상 모델(§2.3-B). 팀별 back/front = 자기 골문 거리(m). 필드 플레이어를 depthRank로 그 사이에 사상. cy=측면 중심(공 z를 yGain만큼 추종), width=진형 가로 폭계수.",
+    "defend":  { "buffer": 18, "backClampLo": 6,  "backClampHi": 45, "length": 28, "width": 0.62, "yGain": 0.5 },
+    "attack":  { "buffer": 24, "backClampLo": 14, "backClampHi": 48, "minLength": 26, "offsideGap": 1.5, "width": 0.95, "widthFinalThird": 1.12, "finalThirdDist": 60, "yGain": 0.25 },
+    "neutral": { "buffer": 20, "backClampLo": 10, "backClampHi": 40, "length": 30, "width": 0.85, "yGain": 0.4 },
+    "defendFrontAhead": 8,
+    "lineHeight": 9,
+    "smoothTau": 2.5,
+    "runThreshold": 8,
+    "runRamp": 4
+  },
+
+  "press": {
+    "_comment": "수비 역할(§2.3). standoff=캐리어 골문쪽 접근거리, engageDist=이 존거리 밖이면 압박 안 함, coverBehind=커버가 압박자 뒤로 서는 거리, hysteresisSec=역할 재지정 지연.",
+    "standoff": 2.2,
+    "engageDist": 20,
+    "coverBehind": 9,
+    "hysteresisSec": 1.0
+  },
+
+  "gk": {
+    "_comment": "골키퍼(§2.3-B). restDist=평시 골문 앞 거리, advance=박스 안 공 진입 시 전진, boxX=자기 박스 판정, trackClampY=공 z 추종 한계. 공격 GK 스위퍼: back×sweeperRatio 전진(≤sweeperMaxX).",
+    "restDist": 5,
+    "advance": 4,
+    "boxX": 16,
+    "trackClampY": 9,
+    "sweeperRatio": 0.3,
+    "sweeperMaxX": 18
+  },
+
+  "idle": {
+    "_comment": "유휴 미세 흔들림(§2.3). 목표에만 얹어 실제 속도는 캡 유지.",
+    "driftRadius": 0.4,
+    "freq": 0.6
+  },
+
+  "ball": {
+    "_comment": "공(§2.4). 이번 Stage 2에선 placeholder 캐리만 사용. 실제 패스/슛 물리는 Stage 3.",
+    "carryAhead": 1.1
+  },
+
+  "play": {
+    "_comment": "Stage 2 placeholder 경기 구동(추후 Stage 3 utility AI로 대체). 캐리어가 상대 골문 쪽으로 드리블하다 turnoverDist(자기 골문 거리 m) 도달 시 소유권 교체 → 공이 피치를 오르내리며 형상 전환을 시연.",
+    "turnoverDist": 82
+  }
+}

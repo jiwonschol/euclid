@@ -7,6 +7,7 @@
     "sim": "node sim/headless.mjs 1000",
     "sim:motion": "node sim/motion-lint.mjs",
     "sim:match": "node sim/match-smoke.mjs",
+    "sim:pos": "node sim/positioning-lint.mjs",
     "start": "python3 tools/serve.py 8642"
   }
 }
