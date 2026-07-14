@@ -194,6 +194,8 @@ export function createMotion(scene, formations, matchState, cfg) {
     scene, formations, matchState, cfg, ms,
     elapsed: 0,
     stones, actorIds, blockIds, gkIds, onField,
+    actorSet: new Set(actorIds),        // 겹침 분리 배우-배우 제외용 (계획서 §2.7)
+    sepOff: {},                          // 알별 겹침 분리 목표 보정(미터, 매 서브스텝 갱신)
     depthRank,
     shapeBallRef: firstBallU.slice(),   // 형상 기준 볼 위치(통제 볼만 추종, 계획서 §2.3-B)
     presserId: null, presserSince: 0,
@@ -205,6 +207,7 @@ export function createMotion(scene, formations, matchState, cfg) {
       flightFrom: [0, 0], flightTo: [0, 0], flightSpeed: 0, flightDur: 0, flightElapsed: 0,
       flightKind: null, attachTo: null, lofted: false,
       pos: toM(firstBallU, ms), z: 0, nominalSpeed: 0,
+      carryStart: 0,                     // 소유 시작 시각(패스 리듬 최소 캐리 판정, 계획서 §2.4-B)
       lastDir: [attackDir("h"), 0], touchPhase: hash01(scene.id || "s") * 6.283,
     },
     // 골문 조준점 (y는 장면별 해시 분산, 계획서 §2.4)
@@ -216,6 +219,7 @@ export function createMotion(scene, formations, matchState, cfg) {
     roles: {}, anchors: {}, positions: {},
   };
 
+  for (const id of motion.onField) motion.sepOff[id] = [0, 0];
   initBallEntry(motion, 0);
   writePositions(motion);
   return motion;
@@ -257,6 +261,8 @@ export function stepMotion(motion, dt) {
     const h = Math.min(remaining, MAX_SUBSTEP);
     remaining -= h;
     motion.elapsed += h;
+    // 겹침 분리 목표 보정을 서브스텝 시작 스냅샷(직전 위치)으로 1회 계산 → 아래 seek들이 공유 (계획서 §2.7)
+    computeSeparation(motion);
     // 순서: 배우(독립) → 공(캐리어=배우 위치 참조) → 역할 선정 → 블록/압박/GK(공 위치 참조)
     stepActors(motion, h);
     stepBall(motion, h);
@@ -267,13 +273,43 @@ export function stepMotion(motion, dt) {
   return motion.positions;
 }
 
+// 겹침 분리 (계획서 §2.7): 필드 스톤 쌍이 sepDist 미만이면 서로 밀어내는 보정 벡터(미터)를 sepOff에 누적.
+// 이 보정은 각 알의 seek '목표점'에만 더해진다(위치 순간이동 금지 — 운동학 캡을 거쳐야 G1/G2′ 유지).
+// 배우-배우 쌍은 제외(각본이 의도한 근접 존중), 그 외(배우-비배우·비배우-비배우·GK) 적용. 대칭 분담:
+// 각 알이 겹침 깊이의 절반 ×strength만큼 서로 반대로 밀린다. 표적-스프링 평형 d≈dist×s/(1+s).
+function computeSeparation(motion) {
+  const S = motion.cfg.motion.separation;
+  const off = motion.sepOff, ids = motion.onField;
+  for (const id of ids) { const o = off[id]; o[0] = 0; o[1] = 0; }
+  if (!S || !(S.strength > 0) || !(S.dist > 0)) return;
+  const dist = S.dist, str = S.strength, actorSet = motion.actorSet, stones = motion.stones;
+  for (let i = 0; i < ids.length; i++) {
+    const a = ids[i], pa = stones[a].pm, aIsActor = actorSet.has(a);
+    for (let j = i + 1; j < ids.length; j++) {
+      const b = ids[j];
+      if (aIsActor && actorSet.has(b)) continue;   // 배우-배우 쌍 제외
+      const pb = stones[b].pm;
+      const dx = pa[0] - pb[0], dy = pa[1] - pb[1];
+      const d = Math.hypot(dx, dy);
+      if (d >= dist) continue;
+      const push = str * (dist - d) / 2;            // 대칭 분담: 각자 절반씩
+      let ux, uy;
+      if (d > 1e-6) { ux = dx / d; uy = dy / d; }
+      else { const th = hash01(a + b) * 6.283; ux = Math.cos(th); uy = Math.sin(th); } // 완전 겹침: 결정론 해시 방향(rng 금지)
+      const oa = off[a], ob = off[b];
+      oa[0] += ux * push; oa[1] += uy * push;
+      ob[0] -= ux * push; ob[1] -= uy * push;
+    }
+  }
+}
+
 function stepActors(motion, dt) {
   const { cfg } = motion;
   const P = cfg.motion.player;
   for (const id of motion.actorIds) {
     const st = motion.stones[id];
     const carrot = arcPoint(st.pathM, st.cum, st.cruise * motion.elapsed); // 등속 캐럿 추적(pure pursuit)
-    seek(st, carrot, st.maxSpeed, P, dt, P.arrivalRadius);
+    seek(st, add(carrot, motion.sepOff[id]), st.maxSpeed, P, dt, P.arrivalRadius); // +겹침 분리(§2.7)
     motion.roles[id] = "actor";
   }
 }
@@ -294,7 +330,7 @@ function stepOthers(motion, dt) {
   for (const id of motion.gkIds) {
     // GK: 수비 GK 현행(박스 안 전진, 공 y 추종), 공격 GK 스위퍼 전진 (계획서 §2.3-B)
     const st = motion.stones[id];
-    seek(st, toM(gkTarget(id, liveBallU, raw, sceneSide, formations, M, ms), ms), P.jog, P, dt, P.arrivalRadius);
+    seek(st, add(toM(gkTarget(id, liveBallU, raw, sceneSide, formations, M, ms), ms), motion.sepOff[id]), P.jog, P, dt, P.arrivalRadius); // +겹침 분리(§2.7)
     motion.roles[id] = "gk";
   }
 
@@ -317,12 +353,12 @@ function stepOthers(motion, dt) {
       const toGoal = sub(ownGoalM, carrier.pm);
       const gl = len(toGoal);
       const standoff = gl > 1e-6 ? scale(toGoal, M.press.standoff / gl) : [0, 0];
-      seek(st, add(carrier.pm, standoff), P.run, P, dt, P.arrivalRadius);
+      seek(st, add(add(carrier.pm, standoff), motion.sepOff[id]), P.run, P, dt, P.arrivalRadius); // +겹침 분리(§2.7)
       motion.roles[id] = "press";
     } else if (st.engaged) {
       // 압박 관여 알의 복귀: 앵커로 jog 복귀. 진형에 재합류(recoverRadius 내)할 때까지
       // '압박'으로 분류한다 — 복귀 중인 알은 '비관여·비압박'이 아니다(공을 따라 미끄러지는 게 아님).
-      seek(st, anchorM, P.jog, P, dt, P.arrivalRadius);
+      seek(st, add(anchorM, motion.sepOff[id]), P.jog, P, dt, P.arrivalRadius); // +겹침 분리(§2.7)
       motion.roles[id] = "press";
       // 진형 근처 + 감속 완료 후에만 블록 복귀 — 압박 관성(run 속도)이 남은 채 block으로 새면 G4′ 위반
       if (distM(st.pm, anchorM) <= M.press.recoverRadius && len(st.vm) <= P.jog * 1.02) st.engaged = false;
@@ -339,7 +375,7 @@ function stepOthers(motion, dt) {
       const dA = distM(st.pm, anchorM);
       const spd = dA <= S.runThreshold ? P.jog
         : Math.min(P.run, P.jog + (P.run - P.jog) * (dA - S.runThreshold) / S.runRamp);
-      seek(st, toM([anchor[0] + noiseU[0], anchor[1] + noiseU[1]], ms), spd, P, dt, P.arrivalRadius);
+      seek(st, add(toM([anchor[0] + noiseU[0], anchor[1] + noiseU[1]], ms), motion.sepOff[id]), spd, P, dt, P.arrivalRadius); // +겹침 분리(§2.7)
       motion.roles[id] = "block";
     }
   }
@@ -412,6 +448,7 @@ function stepBall(motion, dt) {
       } else {
         b.mode = "settle";
       }
+      b.carryStart = motion.elapsed; // 소유 시작 — 다음 이동형 엔트리의 최소 캐리 기준점 (계획서 §2.4-B)
       b.attachTo = null; b.flightKind = null;
     }
   } else { // settle
@@ -435,6 +472,18 @@ function stepBall(motion, dt) {
     : toU([refM[0] + (tgtM[0] - refM[0]) * (maxStep / dRef), refM[1] + (tgtM[1] - refM[1]) * (maxStep / dRef)], ms);
 }
 
+// 이동형 엔트리 = 발사(비행)를 유발하는 스크립트 동사 (계획서 §2.4-B). attach(맨 id)는 소유라 제외.
+function isMovingEntry(e) {
+  return e.startsWith("pass:") || e.startsWith("cross:") || e.startsWith("shot:") || e.startsWith("point:");
+}
+// 최소 캐리 시간 (계획서 §2.4-B): base=minCarrySec + 캐리어 해시×minCarryJitter(rng 금지). 슛은 ×shotCarryRatio(원터치).
+function minCarryFor(motion, entry) {
+  const B = motion.cfg.motion.ball;
+  const h = hash01((motion.ball.carrierId || motion.scene.id || "c") + "carry");
+  const base = B.minCarrySec + h * B.minCarryJitter;
+  return entry.startsWith("shot:") ? base * B.shotCarryRatio : base;
+}
+
 // 엔트리 전진: 이동형은 물리 비행 완료까지 대기(경계 넘치면 dwell 축소), attach/settle은 경계 시각에 전진.
 function advanceBallEntry(motion) {
   const b = motion.ball;
@@ -442,11 +491,20 @@ function advanceBallEntry(motion) {
   const dur = motion.scene.duration || 1;
   let guard = 0;
   while (b.entryIdx < N - 1 && guard++ < N + 2) {
-    const nextNominal = ((b.entryIdx + 1) / N) * dur;
+    const nextIdx = b.entryIdx + 1;
+    const nextNominal = (nextIdx / N) * dur;
     const flightDone = b.mode !== "flight" || b.flightElapsed >= b.flightDur;
-    const done = motion.elapsed >= nextNominal && flightDone;
-    if (!done) break;
-    b.entryIdx++;
+    if (!(motion.elapsed >= nextNominal && flightDone)) break;
+    // 패스 리듬 (계획서 §2.4-B): 이동형 엔트리는 소유(carry/settle) 상태에서 최소 캐리 시간 경과 후에만
+    // 발사 — '죽죽' 핀볼 제거. 미충족이면 발사를 늦추고(break), 기존 dwell 축소 로직이 흡수한다.
+    // 배달 비행이 아직 mode 전환 전(flightDone이나 mode=flight)이면 다음 서브스텝에 처리(그때 carryStart 갱신).
+    // idx 0(첫 엔트리 즉시 발사)은 이 루프 밖(createMotion에서 직접 초기화)이라 예외 유지.
+    const nextEntry = b.entries[nextIdx];
+    if (isMovingEntry(nextEntry)) {
+      if (b.mode === "flight") break;
+      if (motion.elapsed - b.carryStart < minCarryFor(motion, nextEntry)) break;
+    }
+    b.entryIdx = nextIdx;
     initBallEntry(motion, b.entryIdx);
   }
 }
@@ -464,7 +522,7 @@ function initBallEntry(motion, idx) {
   }
   if (raw.startsWith("point:")) {
     const to = toM(raw.slice(6).split(",").map(Number), ms);
-    if (idx === 0) { b.mode = "settle"; b.pos = to; b.z = 0; }
+    if (idx === 0) { b.mode = "settle"; b.pos = to; b.z = 0; b.carryStart = motion.elapsed; }
     else startFlight(b, b.pos, to, M.ball.looseSpeed, "loose", null, false);
     return;
   }
@@ -482,14 +540,14 @@ function initBallEntry(motion, idx) {
   const carrier = motion.stones[cid];
   const cpm = carrier ? carrier.pm : b.pos;
   if (idx === 0) {
-    b.mode = "carry"; b.carrierId = cid; b.carryOffsetM = [0, 0]; b.pos = cpm.slice(); b.z = 0;
+    b.mode = "carry"; b.carrierId = cid; b.carryOffsetM = [0, 0]; b.pos = cpm.slice(); b.z = 0; b.carryStart = motion.elapsed;
   } else if (distM(b.pos, cpm) > M.ball.carryAttachDist) {
     // 공이 멀면 캐리어 도착 예상지점으로 굴러가 부착(collect) — 순간이동/도착 오차 방지
     const fd0 = M.ball.collectSpeed > 1e-6 ? distM(b.pos, cpm) / M.ball.collectSpeed : 0;
     const to = carrier ? add(cpm, scale(carrier.vm, fd0)) : cpm;
     startFlight(b, b.pos, to, M.ball.collectSpeed, "loose", cid, false);
   } else {
-    b.mode = "carry"; b.carrierId = cid; b.carryOffsetM = clampLen(sub(b.pos, cpm), M.ball.carryMaxDist);
+    b.mode = "carry"; b.carrierId = cid; b.carryOffsetM = clampLen(sub(b.pos, cpm), M.ball.carryMaxDist); b.carryStart = motion.elapsed;
   }
 }
 

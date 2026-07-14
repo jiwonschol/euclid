@@ -29,7 +29,8 @@ const STATES = {
 // G8: g8b 수비팀 길이 ≤33m, g8c 20명 x-스팬 ≤56, g8d 볼사이드 슬라이드 오차 ≤8m.
 // G2′(v0.4): 저크 임계 12→7.2 (brake 6.5 + 여유). "지나친 가속" 봉인의 수치 증명.
 // G9(v0.4): 라인카드 가시성 — 수비 backLine high−low≥14m, high−mid≥6m.
-const LIM = { g1: 8.8, g2: 7.2, g3p99: 7, g3max: 10, g4near: 4.2, g4far: 6.7, g4dist: 8, g5speed: 14, g5carry: 2.2, g5shot: 1.5, g8b: 33, g8c: 56, g8d: 8, g8settle: 4.0, g8settleSpd: 1.5, g9hl: 14, g9hm: 6 };
+// G10(v0.5): 겹침 — 비(배우-배우) 쌍 중심거리 <1.1m. 페어프레임 비율 ≤1% AND 0.8s+ 연속겹침 0건.
+const LIM = { g1: 8.8, g2: 7.2, g3p99: 7, g3max: 10, g4near: 4.2, g4far: 6.7, g4dist: 8, g5speed: 14, g5carry: 2.2, g5shot: 1.5, g8b: 33, g8c: 56, g8d: 8, g8settle: 4.0, g8settleSpd: 1.5, g9hl: 14, g9hm: 6, g10dist: 1.1, g10cont: 0.8, g10ratio: 1 };
 
 const meterDelta = (a, b) => Math.hypot((a[0] - b[0]) * MS[0], (a[1] - b[1]) * MS[1]);
 const speedOf = (a, b) => meterDelta(a, b) / DT;
@@ -49,6 +50,8 @@ function runOne(scene, state, label, acc) {
   let prevPos = {}, prevVel = {}, prevBall = null;
   for (const id of m.onField) prevPos[id] = m.positions[id].slice();
   let shotMinDist = Infinity;
+  const actorSet = new Set(m.actorIds);           // G10 배우-배우 제외용
+  const contMap = new Map(), flagged = new Set(); // G10 쌍별 연속겹침 프레임 · 0.8s 플래그(에피소드당 1회)
 
   for (let f = 0; f < frames; f++) {
     stepMotion(m, DT);
@@ -94,6 +97,37 @@ function runOne(scene, state, label, acc) {
         if (spd > lim) { acc.g4.viol++; if (spd > acc.g4.violMax) { acc.g4.violMax = spd; acc.g4.violAt = { scene: scene.id, label, id, f, lim }; } }
       }
       prevPos[id] = p.slice();
+    }
+
+    // ── G10 겹침 (계획서 §2.7/§4): 비(배우-배우) 필드 스톤 쌍 <1.1m ──
+    // 페어프레임 비율(겹친 쌍-프레임/검사한 쌍-프레임)과 쌍별 연속겹침을 누적. 프레임존재 비율은 참고로만
+    // 집계(순간 교차 허용 원칙상 압박 접촉이 이를 ~1.6%로 띄워 게이트로는 부적합 — §e 보고). 판정은
+    // 페어프레임 ≤1% AND 0.8s+ 연속겹침 0건. onField 순서 고정이라 (i<j) 쌍 키는 프레임 간 일관.
+    {
+      const ids = m.onField;
+      let frameHas = false; const seen = new Set();
+      for (let i = 0; i < ids.length; i++) {
+        const a = ids[i], aAct = actorSet.has(a);
+        for (let j = i + 1; j < ids.length; j++) {
+          const b = ids[j];
+          if (aAct && actorSet.has(b)) continue; // 배우-배우 쌍 제외
+          acc.g10.pairTot++;
+          const key = a + "|" + b;
+          if (meterDelta(pos[a], pos[b]) < LIM.g10dist) {
+            acc.g10.pairOv++; frameHas = true; seen.add(key);
+            const c = (contMap.get(key) || 0) + 1; contMap.set(key, c);
+            const sec = c * DT;
+            if (sec > acc.g10.maxCont) { acc.g10.maxCont = sec; acc.g10.maxAt = { scene: scene.id, label, key }; }
+            if (sec >= LIM.g10cont && !flagged.has(key)) {
+              acc.g10.contGe08++; flagged.add(key);
+              if (!acc.g10.contAt) acc.g10.contAt = { scene: scene.id, label, key };
+            }
+          }
+        }
+      }
+      for (const k of contMap.keys()) if (!seen.has(k)) { contMap.set(k, 0); flagged.delete(k); }
+      acc.g10.totFrames++;
+      if (frameHas) acc.g10.frameExist++;
     }
 
     // 공 게이트 (G5)
@@ -206,6 +240,7 @@ function freshAcc() {
     g5tp: { max: 0, viol: 0, at: null }, g5shot: { scenes: 0, ok: 0, fails: [] },
     g8a: { vals: [], max: -Infinity, at: null }, g8b: { vals: [], max: 0, at: null },
     g8c: { vals: [], max: 0, at: null }, g8d: { vals: [], max: 0, at: null, signViol: 0, signAt: null },
+    g10: { pairOv: 0, pairTot: 0, frameExist: 0, totFrames: 0, contGe08: 0, maxCont: 0, maxAt: null, contAt: null },
     actorOver: [],
   };
 }
@@ -254,6 +289,17 @@ results.push([g8cP99 <= LIM.g8c, "G8c 20명 x-스팬 ≤56", `p99=${fmt(g8cP99)}
 // 대부분 빠른 좌우 전환 후 블록이 올바른 방향으로 슬라이드하며 잠깐 뒤처지는 소진폭(≤4.5m) 과도.
 const g8dSignRate = acc.g8d.signViol / Math.max(1, acc.g8d.vals.length);
 results.push([g8dP95 <= LIM.g8d && g8dSignRate <= 0.05, "G8d 볼사이드 슬라이드 부호일치·오차≤8m", `err p95=${fmt(g8dP95)}m max=${fmt(acc.g8d.max)}m 부호위반율=${(g8dSignRate * 100).toFixed(1)}%(${acc.g8d.signViol}/${acc.g8d.vals.length}) ${g8dSignRate > 0.05 ? atStr(acc.g8d.signAt) : ""}`]);
+
+// ── G10 겹침 게이트 (계획서 §2.7/§4, v0.5 신설) ──
+// 판정: 페어프레임 비율(겹친 비배우쌍-프레임/검사쌍-프레임) ≤1% AND 0.8s+ 연속겹침 0건.
+// "순간 교차 허용" 원칙(계획서 §4)에 따라 순간 스침은 페어프레임에서 미미하고, 지속 겹침은 연속겹침이 잡는다.
+// 프레임존재 비율(≥1쌍 겹친 프레임/전체)은 압박 순간접촉이 ~1.6%로 띄워 게이트에 부적합 — 참고로만 표기.
+const g10PairRatio = 100 * acc.g10.pairOv / Math.max(1, acc.g10.pairTot);
+const g10FrameExist = 100 * acc.g10.frameExist / Math.max(1, acc.g10.totFrames);
+const g10pass = g10PairRatio <= LIM.g10ratio && acc.g10.contGe08 === 0;
+const g10ContStr = acc.g10.contAt ? ` @${acc.g10.contAt.scene}/${acc.g10.contAt.label}:${acc.g10.contAt.key}` : "";
+const g10MaxStr = acc.g10.maxAt ? `(${acc.g10.maxAt.scene}/${acc.g10.maxAt.key})` : "";
+results.push([g10pass, "G10 겹침 비배우쌍<1.1m 페어프레임≤1%·0.8s연속0", `페어프레임=${fmt(g10PairRatio)}% 0.8s+연속=${acc.g10.contGe08}건${g10ContStr} 최장연속=${fmt(acc.g10.maxCont)}s ${g10MaxStr} | 참고 프레임존재=${fmt(g10FrameExist)}%`]);
 
 for (const [pass, name, detail] of results) console.log(line(pass, name, detail));
 

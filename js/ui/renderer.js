@@ -1,3 +1,13 @@
+// 정오각형 경로(중심 cx,cy·꼭짓점거리 rad·회전 rot 라디안). beginPath/fill은 호출부에서 — 축구공 패치용.
+function pentPath(c, cx, cy, rad, rot) {
+  for (let i = 0; i < 5; i++) {
+    const a = rot + i * (2 * Math.PI / 5);
+    const x = cx + Math.cos(a) * rad, y = cy + Math.sin(a) * rad;
+    if (i === 0) c.moveTo(x, y); else c.lineTo(x, y);
+  }
+  c.closePath();
+}
+
 // 피치 렌더러. 상태를 갖지 않는다 — 매 프레임 positions를 받아 그릴 뿐이다 (계획서 §4).
 export class Renderer {
   constructor(canvas) {
@@ -70,24 +80,43 @@ export class Renderer {
       }
     }
 
-    // 공: 흰 점. ballZ(로프트 높이 0..1)에 따라 반지름 스케일 + 그림자 (계획서 §2.5).
-    // 지상 공(z≈0)은 현행 흰 점 그대로. 크로스/로프트만 커지고 그림자가 분리된다.
+    // 공: 축구공으로 그린다 — 흰 원 + 검은 오각형 패치(캔버스 기하, 이미지 금지) (계획서 §2.5).
+    // ballZ(로프트 높이 0..1)로 반지름(1+0.9z)·그림자를 강화 — 상공 뷰에서 뜬 공이 카메라로 다가와
+    // "커지는" 느낌을 확실히(v0.5 디자이너 지시). 지상 공(z≈0)도 같은 축구공, 그림자만 없다.
     if (positions.ball) {
       const [bx, by] = this.px(positions.ball);
       const z = positions.ballZ || 0;
-      const rad = r * 0.45 * (1 + 0.5 * z);
-      const lift = z * r * 1.2; // 높이만큼 위로 띄우고 그림자는 지면에 남긴다
-      if (z > 0.02) {
+      const rad = r * 0.55 * (1 + 0.9 * z);
+      const lift = z * r * 1.9; // 높이만큼 위로 띄우고 그림자는 지면에 남긴다(분리 강화)
+      if (z > 0.02) { // 로프트 그림자: 지면에 남고 z에 따라 오프셋·크기 확대 (계획서 §2.5)
         c.beginPath();
-        c.ellipse(bx, by, rad * (1 + 0.4 * z), rad * 0.55, 0, 0, Math.PI * 2);
-        c.fillStyle = `rgba(0,0,0,${0.28 - 0.12 * z})`;
+        c.ellipse(bx, by + rad * 0.15, rad * (1.15 + 0.7 * z), rad * (0.6 + 0.2 * z), 0, 0, Math.PI * 2);
+        c.fillStyle = `rgba(0,0,0,${0.32 - 0.10 * z})`;
         c.fill();
       }
+      const cxb = bx, cyb = by - lift;
+      // 흰 구체
       c.beginPath();
-      c.arc(bx, by - lift, rad, 0, Math.PI * 2);
+      c.arc(cxb, cyb, rad, 0, Math.PI * 2);
       c.fillStyle = "#ffffff";
       c.fill();
-      c.strokeStyle = "rgba(0,0,0,0.4)";
+      // 검은 오각형 패치: 중앙 1 + 림 5 (원 안으로 클립해 림 패치가 밖으로 새지 않게)
+      c.save();
+      c.beginPath();
+      c.arc(cxb, cyb, rad, 0, Math.PI * 2);
+      c.clip();
+      c.fillStyle = "#111827";
+      c.beginPath(); pentPath(c, cxb, cyb, rad * 0.42, -Math.PI / 2); c.fill(); // 중앙(꼭짓점 위)
+      for (let k = 0; k < 5; k++) {
+        const a = -Math.PI / 2 + (k + 0.5) * (2 * Math.PI / 5); // 중앙 꼭짓점 사이(변) 방향
+        const px = cxb + Math.cos(a) * rad * 0.82, py = cyb + Math.sin(a) * rad * 0.82;
+        c.beginPath(); pentPath(c, px, py, rad * 0.30, a + Math.PI / 2); c.fill(); // 안쪽 향한 림 패치
+      }
+      c.restore();
+      // 외곽선
+      c.beginPath();
+      c.arc(cxb, cyb, rad, 0, Math.PI * 2);
+      c.strokeStyle = "rgba(0,0,0,0.45)";
       c.lineWidth = 1;
       c.stroke();
     }

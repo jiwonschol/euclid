@@ -66,6 +66,11 @@
       "catchup": 1.2,
       "speedCap": 8.3
     },
+    "separation": {
+      "_comment": "겹침 분리 (계획서 §2.7). 필드 스톤 쌍이 dist(m) 미만이면 서로 밀어내는 보정을 seek 목표점에 얹는다(위치 순간이동 금지 — 운동학 캡 안에서 벌어져 G1/G2′ 유지). 배우-배우 쌍 제외(각본 근접 존중), 배우-비배우·비배우-비배우·GK 적용, 대칭 분담(각자 (dist−d)/2×strength). 목표에만 얹혀 실제 이동은 알별 속도상한(블록 jog)이 지배 → 분리는 부드럽고 G1~G3 무영향(실측). strength=12는 코너 박스 밀집의 GK-수비 연속겹침을 0.8s 미만(G10)으로 누르는 최소값+여유. 압박 standoff(2.2m)>dist라 압박 그림은 유지된다.",
+      "dist": 1.6,
+      "strength": 12
+    },
     "shape": {
       "_comment": "축구 형상 모델 (계획서 §2.3-B). 경기의 지리는 볼과 점유가 정한다. 팀별 backLine/frontLine(자기 골문 거리 d, x단위≈m)을 계산하고 필드 플레이어를 depthRank로 그 사이에 사상. buffer=공 뒤로 물러선 거리, length=팀 세로 길이(전후), width=진형 가로 폭계수(1=원본), yGain=블록중심이 공 y를 따르는 게인.",
       "defend": {
@@ -134,7 +139,7 @@
       "freq": 0.6
     },
     "ball": {
-      "_comment": "공 물리 (계획서 §2.4). 속도 m/s, distRef=해당 최대속도에 도달하는 거리(m). loftHeight=포물선 최대 z.",
+      "_comment": "공 물리 (계획서 §2.4). 속도 m/s, distRef=해당 최대속도에 도달하는 거리(m). loftHeight=포물선 최대 z. 패스 리듬(§2.4-B): 이동형 엔트리(pass/cross/shot/point)는 소유 후 minCarrySec+알해시×minCarryJitter 경과해야 발사('죽죽' 제거), 슛은 ×shotCarryRatio(원터치 허용). 첫 엔트리 즉시 발사는 예외.",
       "passMin": 16,
       "passMax": 22,
       "passDistRef": 45,
@@ -147,6 +152,9 @@
       "shotDistRef": 30,
       "looseSpeed": 8,
       "collectSpeed": 7,
+      "minCarrySec": 0.55,
+      "minCarryJitter": 0.5,
+      "shotCarryRatio": 0.5,
       "carryAhead": 1.1,
       "carryAheadAmp": 0.45,
       "touchFreq": 3.2,
