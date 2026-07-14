@@ -9,6 +9,7 @@
     "sim:match": "node sim/match-smoke.mjs",
     "sim:pos": "node sim/positioning-lint.mjs",
     "sim:play": "node sim/play-lint.mjs",
+    "sim:stability": "node sim/stability.mjs",
     "start": "python3 tools/serve.py 8642"
   }
 }
