@@ -63,7 +63,7 @@ function updatePossession(state, dt) {
     if (!carrier) { b.mode = 'LOOSE'; b.carrierId = null; return; }
     // 태클 경합: 캐리어 근처 상대가 controlRadius 내면 매 틱 소량 확률로 탈취(루즈볼)
     const opp = nearestOpp(state, carrier.teamId, carrier.position);
-    if (opp && opp.d <= ctl.controlRadius && state.rng.chance(cfg.action.turnoverBase * dt / cfg.action.decideEvery)) {
+    if (opp && opp.d <= ctl.controlRadius && state.rng.chance(cfg.action.turnoverBase * dt)) {  // turnoverBase=압박 중 초당 탈취율
       b.mode = 'LOOSE'; b.carrierId = null; b.ownerId = null; carrier.hasBall = false;
       b.velocity = { x: (state.rng.float() - 0.5) * 5, y: 0, z: (state.rng.float() - 0.5) * 5 };
       b.lastTouchPlayerId = opp.p.id; b.lastTouchTeamId = opp.p.teamId;
