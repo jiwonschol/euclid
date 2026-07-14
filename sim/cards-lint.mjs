@@ -8,6 +8,8 @@ import { resolve, resolvedFor, addEffect, stepEffects, stepResolve, consumeNextA
 import { validateCard, deckCardById } from '../js/game/cards.js';
 import { playFromHand, applyCard, offerContext } from '../js/game/hand.js';
 import { assignMarking } from '../js/game/defend.js';
+import { assignAttackTargets } from '../js/game/attack.js';
+import { FIELD } from '../js/game/field.js';
 
 const cfg = JSON.parse(readFileSync(new URL('../data/engine.json', import.meta.url)));
 const cards = JSON.parse(readFileSync(new URL('../data/cards.json', import.meta.url)));
@@ -253,6 +255,22 @@ console.log('20) 맥락(context) 카드 주입 → 즉시 적용 → 만료');
   s._card.ctx.until = s.clockSeconds - 1;                            // 창 만료
   offerContext(s, cards);
   ok(!s.cards.A.hand.some((x) => x.ctx), '창 만료 시 미사용 맥락 카드 제거');
+}
+
+console.log('21) 전원 공격(commitForward) → 레이트런 인원↑(공격 목표 변화)');
+{
+  const s = toInPlay(createMatch(33, cfg, null, cards));
+  s.possessionTeamId = 'A';
+  const dir = s.attackDirection.A;
+  s.ball.position = { x: dir * 15, y: 0, z: 0 }; s.ball.carrierId = 'A9';   // 파이널서드(레이트런 트리거)
+  s.players.A9.hasBall = true; s.players.A9.position = { x: dir * 15, z: 0 };
+  const base = assignAttackTargets(s, 'A');                                 // commitForward=0
+  applyCard(s, 'A', deckCardById(cards, 'all_out'), null); stepResolve(s);
+  ok(resolvedFor(s, 'A').commitForward === 3, 'all_out → commitForward=3');
+  const boosted = assignAttackTargets(s, 'A');                             // commitForward=3 → 레이트런 인원↑
+  let changed = 0;
+  for (const id in boosted) if (!base[id] || Math.hypot(base[id].x - boosted[id].x, base[id].z - boosted[id].z) > 2) changed++;
+  ok(changed > 0, `전원 공격이 ${changed}명의 공격 목표를 전진 재배치`);
 }
 
 console.log(`\n${fail === 0 ? '✅ 전부 통과' : '❌ 실패 있음'}  (pass ${pass}, fail ${fail})`);

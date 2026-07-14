@@ -31,7 +31,9 @@ export function assignAttackTargets(state, team) {
   const carrierId = state.ball.carrierId;
   const carrier = carrierId ? state.players[carrierId] : null;
   const olX = offsideLineX(state, team);
-  const zone = resolvedFor(state, team).attackZone || 'central';
+  const R = resolvedFor(state, team);
+  const zone = R.attackZone || 'central';
+  const commit = R.commitForward || 0;                 // 전원 공격: 박스 침투(레이트런) 인원 가산
   const finalThird = dBallOwn(dir, ball.x) > 62;
   const goalX = oppGoalX(dir);
   // 측면=공 있는 쪽으로 전개(동적), 중앙=0. (명시적 wing_left/right 도 허용)
@@ -47,7 +49,8 @@ export function assignAttackTargets(state, team) {
   const support = new Set(carrier
     ? players.filter((p) => !balance.has(p.id)).sort((a, b) => dist2(a.position, carrier.position) - dist2(b.position, carrier.position)).slice(0, 2).map((p) => p.id)
     : []);
-  let lateUsed = false;
+  let lateCount = 0;
+  const maxLate = 1 + (commit >= 1 ? Math.min(2, Math.round(commit)) : 0);
   const targets = {};
 
   for (const p of players) {
@@ -69,10 +72,10 @@ export function assignAttackTargets(state, team) {
     } else if (ax >= 0.62) {                              // 스트라이커: 중앙(또는 존 쪽) 라인 침투
       tx = onside(dir, olX, olX, 1.2);
       tz = wingSide === 0 ? side * 6 : wingSide * 9;
-    } else if (finalThird && !lateUsed) {                // 미드 1명 레이트런(박스 침투)
-      lateUsed = true;
+    } else if (finalThird && lateCount < maxLate) {      // 레이트런(박스 침투) — 전원 공격 시 인원↑
+      lateCount++;
       tx = onside(dir, goalX - dir * 13, olX, 1.5);
-      tz = side * 8;
+      tz = side * (lateCount % 2 ? 8 : -8);
     } else {                                             // 나머지 미드: 볼 쪽 전진 지원
       tx = onside(dir, ball.x + dir * 6, olX, 1.5);
       tz = clamp(ball.z + side * 12, -30, 30);

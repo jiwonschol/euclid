@@ -22,7 +22,7 @@
       "rulesText": "수비 라인과 팀 높이를 낮추고 중앙 간격을 좁힌다.", "tradeoffText": "스루패스엔 강하나 중거리 슛·점유를 내준다." },
 
     { "id": "recover", "name": "즉시 복귀", "category": "MENTALITY", "cost": 1, "timing": ["DEFENSIVE_TRANSITION", "OUT_OF_POSSESSION"], "targetType": "NONE", "durationSeconds": 6, "cooldownGroup": "transition", "preconditions": [], "stacking": "REFRESH",
-      "effects": [ { "key": "transition", "scope": "TEAM", "operation": "OVERRIDE", "value": "recover" } ],
+      "effects": [ { "key": "transition", "scope": "TEAM", "operation": "OVERRIDE", "value": "recover" }, { "key": "pressAggression", "scope": "TEAM", "operation": "MULTIPLY", "value": 0.5 }, { "key": "lineHeight", "scope": "TEAM", "operation": "OVERRIDE", "value": "low" } ],
       "rulesText": "카운터프레스를 포기하고 전원 수비 형태로 복귀한다.", "tradeoffText": "즉시 되찾을 기회를 버리는 대신 구조가 안전하다." },
 
     { "id": "counter_press", "name": "카운터프레스", "category": "PRESS", "cost": 2, "timing": ["DEFENSIVE_TRANSITION"], "targetType": "NONE", "durationSeconds": 6, "cooldownGroup": "transition", "preconditions": [], "stacking": "REFRESH",
