@@ -49,12 +49,14 @@
     "_comment": "모션 엔진 v2 (계획서 §2). 속도는 실제 축구 m/s. 위치는 0-100 좌표, 계산은 meterScale로 미터 환산. 디자이너는 이 블록만 만지면 움직임이 바뀐다.",
     "meterScale": [1.05, 0.68],
     "player": {
-      "_comment": "선수 운동학 (계획서 §2.1). sprint 실축 8-9.5, accel 0→sprint 1.5초.",
+      "_comment": "선수 운동학 (계획서 §2.1 + v0.4 인간 운동학 §2.1-B). sprint 실축 8-9.5 m/s. 가속은 상수 대신 힘-속도 관계로 성분 분해: accelBase=정지 시 최대(전속 접근 시 a(v)=accelBase×max(0,1−‖v‖/maxSpeed)로 0까지 감쇠), brake=제동(속도 반대 성분, 편심 수축이라 가속보다 강함), lateralAccel=측면 성분(고속 급회전 불가→곡선 주로 자동 생성). jog는 재정렬 트로트(FM 2D 점 질감 — run은 스윙 추격에만).",
       "sprint": 8.3,
       "run": 6.5,
-      "jog": 3.8,
+      "jog": 3.2,
       "walk": 1.5,
-      "accel": 5.5,
+      "accelBase": 4.5,
+      "brake": 6.5,
+      "lateralAccel": 4.5,
       "reactionMin": 0.15,
       "reactionMax": 0.35,
       "arrivalRadius": 1.2
@@ -97,9 +99,9 @@
         "yGain": 0.4
       },
       "defendFrontAhead": 8,
-      "lineHeight": 5,
+      "lineHeight": 9,
       "tactic": {
-        "_comment": "카드 연동(자기 팀 상태): lineHeight low/mid/high=back −5/0/+5. attack{back+3, 폭+0.06} / counter{back−3} / park{back−6, length−4} / balanced{}.",
+        "_comment": "카드 연동(자기 팀 상태): lineHeight low/mid/high=back −9/0/+9 (v0.4 §2.1-C — '라인 올리기'가 눈에 띄게 반영되도록 ±5→±9m 확대, G9로 검증). attack{back+3, 폭+0.06} / counter{back−3} / park{back−6, length−4} / balanced{}.",
         "attackBack": 3,
         "attackWidth": 0.06,
         "counterBack": 3,
@@ -109,7 +111,7 @@
       "smoothTau": 2.5,
       "runThreshold": 8,
       "runRamp": 4,
-      "refMaxSpeed": 6.0
+      "refMaxSpeed": 5.0
     },
     "press": {
       "_comment": "압박자 1인 규칙 (계획서 §2.3). standoff=캐리어 골문쪽 접근거리(m), hysteresisSec=역할 재지정 지연, engageDist=이 존거리(m) 밖이면 압박 안 함, recoverRadius=복귀 완료 판정(m).",
@@ -127,8 +129,8 @@
       "sweeperMaxX": 18
     },
     "idle": {
-      "_comment": "유휴 미세 흔들림 (계획서 §2.3). 목표에만 얹어 실제 속도는 jog 상한 유지.",
-      "driftRadius": 0.6,
+      "_comment": "유휴 미세 흔들림 (계획서 §2.3). 목표에만 얹어 실제 속도는 jog 상한 유지. v0.4: FM 2D 점들은 잘게 떨지 않는다 → driftRadius 0.6→0.4.",
+      "driftRadius": 0.4,
       "freq": 0.6
     },
     "ball": {

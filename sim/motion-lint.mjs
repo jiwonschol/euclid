@@ -27,7 +27,9 @@ const STATES = {
 // ── 게이트 임계 (계획서 §4) ───────────────────────────────
 // G4′: 앵커까지 ≤g4dist(8m)면 ≤g4near(4.2), >8m(재정렬 중)면 ≤g4far(6.7).
 // G8: g8b 수비팀 길이 ≤33m, g8c 20명 x-스팬 ≤56, g8d 볼사이드 슬라이드 오차 ≤8m.
-const LIM = { g1: 8.8, g2: 12, g3p99: 7, g3max: 10, g4near: 4.2, g4far: 6.7, g4dist: 8, g5speed: 14, g5carry: 2.2, g5shot: 1.5, g8b: 33, g8c: 56, g8d: 8, g8settle: 4.0, g8settleSpd: 1.5 };
+// G2′(v0.4): 저크 임계 12→7.2 (brake 6.5 + 여유). "지나친 가속" 봉인의 수치 증명.
+// G9(v0.4): 라인카드 가시성 — 수비 backLine high−low≥14m, high−mid≥6m.
+const LIM = { g1: 8.8, g2: 7.2, g3p99: 7, g3max: 10, g4near: 4.2, g4far: 6.7, g4dist: 8, g5speed: 14, g5carry: 2.2, g5shot: 1.5, g8b: 33, g8c: 56, g8d: 8, g8settle: 4.0, g8settleSpd: 1.5, g9hl: 14, g9hm: 6 };
 
 const meterDelta = (a, b) => Math.hypot((a[0] - b[0]) * MS[0], (a[1] - b[1]) * MS[1]);
 const speedOf = (a, b) => meterDelta(a, b) / DT;
@@ -236,7 +238,7 @@ console.log(`=== 모션 게이트 린트 — 장면 ${scenes.length} × 상태 $
 
 const results = [];
 results.push([acc.g1.viol === 0, "G1 속도상한 ≤8.8m/s", `max=${fmt(acc.g1.max)}m/s 위반=${acc.g1.viol} ${acc.g1.viol ? atStr(acc.g1.at) : ""}`]);
-results.push([acc.g2.viol === 0, "G2 저크 ≤12m/s²", `max=${fmt(acc.g2.max)}m/s² 위반=${acc.g2.viol} ${acc.g2.viol ? atStr(acc.g2.at) : ""}`]);
+results.push([acc.g2.viol === 0, "G2′ 저크 ≤7.2m/s²", `max=${fmt(acc.g2.max)}m/s² 위반=${acc.g2.viol} ${acc.g2.viol ? atStr(acc.g2.at) : ""}`]);
 results.push([g3p99 <= LIM.g3p99 && g3max <= LIM.g3max, "G3 진형 p99≤7m·max≤10m", `p99=${fmt(g3p99)}m max=${fmt(g3max)}m ${g3max > LIM.g3max ? atStr(acc.g3.at) : ""}`]);
 results.push([acc.g4.viol === 0, "G4′ 공-선수분리 앵커≤8m:≤4.2 / >8m:≤6.7", `max(비행중 블록/GK)=${fmt(acc.g4.max)}m/s 위반=${acc.g4.viol} ${acc.g4.viol ? atStr(acc.g4.violAt) + " spd=" + fmt(acc.g4.violMax) + " lim=" + acc.g4.violAt?.lim : ""}`]);
 results.push([acc.g5speed.viol === 0, "G5a pass/shot비행 ≥14m/s", `min=${fmt(acc.g5speed.min === Infinity ? 0 : acc.g5speed.min)}m/s 위반=${acc.g5speed.viol} ${acc.g5speed.viol ? atStr(acc.g5speed.at) : ""}`]);
@@ -297,6 +299,65 @@ if (acc.actorOver.length) {
   for (const x of uniq) console.log(`  - ${x.scene}/${x.id}: cruise=${x.cruise}m/s`);
 } else {
   console.log(`\n[참고] 배우 순항속도 speedCap 초과 장면: 없음 (계측 예상과 일치)`);
+}
+
+// ── G9 라인 카드 가시성 (계획서 §4, v0.4 신설) ─────────────────
+// 같은 장면·같은 볼 기준으로 수비팀 lineHeight low/mid/high 세 런을 돌려, 각 런의 마지막 프레임
+// (duration+5s 정착)에서 정상상태 수비 backLine(수비팀 가장 깊은 블록 알의 자기 골문 거리)을 실측.
+// high−low ≥ 14m, high−mid ≥ 6m 판정. lineHeight는 공/배우에 영향이 없어 세 런의 볼 궤적이 동일
+// → shapeBallRef(형상 기준 볼)가 프레임별로 같다 = "같은 볼". 클램프에 걸리는 극단 볼 위치 표본은
+// 제외한다(계획서 §4): (a) base=d_ball−buffer가 defend backClamp 6~45에 포화되면 카드 델타가
+// 왜곡되고, (b) 앵커 [3,97] 클램프에 backLine이 눌리면 델타가 압축된다.
+{
+  const S = cfg.motion.shape;
+  const buffer = S.defend.buffer, clampLo = S.defend.backClampLo, clampHi = S.defend.backClampHi;
+  const ownDist = (team, px) => (team === "home" ? px : 100 - px); // 자기 골문 거리(m 근사)
+  const g9State = (lh) => ({ lineHeight: lh, tactic: "balanced", opponent: { lineHeight: lh, tactic: "balanced" }, sentOff: [], momentum: 0, score: [0, 0] });
+
+  // 한 런을 끝까지 돌려 마지막 프레임의 수비 backLine·정상상태 여부·base(클램프 판정) 반환
+  function g9Run(scene, lh) {
+    const defTeam = scene.side === "home" ? "away" : "home";
+    const defPre = defTeam === "home" ? "h" : "a";
+    const m = createMotion(scene, formations, g9State(lh), cfg);
+    const frames = Math.ceil((scene.duration + TAIL) / DT);
+    let prevPos = {};
+    for (let f = 0; f < frames; f++) {
+      for (const id of m.onField) prevPos[id] = m.positions[id].slice(); // 스텝 직전 = 직전 프레임
+      stepMotion(m, DT);
+    }
+    const pos = m.positions;
+    const defBlk = m.blockIds.filter((id) => id[0] === defPre && m.roles[id] === "block");
+    const meanGap = defBlk.length ? defBlk.reduce((s, id) => s + meterDelta(pos[id], m.anchors[id]), 0) / defBlk.length : Infinity;
+    const meanSpd = defBlk.length ? defBlk.reduce((s, id) => s + speedOf(pos[id], prevPos[id] || pos[id]), 0) / defBlk.length : Infinity;
+    const settled = defBlk.length >= 2 && meanGap < LIM.g8settle && meanSpd < LIM.g8settleSpd;
+    let backLine = Infinity;
+    for (const id of defBlk) backLine = Math.min(backLine, ownDist(defTeam, pos[id][0]));
+    const dBallDef = ownDist(defTeam, m.shapeBallRef[0]);
+    return { backLine, base: dBallDef - buffer, settled };
+  }
+
+  const g9 = { samples: 0, skipClamp: 0, skipUnsettled: 0, minHL: Infinity, minHM: Infinity, worstHL: null, worstHM: null };
+  for (const scene of scenes) {
+    if (scene.side === "neutral") continue;
+    const lo = g9Run(scene, "low"), mid = g9Run(scene, "mid"), hi = g9Run(scene, "high");
+    if (!lo.settled || !mid.settled || !hi.settled) { g9.skipUnsettled++; continue; }
+    // 클램프 표본 제외: base 포화(6~45) 또는 앵커 클램프 근접(backLine≤4 또는 ≥96)
+    const clampHit = mid.base <= clampLo || mid.base >= clampHi ||
+      [lo, mid, hi].some((r) => r.backLine <= 4 || r.backLine >= 96);
+    if (clampHit) { g9.skipClamp++; continue; }
+    g9.samples++;
+    const dHL = hi.backLine - lo.backLine, dHM = hi.backLine - mid.backLine;
+    if (dHL < g9.minHL) { g9.minHL = dHL; g9.worstHL = { scene: scene.id, hi: +hi.backLine.toFixed(1), lo: +lo.backLine.toFixed(1) }; }
+    if (dHM < g9.minHM) { g9.minHM = dHM; g9.worstHM = { scene: scene.id, hi: +hi.backLine.toFixed(1), mid: +mid.backLine.toFixed(1) }; }
+  }
+  const g9pass = g9.samples > 0 && g9.minHL >= LIM.g9hl && g9.minHM >= LIM.g9hm;
+  const detail = g9.samples === 0
+    ? `표본0 — 전 장면 미수렴(${g9.skipUnsettled})/클램프(${g9.skipClamp})로 판정불가`
+    : `high−low min=${fmt(g9.minHL)}m(≥${LIM.g9hl}) high−mid min=${fmt(g9.minHM)}m(≥${LIM.g9hm}) 표본=${g9.samples} 제외(클램프${g9.skipClamp}/미수렴${g9.skipUnsettled})` +
+      `${g9.minHL < LIM.g9hl ? ` HL위반@${g9.worstHL.scene}(hi${g9.worstHL.hi}/lo${g9.worstHL.lo})` : ""}` +
+      `${g9.minHM < LIM.g9hm ? ` HM위반@${g9.worstHM.scene}(hi${g9.worstHM.hi}/mid${g9.worstHM.mid})` : ""}`;
+  console.log(line(g9pass, "G9 라인카드 가시성 high−low≥14·high−mid≥6", detail));
+  results.push([g9pass, "G9 라인카드 가시성", ""]);
 }
 
 const allPass = results.every(([p]) => p);

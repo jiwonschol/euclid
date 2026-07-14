@@ -35,20 +35,50 @@ function easeTo(cur, target, dt, tau) {
   return [cur[0] + (target[0] - cur[0]) * k, cur[1] + (target[1] - cur[1]) * k];
 }
 
-// 목표점 추적 (seek + arrival), 가속 상한 (계획서 §2.1).
-// 불변식: 시작 속도 ‖vm‖ ≤ maxSpeed 이면 스텝 후에도 ‖vm‖ ≤ maxSpeed (볼록성) → G1 상한 보장.
-//         프레임간 속도 변화 ‖dv‖ ≤ accel·dt → 측정 가속 ≤ accel → G2 저크 보장.
-function seek(st, targetM, maxSpeed, accel, dt, arrivalRadius) {
+// 인간 운동학 저속 폴백 임계 (m/s). 이 속도 미만은 진행방향이 불명확해 성분 분해 대신
+// 등방 accelBase 단일 캡을 쓴다(정지·저속에서 방향 개념이 약함, 계획서 §2.1-B). MAX_SUBSTEP처럼
+// 튜닝 수치가 아니라 운동학 내부 상수라 config에 두지 않는다.
+const SEEK_LOW_SPEED = 0.5;
+
+// 목표점 추적 (seek + arrival) — 인간 운동학 가속 캡 (계획서 §2.1-B, v0.4 "공보다 사람은 느리다").
+// dv(원하는 속도 변화)를 현재 속도 v 기준으로 성분 분해해 각각 다른 상한을 적용한다:
+//  - 전진(v 방향 +성분): 힘-속도 감쇠 a(v)=accelBase×max(0,1−‖v‖/maxSpeed) — 전속 접근 시 가속→0
+//  - 제동(v 방향 −성분): brake — 편심 수축이라 가속보다 강함
+//  - 측면(v 수직 성분): lateralAccel — 고속 급회전 불가(곡선 주로 자동 생성)
+//  - 정지·저속(‖v‖<SEEK_LOW_SPEED): 방향 개념이 약해 accelBase 단일 캡으로 폴백
+// kin = cfg.motion.player (accelBase/brake/lateralAccel). 배우·블록·압박자·GK 전원이 이 함수를 쓴다.
+// 불변식: 최종 clampLen(vm, maxSpeed)로 ‖vm‖ ≤ maxSpeed 하드 클램프 유지 → G1 구조 보장.
+//         최종 속도 변화량을 견인력 예산 brake·dt로 제한 → 측정 가속 ≤ brake(6.5) ≤ G2′(7.2).
+function seek(st, targetM, maxSpeed, kin, dt, arrivalRadius) {
   const toT = sub(targetM, st.pm);
   const d = len(toT);
   const desiredSpeed = d < arrivalRadius ? maxSpeed * (d / arrivalRadius) : maxSpeed;
   const dir = d > 1e-9 ? scale(toT, 1 / d) : [0, 0];
   const desiredVel = scale(dir, desiredSpeed);
-  let dv = sub(desiredVel, st.vm);
-  const dvl = len(dv);
-  const maxDv = accel * dt;
-  if (dvl > maxDv) dv = scale(dv, maxDv / dvl);
-  st.vm = add(st.vm, dv);
+  const dv = sub(desiredVel, st.vm);
+
+  const sp = len(st.vm);
+  let applied;
+  if (sp < SEEK_LOW_SPEED) {
+    applied = clampLen(dv, kin.accelBase * dt); // 저속 폴백: 방향 없이 등방 accelBase 단일 캡
+  } else {
+    const vdir = scale(st.vm, 1 / sp);
+    const fwd = dv[0] * vdir[0] + dv[1] * vdir[1]; // dv의 v 방향 성분(스칼라, +전진/−제동)
+    const latVec = sub(dv, scale(vdir, fwd));      // dv의 v 수직 성분(벡터)
+    const fwdApplied = fwd >= 0
+      ? Math.min(fwd, kin.accelBase * Math.max(0, 1 - sp / maxSpeed) * dt) // 전진: 힘-속도 감쇠
+      : Math.max(fwd, -kin.brake * dt);                                    // 제동: brake 캡
+    const latApplied = clampLen(latVec, kin.lateralAccel * dt);            // 측면: lateralAccel 캡
+    applied = add(scale(vdir, fwdApplied), latApplied);
+  }
+  // G1 안전벨트: 성분 적용 후 ‖vm‖ ≤ maxSpeed 하드 클램프(clampLen). 단, maxSpeed가 급감하는
+  // 역할·속도 전환(압박 run→복귀 jog 등)에서 이 클램프가 속도를 한 프레임에 슬램하면 저크가 튄다.
+  // 그래서 최종 속도 변화량을 '견인력 예산'(brake·dt)으로 다시 제한한다 — 제동보다 급격한 감속은
+  // 물리적으로 불가(마찰원). 이 한 줄이 (a) 브레이크⊕측면 기하합(√(brake²+lateral²)=7.9)과
+  // (b) 클램프 슬램을 동시에 brake(6.5) 이하로 눌러 G2′(≤7.2)를 봉인한다. 전환이 없는 정상 주행에서는
+  // ‖goalV−vm‖ ≤ brake·dt라 이 제한이 안 걸려 clampLen 그대로다(vm ≤ maxSpeed 정확 유지).
+  const goalV = clampLen(add(st.vm, applied), maxSpeed);
+  st.vm = add(st.vm, clampLen(sub(goalV, st.vm), kin.brake * dt));
   st.pm = add(st.pm, scale(st.vm, dt));
 }
 
@@ -243,7 +273,7 @@ function stepActors(motion, dt) {
   for (const id of motion.actorIds) {
     const st = motion.stones[id];
     const carrot = arcPoint(st.pathM, st.cum, st.cruise * motion.elapsed); // 등속 캐럿 추적(pure pursuit)
-    seek(st, carrot, st.maxSpeed, P.accel, dt, P.arrivalRadius);
+    seek(st, carrot, st.maxSpeed, P, dt, P.arrivalRadius);
     motion.roles[id] = "actor";
   }
 }
@@ -264,7 +294,7 @@ function stepOthers(motion, dt) {
   for (const id of motion.gkIds) {
     // GK: 수비 GK 현행(박스 안 전진, 공 y 추종), 공격 GK 스위퍼 전진 (계획서 §2.3-B)
     const st = motion.stones[id];
-    seek(st, toM(gkTarget(id, liveBallU, raw, sceneSide, formations, M, ms), ms), P.jog, P.accel, dt, P.arrivalRadius);
+    seek(st, toM(gkTarget(id, liveBallU, raw, sceneSide, formations, M, ms), ms), P.jog, P, dt, P.arrivalRadius);
     motion.roles[id] = "gk";
   }
 
@@ -287,12 +317,12 @@ function stepOthers(motion, dt) {
       const toGoal = sub(ownGoalM, carrier.pm);
       const gl = len(toGoal);
       const standoff = gl > 1e-6 ? scale(toGoal, M.press.standoff / gl) : [0, 0];
-      seek(st, add(carrier.pm, standoff), P.run, P.accel, dt, P.arrivalRadius);
+      seek(st, add(carrier.pm, standoff), P.run, P, dt, P.arrivalRadius);
       motion.roles[id] = "press";
     } else if (st.engaged) {
       // 압박 관여 알의 복귀: 앵커로 jog 복귀. 진형에 재합류(recoverRadius 내)할 때까지
       // '압박'으로 분류한다 — 복귀 중인 알은 '비관여·비압박'이 아니다(공을 따라 미끄러지는 게 아님).
-      seek(st, anchorM, P.jog, P.accel, dt, P.arrivalRadius);
+      seek(st, anchorM, P.jog, P, dt, P.arrivalRadius);
       motion.roles[id] = "press";
       // 진형 근처 + 감속 완료 후에만 블록 복귀 — 압박 관성(run 속도)이 남은 채 block으로 새면 G4′ 위반
       if (distM(st.pm, anchorM) <= M.press.recoverRadius && len(st.vm) <= P.jog * 1.02) st.engaged = false;
@@ -309,7 +339,7 @@ function stepOthers(motion, dt) {
       const dA = distM(st.pm, anchorM);
       const spd = dA <= S.runThreshold ? P.jog
         : Math.min(P.run, P.jog + (P.run - P.jog) * (dA - S.runThreshold) / S.runRamp);
-      seek(st, toM([anchor[0] + noiseU[0], anchor[1] + noiseU[1]], ms), spd, P.accel, dt, P.arrivalRadius);
+      seek(st, toM([anchor[0] + noiseU[0], anchor[1] + noiseU[1]], ms), spd, P, dt, P.arrivalRadius);
       motion.roles[id] = "block";
     }
   }
