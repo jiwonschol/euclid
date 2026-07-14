@@ -4,7 +4,7 @@
 
 import { seek } from './movement.js';
 import { stepBallPhysics, launchPass, launchCross, launchShot } from './ball.js';
-import { FIELD, oppGoalX, anchorToWorld } from './field.js';
+import { FIELD, oppGoalX, anchorToWorld, penaltyBoxOf } from './field.js';
 import { dBallOwn } from './shape.js';
 
 const other = (t) => (t === 'A' ? 'B' : 'A');
@@ -45,6 +45,8 @@ function gainControl(state, p, note) {
   const b = state.ball;
   b.mode = 'CONTROLLED'; b.carrierId = p.id; b.ownerId = p.id;
   b.velocity = { x: 0, y: 0, z: 0 }; b.intendedTargetPlayerId = null; b._offside = null;
+  if (b._cross && penaltyBoxOf(p.position.x, p.position.z, state.attackDirection[p.teamId]) === 'opp') p._crossFinish = true;  // 박스서 크로스 받음 → 원터치
+  b._cross = false;
   b.lastTouchPlayerId = p.id; b.lastTouchTeamId = p.teamId;
   const changed = state.possessionTeamId !== p.teamId;
   state.possessionTeamId = p.teamId;
@@ -164,15 +166,24 @@ function decideAction(state, carrier, dir) {
   const pressure = nearestOpp(state, carrier.teamId, carrier.position)?.d ?? 99;
   const noise = () => (state.rng.float() - 0.5) * 2 * A.noise;
   const tac = state.tactics ? state.tactics[carrier.teamId] : null;   // 전술 바이어스
-  const shotMul = tac?.tactic === 'attack' ? 1.3 : tac?.tactic === 'park' ? 0.5 : 1;
+  let shotMul = tac?.tactic === 'attack' ? 1.3 : tac?.tactic === 'park' ? 0.5 : 1;
+  if (carrier._crossFinish) { shotMul *= 2.5; carrier._crossFinish = false; }   // 크로스 원터치 마무리
+
   const fwdW = A.wForward * (tac?.tactic === 'attack' ? 1.4 : tac?.tactic === 'counter' ? 1.2 : tac?.tactic === 'park' ? 0.5 : 1);
   const throughMul = tac?.tactic === 'counter' ? 0.3 : 0.15;          // 역습은 스루 선호
+  const zone = tac ? tac.attackZone : null;                           // 측면/중앙 전개 편향
+  const wingSide = zone === 'wing' ? (carrier.position.z < 0 ? -1 : 1) : 0;
+  const carrierFinal = dBallOwn(dir, carrier.position.x) > 62;
   const opts = [];
 
-  // 슛
+  // 슛 — 박스라고 무조건 쏘지 않는다. GK가 못 막는 '빈 곳'이 있을 때만(막힌 슛은 안 쏘고 각을 만든다).
   if (dGoal <= A.shotMaxDist) {
+    const dgk = Object.values(state.players).find((p) => p.teamId === defTeam && p.role === 'GK' && !p.sentOff);
+    const gkZ = dgk ? dgk.position.z : 0;
+    const cornerZ = gkZ >= 0 ? -FIELD.goalHalfWidth : FIELD.goalHalfWidth;       // GK 반대쪽 먼 코너
+    const openness = clamp((Math.abs(cornerZ - gkZ) - 3.4) / 6, 0.04, 1);        // GK가 커버 못 하는 여유(가팔라야 막힌슛 안 쏨)
     const u = A.wShot * shotMul * (1 - dGoal / A.shotMaxDist) * shotAngleQuality(carrier.position)
-      * (0.55 + 0.45 * clamp(pressure / 5, 0, 1)) + noise();
+      * openness * (0.55 + 0.45 * clamp(pressure / 5, 0, 1)) + noise();
     opts.push({ kind: 'shot', u });
   }
   // 패스/스루
@@ -187,9 +198,17 @@ function decideAction(state, carrier, dir) {
     const lane = laneMinDist(state, carrier.position, lp, defTeam);
     const turnover = lane < cfg.control.interceptRadius * 1.6 ? 0.7 : 0;
     const through = prog > 12 && open > 6 && d <= A.throughMaxDist;
+    // 크로스: 측면 깊은 위치 → 중앙 박스 아군 공중 배달(측면 공격 마무리)
+    const isCross = wingSide !== 0 && Math.abs(carrier.position.z) > 15 && carrierFinal
+      && Math.abs(mate.position.z) < 14 && dBallOwn(dir, mate.position.x) > 70;
+    // 존 편향: 크로스 > 측면 전개 > 중앙 전진
+    let zoneBonus = 0;
+    if (isCross) zoneBonus = 0.7;
+    else if (wingSide !== 0 && Math.sign(mate.position.z) === wingSide && Math.abs(mate.position.z) > 16) zoneBonus = 0.5;
+    else if (zone === 'central' && Math.abs(mate.position.z) < 12 && prog > 4) zoneBonus = 0.22;
     const u = A.wPass * (0.3 + fwdW * clamp(prog / 20, -0.4, 1) + Math.min(1, open / 8) * 0.5)
-      + (through ? throughMul : 0) - turnover + noise();
-    opts.push({ kind: through ? 'through' : 'pass', mate, lp, aerial: d > 28 && through, u });
+      + (through ? throughMul : 0) + zoneBonus - turnover + noise();
+    opts.push({ kind: through ? 'through' : 'pass', mate, lp, aerial: (d > 28 && through) || isCross, u });
   }
   // 드리블
   opts.push({ kind: 'dribble', u: A.wDribble * (0.3 + clamp(pressure / 6, 0, 1) * 0.5) + (dGoal > A.shotMaxDist ? 0.2 : 0) + noise() });
@@ -216,7 +235,8 @@ function decideAction(state, carrier, dir) {
     else launchPass(b, carrier.position, pick.lp, pick.mate.id, carrier.teamId, carrier.id, cfg.ball);
     // 패스 순간 오프사이드 스냅샷(수신자가 실제로 받으면 콜)
     b._offside = isOffside(state, pick.mate, carrier.teamId) ? { team: carrier.teamId, x: pick.mate.position.x, z: pick.mate.position.z } : null;
-    carrier.hasBall = false; log(state, pick.kind === 'through' ? 'THROUGH' : 'PASS', { by: carrier.id, to: pick.mate.id });
+    carrier.hasBall = false;
+    log(state, pick.aerial ? 'CROSS' : (pick.kind === 'through' ? 'THROUGH' : 'PASS'), { by: carrier.id, to: pick.mate.id, team: carrier.teamId });
   } else {
     // 드리블: 상대 골문 쪽 열린 공간. 압박 가까우면 측면으로 회피.
     const gx = goal.x - carrier.position.x, gz = goal.z - carrier.position.z;

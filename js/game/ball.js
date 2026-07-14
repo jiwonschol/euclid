@@ -30,6 +30,7 @@ export function launchPass(ball, from, targetPt, receiverId, teamId, touchId, B)
   const d = Math.hypot(targetPt.x - from.x, targetPt.z - from.z);
   // 마찰로 도착쯤 감속하도록 속도를 거리 기반으로 잡되 최소/최대 캡
   setFlat(ball, from, targetPt.x, targetPt.z, ballSpeedFor(d, B, 'pass'), 'GROUND_PASS', 'pass');
+  ball._cross = false;
   ball.intendedTargetPlayerId = receiverId;
   ball.intendedTargetPoint = { x: targetPt.x, z: targetPt.z };
   ball.lastTouchPlayerId = touchId; ball.lastTouchTeamId = teamId;
@@ -42,6 +43,7 @@ export function launchCross(ball, from, targetPt, receiverId, teamId, touchId, B
   const t = d / sp;                                   // 수평 비행시간
   setFlat(ball, from, targetPt.x, targetPt.z, sp, 'AERIAL_PASS', 'cross');
   ball.velocity.y = 0.5 * B.gravity * t;              // 착지 시각 t 에 y=0 되도록 초기 상승
+  ball._cross = true;                                 // 크로스: 박스 리시버 원터치 마무리 유도
   ball.intendedTargetPlayerId = receiverId;
   ball.intendedTargetPoint = { x: targetPt.x, z: targetPt.z };
   ball.lastTouchPlayerId = touchId; ball.lastTouchTeamId = teamId;

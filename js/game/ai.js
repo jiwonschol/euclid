@@ -8,6 +8,8 @@ import { seek, computeSeparation, hash01, clamp } from './movement.js';
 import {
   teamShape, teamBackDist, anchorFor, easeShape, depthRanks, dBallOwn, distToWorldX,
 } from './shape.js';
+import { assignAttackTargets } from './attack.js';
+import { assignMarking } from './defend.js';
 
 const other = (t) => (t === 'A' ? 'B' : 'A');
 const dist2 = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
@@ -71,7 +73,7 @@ function gkTargetPos(gk, dir, ballX, ballZ, teamBack, possTeam, cfg) {
   }
   return {
     x: distToWorldX(dir, ownDist),
-    z: clamp(ballZ, -G.trackClampY, G.trackClampY),
+    z: clamp(ballZ * 0.55, -G.trackClampY, G.trackClampY),   // 공 z를 부분만 추종(골 중앙 보호 — 먼 코너 노출 완화)
   };
 }
 
@@ -112,6 +114,11 @@ export function stepPositioning(state, dt) {
     for (const p of Object.values(players)) { if (p.sentOff || p.role === 'GK') continue; const d = dist2(p.position, state.ball.position); if (d < bd) { bd = d; chaserId = p.id; } }
   }
 
+  // 소유팀 오프-볼 공격 움직임(러너·서포트·오버랩·레이트런). 오프사이드 라인에 러너를 묶는다.
+  const attackTargets = poss ? assignAttackTargets(state, poss) : {};
+  // 수비팀 마킹(침투 러너를 골side로 밀착 — 박스 보호)
+  const marks = defTeam ? assignMarking(state, defTeam, ps.presserId, ps.coverId) : {};
+
   for (const p of Object.values(players)) {
     if (p.sentOff || p.id === carrierId) continue;   // 캐리어는 decide.stepPlay 가 이동
     const dir = state.attackDirection[p.teamId];
@@ -137,6 +144,15 @@ export function stepPositioning(state, dt) {
     } else if (p.id === ps.coverId && carrier) {
       // cover: 압박자 뒤·안쪽 커버 지점까지 run
       target = { x: carrier.position.x - dir * cfg.press.coverBehind, z: carrier.position.z * 0.5 };
+      spd = P.run;
+    } else if (attackTargets[p.id]) {
+      // 소유팀 공격 오프-볼 움직임(러너/서포트/오버랩/레이트런) — 형상보다 우선
+      target = attackTargets[p.id];
+      const dA = dist2(p.position, target);
+      spd = dA <= S.runThreshold * 0.5 ? P.jog : P.run;   // 침투는 달린다
+    } else if (marks[p.id]) {
+      // 수비 마킹: 위협을 골side로 밀착 추적
+      target = marks[p.id];
       spd = P.run;
     } else {
       // 블록: 형상 앵커(이징) + 유휴 흔들림. 앵커까지 ≤runThreshold면 jog, 넘으면 run 램프

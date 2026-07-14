@@ -13,7 +13,7 @@ let fail = 0;
 const bad = (m) => { console.log('  ✗ ' + m); fail++; };
 
 // 결정론 스크립트 지시(틱 기준) — 지시/오디블/교체 경로까지 스트레스
-const script = [[200, 'attack'], [430, 'high_press'], [900, 'counter'], [1400, 'sub_fw'], [2500, 'balanced'], [4000, 'park']];
+const script = [[200, 'attack_wing'], [430, 'high_press'], [900, 'counter'], [1400, 'sub_fw'], [2500, 'attack_central'], [4000, 'park']];
 
 function runMatch(seed, withDirectives) {
   const s = createMatch(seed, cfg, com, cards);

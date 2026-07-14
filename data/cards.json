@@ -3,10 +3,11 @@
   "cp": { "max": 10, "start": 3, "regenSec": 11 },
   "substitutionLimit": 3,
   "cards": [
-    { "id": "attack",     "name": "공격",       "cost": 2, "delivery": 2.5, "set": { "tactic": "attack" },  "desc": "라인 올리고 전진·슛 강화. 뒷공간 위험." },
+    { "id": "attack_wing",    "name": "측면 공격", "cost": 2, "delivery": 2.5, "set": { "tactic": "attack", "attackZone": "wing" },    "desc": "라인↑·측면 전개. 윙어 폭+풀백 오버랩, 크로스로 마무리." },
+    { "id": "attack_central", "name": "중앙 공격", "cost": 2, "delivery": 2.5, "set": { "tactic": "attack", "attackZone": "central" }, "desc": "라인↑·중앙 침투. 스트라이커+레이트런, 스루패스로 마무리." },
     { "id": "counter",    "name": "역습",       "cost": 2, "delivery": 2.5, "set": { "tactic": "counter" }, "desc": "내려서서 빠른 역습·스루 선호." },
     { "id": "park",       "name": "잠그기",     "cost": 2, "delivery": 2.5, "set": { "tactic": "park" },    "desc": "라인 내리고 압축. 실점 위험↓, 점유 내줌." },
-    { "id": "balanced",   "name": "안정",       "cost": 1, "delivery": 1.5, "set": { "tactic": "balanced", "press": "normal" }, "desc": "균형 잡힌 기본 대형으로." },
+    { "id": "balanced",   "name": "안정",       "cost": 1, "delivery": 1.5, "set": { "tactic": "balanced", "press": "normal", "attackZone": "central" }, "desc": "균형 잡힌 기본 대형으로." },
     { "id": "line_up",    "name": "라인 올리기", "cost": 1, "delivery": 1.5, "set": { "lineHeight": "high" }, "desc": "수비 라인을 끌어올린다." },
     { "id": "line_down",  "name": "라인 내리기", "cost": 1, "delivery": 1.5, "set": { "lineHeight": "low" },  "desc": "수비 라인을 낮춘다." },
     { "id": "high_press", "name": "높은 압박",   "cost": 2, "delivery": 1.5, "set": { "press": "high" },     "desc": "전방 압박 강화. 탈취↑, 뒷공간 위험." },

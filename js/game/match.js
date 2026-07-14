@@ -108,9 +108,10 @@ export function createMatch(seed = 1, cfg = null, commentaryCfg = null, cardsCfg
     attackDirection: attackDir,
     kickoffFirstHalf,
     // 팀 전술 상태(카드·상대 AI가 바꾼다). tactic: balanced|attack|counter|park, lineHeight: low|mid|high, press: normal|high
+    // attackZone: 'central' | 'wing' (측면=공 있는 쪽으로 전개, 중앙=중앙 침투). 디자이너 2분법.
     tactics: {
-      A: { tactic: 'balanced', lineHeight: 'mid', press: 'normal' },
-      B: { tactic: 'balanced', lineHeight: 'mid', press: 'normal' },
+      A: { tactic: 'balanced', lineHeight: 'mid', press: 'normal', attackZone: 'central' },
+      B: { tactic: 'balanced', lineHeight: 'mid', press: 'normal', attackZone: 'central' },
     },
     // 교체 누적 효과(§8-D): fw=슛 정확도, mf=볼 지키기, df=실점 감소. 유저팀(A) 위주.
     subBoost: { A: { fw: 0, mf: 0, df: 0 }, B: { fw: 0, mf: 0, df: 0 } },
