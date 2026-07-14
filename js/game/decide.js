@@ -44,7 +44,7 @@ function log(state, type, data) {
 function gainControl(state, p, note) {
   const b = state.ball;
   b.mode = 'CONTROLLED'; b.carrierId = p.id; b.ownerId = p.id;
-  b.velocity = { x: 0, y: 0, z: 0 }; b.intendedTargetPlayerId = null;
+  b.velocity = { x: 0, y: 0, z: 0 }; b.intendedTargetPlayerId = null; b._offside = null;
   b.lastTouchPlayerId = p.id; b.lastTouchTeamId = p.teamId;
   const changed = state.possessionTeamId !== p.teamId;
   state.possessionTeamId = p.teamId;
@@ -105,6 +105,10 @@ function updatePossession(state, dt) {
   }
   if (best && bd <= Math.max(radius, ctl.controlRadius)) {
     if (b.mode === 'LOOSE' || sp <= ctl.controlSpeedMax) {
+      // 오프사이드: 공격팀 선수가 오프사이드 패스를 받으면(관여) 수비팀 프리킥
+      if (b._offside && best.teamId === b._offside.team && (b.mode === 'GROUND_PASS' || b.mode === 'AERIAL_PASS')) {
+        offsideRestart(state, b._offside); b._offside = null; return;
+      }
       const intercept = b.intendedTargetPlayerId && best.teamId !== b.lastTouchTeamId;
       gainControl(state, best, intercept ? 'INTERCEPT' : (b.mode === 'LOOSE' ? 'COLLECT' : null));
     }
@@ -114,6 +118,20 @@ function updatePossession(state, dt) {
 // ── 캐리어 utility 의사결정 ─────────────────────────────────
 function shotAngleQuality(pos) { return clamp(1 - Math.abs(pos.z) / 28, 0.12, 1); }
 function leadPoint(mate) { return { x: mate.position.x + mate.velocity.x * 0.4, z: mate.position.z + mate.velocity.z * 0.4 }; }
+
+// 오프사이드 위치 판정(마스터 §10 실용 핵심): 상대 진영 + 공보다 앞 + 세컨드-라스트 수비보다 앞.
+// margin: 판정 여유(m). 콜 판정은 0.3, AI 회피는 큰 margin(명백할 때만 회피 → 아슬아슬한 건 콜되어 텍스트 드라마).
+function isOffside(state, receiver, team, margin = 0.3) {
+  const dir = state.attackDirection[team], oppDir = -dir;
+  const recvOwn = dBallOwn(dir, receiver.position.x);
+  if (recvOwn <= FIELD.halfLength) return false;                       // 자기 진영 → 온사이드
+  if (recvOwn <= dBallOwn(dir, state.ball.position.x)) return false;   // 공보다 뒤 → 온사이드
+  const ds = [];
+  for (const p of Object.values(state.players)) { if (p.teamId === team || p.sentOff) continue; ds.push(dBallOwn(oppDir, p.position.x)); }
+  ds.sort((a, b) => a - b);                                            // 목표 골문 거리 오름차순(작을수록 깊은 수비)
+  const line = ds.length >= 2 ? ds[1] : (ds[0] || 0);                  // 세컨드-라스트 수비 라인
+  return dBallOwn(oppDir, receiver.position.x) < line - margin;        // 그보다 골문에 더 가까움 → 오프사이드
+}
 
 // GK 배급: 안전한 전방 아군에게 빠르게 내보낸다(드리블/슛 금지 — GK가 필드로 돌진하는 걸 막는다).
 function gkDistribute(state, carrier, dir) {
@@ -160,6 +178,7 @@ function decideAction(state, carrier, dir) {
     if (mate.teamId !== carrier.teamId || mate.id === carrier.id || mate.sentOff || mate.role === 'GK') continue;
     const d = dist2(carrier.position, mate.position);
     if (d < 4 || d > A.passMaxDist) continue;
+    if (isOffside(state, mate, carrier.teamId, 2.5)) continue;                         // 명백한 오프사이드만 회피(아슬아슬은 콜되게)
     const prog = dBallOwn(dir, mate.position.x) - dBallOwn(dir, carrier.position.x);   // 전진>0
     const open = nearestOpp(state, mate.teamId, mate.position)?.d ?? 99;
     const lp = leadPoint(mate);
@@ -192,6 +211,8 @@ function decideAction(state, carrier, dir) {
   } else if (pick.kind === 'pass' || pick.kind === 'through') {
     if (pick.aerial) launchCross(b, carrier.position, pick.lp, pick.mate.id, carrier.teamId, carrier.id, cfg.ball);
     else launchPass(b, carrier.position, pick.lp, pick.mate.id, carrier.teamId, carrier.id, cfg.ball);
+    // 패스 순간 오프사이드 스냅샷(수신자가 실제로 받으면 콜)
+    b._offside = isOffside(state, pick.mate, carrier.teamId) ? { team: carrier.teamId, x: pick.mate.position.x, z: pick.mate.position.z } : null;
     carrier.hasBall = false; log(state, pick.kind === 'through' ? 'THROUGH' : 'PASS', { by: carrier.id, to: pick.mate.id });
   } else {
     // 드리블: 상대 골문 쪽 열린 공간. 압박 가까우면 측면으로 회피.
@@ -263,13 +284,35 @@ function goalRestart(state, scorer) {
   placeKickoff(state, other(scorer));               // 실점팀이 센터에서 킥오프
 }
 
-// Stage 3 간이 재개(정식 스로인/골킥/코너·오프사이드는 Stage 4). 마지막 터치 반대팀이 경계 안쪽에서 재개.
-function outRestart(state, ev) {
-  const restartTeam = state.ball.lastTouchTeamId ? other(state.ball.lastTouchTeamId) : (state.possessionTeamId || 'A');
-  const pos = { x: clamp(ev.x, -FIELD.halfLength + 2, FIELD.halfLength - 2), z: clamp(ev.z, -FIELD.halfWidth + 2, FIELD.halfWidth - 2) };
+function offsideRestart(state, os) {
+  log(state, 'OFFSIDE', { team: os.team });
+  giveRestart(state, other(os.team), { x: clamp(os.x, -FIELD.halfLength + 3, FIELD.halfLength - 3), z: clamp(os.z, -FIELD.halfWidth + 2, FIELD.halfWidth - 2) });
   state._carryStart = null; state._decideAt = null;
-  giveRestart(state, restartTeam, pos);
-  log(state, 'RESTART', { edge: ev.edge, team: restartTeam });
+}
+
+// 정식 재개: 터치라인=스로인, 골라인은 마지막 터치에 따라 골킥/코너 (마스터 §11).
+function outRestart(state, ev) {
+  const lastTeam = state.ball.lastTouchTeamId;
+  let team, type, spot;
+  if (ev.edge === 'touch') {
+    team = lastTeam ? other(lastTeam) : (state.possessionTeamId || 'A');
+    type = 'throw';
+    spot = { x: clamp(ev.x, -FIELD.halfLength + 1, FIELD.halfLength - 1), z: ev.z > 0 ? FIELD.halfWidth - 0.5 : -(FIELD.halfWidth - 0.5) };
+  } else {
+    const side = ev.x > 0 ? 1 : -1;
+    const attacker = state.attackDirection.A === side ? 'A' : 'B';   // 그 골문을 향해 공격하는 팀
+    if (lastTeam === attacker) {                                       // 공격팀 아웃 → 골킥(수비팀)
+      team = other(attacker); type = 'goalkick';
+      const gdir = state.attackDirection[team];
+      spot = { x: gdir * (9 - FIELD.halfLength), z: 0 };               // 수비팀 골에어리어
+    } else {                                                           // 수비팀 아웃(또는 미상) → 코너(공격팀)
+      team = attacker; type = 'corner';
+      spot = { x: side * (FIELD.halfLength - 1), z: ev.z > 0 ? FIELD.halfWidth - 1 : -(FIELD.halfWidth - 1) };
+    }
+  }
+  state._carryStart = null; state._decideAt = null;
+  giveRestart(state, team, spot);
+  log(state, 'RESTART', { kind: type, team });   // kind (type 는 이벤트타입과 충돌하므로)
 }
 
 // ── 진입점 ─────────────────────────────────────────────────

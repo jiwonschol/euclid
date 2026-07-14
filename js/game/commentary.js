@@ -100,6 +100,8 @@ function emitEvent(state, C, e) {
     case 'DIRECTIVE_AUDIBLE': push(state, fill(C.directive.audible, { NAME: e.name, FROM: e.from }), 'directive'); break;
     case 'DIRECTIVE_ARRIVED': push(state, fill(C.directive.arrived, { NAME: e.name }), 'directive'); break;
     case 'SIGNAL': { const sig = C.signal[e.key]; if (sig) push(state, fill(e.telegraph ? sig.tele : sig.done, { O: nm.B }), 'signal'); break; }
+    case 'OFFSIDE': push(state, fill(pick(state, 'offside', C.offside), { T: T(e.team) }), 'play'); break;
+    case 'RESTART': { const r = C.restart && C.restart[e.kind]; if (r) push(state, fill(r, { T: T(e.team) }), e.kind === 'corner' ? 'save' : 'play'); break; }
     default: break;
   }
 }
