@@ -6,6 +6,6 @@
   "scripts": {
     "sim": "node sim/headless.mjs 1000",
     "sim:motion": "node sim/motion-lint.mjs",
-    "start": "python3 -m http.server 8642"
+    "start": "python3 tools/serve.py 8642"
   }
 }

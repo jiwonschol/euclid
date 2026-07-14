@@ -20,7 +20,7 @@
 | `data/scenes.json` | 장면 풀 (가중치·웨이포인트·결과 확률·카운터·참모 신호) |
 | `data/caster.json` | 캐스터 멘트 (조건부 재맥락화), 컷인 문구 |
 | `data/advisors.json` | 참모 2인 (얼굴 이모지·대사 스타일·신호 타이밍) |
-| `data/cards.json` | 카드 4종 정의 |
+| `data/cards.json` | 카드 4종 정의 + `delivery.scenes`(지시 도착까지 장면 수, 계획서 §8-B) |
 
 수정 후 브라우저 새로고침만 하면 반영됩니다.
 

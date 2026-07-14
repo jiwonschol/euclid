@@ -37,6 +37,8 @@ export class Match {
       recentScenes: [],
       sceneIndexInHalf: 0,
       scenesThisHalf: 0,
+      sceneCounter: 0,        // 경기 전체 장면 통산 번호 (지시 도착 스케줄 기준, §8-B)
+      pendingDirectives: [],  // 전달 중인 지시: { cardId, choice, arriveAt } (§8-B)
       flags: { oppReactedToRed: false },
       finished: false,
     };
@@ -68,6 +70,9 @@ export class Match {
   // ── 장면 시작 ──────────────────────────────────────────────
   beginScene() {
     const s = this.state;
+    s.sceneCounter += 1;
+    // 도착한 지시를 장면 선택 *이전에* 적용 — "다음 장면의 풀에 반영"이 성립하는 지점 (§8-B)
+    const arrivals = this._applyArrivals();
     const scene = selectScene(this.data.scenes.scenes, s, this.cfg, this.rng);
     const halfEnd = this.cfg.halfMinutes * s.half;
     const remainingScenes = s.scenesThisHalf - s.sceneIndexInHalf;
@@ -95,7 +100,55 @@ export class Match {
       cardsPlayed: [],
       result: null,
     };
-    return { scene, narration, signal, minuteStart: s.minute, minuteEnd: this.current.minuteEnd, duration: scene.duration };
+    return { scene, narration, signal, arrivals, minuteStart: s.minute, minuteEnd: this.current.minuteEnd, duration: scene.duration };
+  }
+
+  // ── 지시 전달 (§8-B): 발동=접수, 도착=상태 반영 ────────────
+  // 대기 지시를 순서대로 가상 적용한 예상 팀 상태 — 발동 검증과 HUD가 이것을 본다
+  projectedTeam() {
+    const s = this.state;
+    let lineHeight = s.lineHeight, tactic = s.tactic;
+    for (const p of s.pendingDirectives) {
+      if (p.cardId === "line_adjust") {
+        const next = LINE_STEPS.indexOf(lineHeight) + (p.choice === "up" ? 1 : -1);
+        if (next >= 0 && next < LINE_STEPS.length) lineHeight = LINE_STEPS[next];
+      } else if (p.cardId === "tactic") {
+        tactic = p.choice;
+      }
+    }
+    return { lineHeight, tactic };
+  }
+
+  // 도착 시점의 실제 상태 반영. 반환: 상대 벤치 반응(benchChanges)
+  _applyDirective(cardId, choice) {
+    const s = this.state;
+    if (cardId === "line_adjust") {
+      const next = LINE_STEPS.indexOf(s.lineHeight) + (choice === "up" ? 1 : -1);
+      if (next < 0 || next >= LINE_STEPS.length) return []; // 도착 시점 무효(방어) — 조용히 소멸
+      s.lineHeight = LINE_STEPS[next];
+      // 상대 AI 규칙 4는 도착 시점에 발화 — 상대는 라인이 실제로 움직이는 것을 보고 반응한다 (§8-B)
+      return choice === "up" ? onUserLineUp(s, this.cfg, this.rng) : [];
+    }
+    if (cardId === "tactic" && s.tactic !== choice) {
+      s.tactic = choice;
+      s.adaptationLeft = this.cfg.adaptationPenalty.scenes; // 적응 페널티는 도착부터 (§8-B)
+    }
+    return [];
+  }
+
+  _applyArrivals() {
+    const s = this.state;
+    const due = s.pendingDirectives.filter((p) => p.arriveAt <= s.sceneCounter);
+    if (due.length === 0) return [];
+    s.pendingDirectives = s.pendingDirectives.filter((p) => p.arriveAt > s.sceneCounter);
+    const texts = [];
+    for (const p of due) {
+      const bench = this._applyDirective(p.cardId, p.choice);
+      const line = this.data.caster.directiveArrival?.[`${p.cardId}.${p.choice}`];
+      if (line) texts.push(line); // 도착은 보인다 (§8-B)
+      for (const b of this._decorateBench(bench)) if (b.line) texts.push(b.line);
+    }
+    return texts;
   }
 
   // ── 카드 발동 (장면 재생 중 아무 때나) ─────────────────────
@@ -107,20 +160,23 @@ export class Match {
 
     if (card.costsToken && s.tokens <= 0) return { ok: false, reason: "개입권이 없습니다" };
 
+    // 라인·전술은 발동(접수)과 도착(적용)이 분리된다 (§8-B). 검증은 대기 지시 포함 예상 상태 기준.
+    const delay = card.delivery?.scenes ?? 0;
     let benchChanges = [];
     switch (cardId) {
       case "line_adjust": {
-        const idx = LINE_STEPS.indexOf(s.lineHeight);
+        const proj = this.projectedTeam();
+        const idx = LINE_STEPS.indexOf(proj.lineHeight);
         const next = choice === "up" ? idx + 1 : idx - 1;
         if (next < 0 || next >= LINE_STEPS.length) return { ok: false, reason: "라인이 이미 끝입니다" };
-        s.lineHeight = LINE_STEPS[next];
-        if (choice === "up") benchChanges = onUserLineUp(s, this.cfg, this.rng);
+        if (delay > 0) s.pendingDirectives.push({ cardId, choice, arriveAt: s.sceneCounter + delay });
+        else benchChanges = this._applyDirective(cardId, choice);
         break;
       }
       case "tactic": {
-        if (choice === s.tactic) return { ok: false, reason: "이미 그 전술입니다" };
-        s.tactic = choice;
-        s.adaptationLeft = this.cfg.adaptationPenalty.scenes;
+        if (choice === this.projectedTeam().tactic) return { ok: false, reason: "이미 그 전술입니다" };
+        if (delay > 0) s.pendingDirectives.push({ cardId, choice, arriveAt: s.sceneCounter + delay });
+        else benchChanges = this._applyDirective(cardId, choice);
         break;
       }
       case "encourage": {
@@ -156,7 +212,8 @@ export class Match {
 
     const key = choice ? `${cardId}.${choice}` : cardId;
     const cutin = this.data.caster.cardCutin[key] ?? { title: card.name, sub: "" };
-    return { ok: true, cutin, benchChanges: this._decorateBench(benchChanges), counterArmed };
+    const deliveryScenes = (cardId === "line_adjust" || cardId === "tactic") ? delay : 0;
+    return { ok: true, cutin, benchChanges: this._decorateBench(benchChanges), counterArmed, deliveryScenes };
   }
 
   // ── 결과 판정 (연출 큐 시점에 호출: 정보 선행 §9) ─────────

@@ -4,7 +4,7 @@
     {
       "name": "euclid-proto",
       "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "8642"],
+      "runtimeArgs": ["tools/serve.py", "8642"],
       "port": 8642
     }
   ]

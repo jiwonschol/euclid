@@ -161,6 +161,9 @@ body {
 .card-opts button:hover:not(:disabled) { background: #3b82f6; }
 .card-opts button:disabled { opacity: 0.35; cursor: default; }
 .card-opts button.current { outline: 1px solid #3b82f6; }
+/* 지시 전달 중 (계획서 §8-B): 발동됐지만 아직 도착 안 한 지시 표시 */
+.card-block.pending .card-title::after { content: " · 전달 중"; color: #fbbf24; font-weight: 400; }
+.card-opts button.queued { outline: 1px dashed #fbbf24; }
 
 #debug-toggle {
   background: #262b35; color: #6b7280; border: none;

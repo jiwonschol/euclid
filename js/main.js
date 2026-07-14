@@ -87,9 +87,11 @@ function beginScene() {
   play.resolved = null;
   play.cueDone = false;
   play.signalDone = false;
+  for (const t of info.arrivals) strip(t); // 지시 도착 텔레그래프 — 장면 서술보다 먼저 (§8-B)
   strip(info.narration);
   advisorIdle();
   updateScoreboard();
+  updateSidePanel(); // 지시 도착이 여기서 적용되므로 '전달 중' 배지도 여기서 꺼져야 한다 (§8-B)
 
   // 하이라이트 컷 전환: 짧은 암전 + 경기 시간 → 새 장면은 이미 배치된 상태에서 시작
   play.phase = "transition";
@@ -208,6 +210,9 @@ function onCard(cardId, choice) {
   play.phase = "frozen";
   showFullCutin(r.cutin, (cfg.cutin.fullSec * 0.7) / play.speed, "user", () => {
     for (const b of r.benchChanges) strip(b.line);
+    if (r.deliveryScenes > 0) { // 발동≠도착 — 전달 중임을 숨기지 않는다 (§8-B)
+      strip(`— 지시가 그라운드로 전달되고 있습니다 (${r.deliveryScenes === 1 ? "다음 장면" : `${r.deliveryScenes}장면 뒤`}부터)`);
+    }
     updateSidePanel();
     play.phase = "playing";
   });
@@ -253,17 +258,20 @@ function updateSidePanel() {
   $("tokens").textContent = `개입권 ${"●".repeat(Math.min(s.tokens, maxDots))}${"○".repeat(Math.max(0, maxDots - s.tokens))}`;
   $("subs").textContent = `교체 ${s.subsLeft}회`;
 
+  const proj = match.projectedTeam(); // 발동 가능 판정은 대기 지시 포함 예상 상태 기준 (§8-B)
   for (const block of document.querySelectorAll(".card-block")) {
     const cardId = block.dataset.card;
     const card = data.cards.cards.find((c) => c.id === cardId);
+    block.classList.toggle("pending", s.pendingDirectives.some((p) => p.cardId === cardId));
     block.querySelectorAll("button").forEach((btn) => {
       const choice = btn.dataset.choice;
       let disabled = card.costsToken && s.tokens <= 0;
       if (cardId === "line_adjust") {
-        if (choice === "up" && s.lineHeight === "high") disabled = true;
-        if (choice === "down" && s.lineHeight === "low") disabled = true;
+        if (choice === "up" && proj.lineHeight === "high") disabled = true;
+        if (choice === "down" && proj.lineHeight === "low") disabled = true;
       }
       if (cardId === "tactic") btn.classList.toggle("current", choice === s.tactic);
+      btn.classList.toggle("queued", s.pendingDirectives.some((p) => p.cardId === cardId && p.choice === choice));
       if (cardId === "substitution") {
         btn.textContent = `교체 (${s.subsLeft})`;
         if (s.subsLeft <= 0) disabled = true;

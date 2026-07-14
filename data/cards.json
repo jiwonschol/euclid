@@ -1,10 +1,11 @@
 {
-  "_comment": "개입 카드 4종 (계획서 §8 고정). costsToken=개입권 소모 여부. 교체는 별도 3회 쿼터.",
+  "_comment": "개입 카드 4종 (계획서 §8 고정). costsToken=개입권 소모 여부. 교체는 별도 3회 쿼터. delivery.scenes=지시 도착까지 장면 수(계획서 §8-B: 0=즉시, 1=다음 장면부터, 2=다다음 장면부터). counter 창은 발동 즉시 유효(불변).",
   "cards": [
     {
       "id": "line_adjust",
       "name": "라인 조정",
       "costsToken": true,
+      "delivery": { "scenes": 1 },
       "options": [
         { "value": "up", "label": "올리기" },
         { "value": "down", "label": "내리기" }
@@ -15,6 +16,7 @@
       "id": "tactic",
       "name": "전술 변경",
       "costsToken": true,
+      "delivery": { "scenes": 2 },
       "options": [
         { "value": "balanced", "label": "밸런스" },
         { "value": "attack", "label": "공격" },
@@ -27,6 +29,7 @@
       "id": "encourage",
       "name": "독려",
       "costsToken": true,
+      "delivery": { "scenes": 0 },
       "options": null,
       "risk": "경기당 효과 체감 (2회째부터 절반)."
     },
@@ -34,6 +37,7 @@
       "id": "substitution",
       "name": "교체",
       "costsToken": false,
+      "delivery": { "scenes": 0 },
       "options": null,
       "risk": "3회 제한."
     }

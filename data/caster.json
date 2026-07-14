@@ -87,6 +87,16 @@
     "line.down": "인천이 라인을 뒤로 물립니다."
   },
 
+  "directiveArrival": {
+    "_comment": "유저 지시가 그라운드에 도착하는 순간의 텔레그래프 (계획서 §8-B '도착은 보인다'). 키 = cardId.choice",
+    "line_adjust.up": "수원의 라인이 올라갑니다 — 벤치의 지시가 그라운드에 닿았습니다.",
+    "line_adjust.down": "수원이 라인을 뒤로 물립니다. 감독의 주문이 반영됐습니다.",
+    "tactic.attack": "수원의 대형이 공격적으로 재편됩니다 — 지시가 도착했습니다.",
+    "tactic.counter": "수원이 역습 대형으로 내려앉습니다. 벤치의 그림입니다.",
+    "tactic.park": "수원이 문을 잠급니다. 감독의 지시가 관철됐습니다.",
+    "tactic.balanced": "수원이 대형을 표준으로 되돌립니다."
+  },
+
   "cardCutin": {
     "line_adjust.up": { "title": "라인 업", "sub": "\"올려! 전부 올라가!\" — 수비 라인이 전진합니다" },
     "line_adjust.down": { "title": "라인 다운", "sub": "\"내려! 공간 주지 마!\" — 수비 라인이 내려앉습니다" },
