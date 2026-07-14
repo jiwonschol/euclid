@@ -20,6 +20,12 @@ export function selectScene(scenes, state, cfg, rng) {
     if (state.momentum <= ai.timewasteAtMomentum && s.tags.includes("timewaste")) {
       w *= ai.timewasteWeightMultiplier;
     }
+    // 미드필더 투입(§8-D): 중원 장악 — 우리 장면이 더 자주, 상대 장면이 덜 나온다
+    const mf = state.subBoosts?.mf ?? 0;
+    if (mf > 0) {
+      if (s.side === "home") w *= 1 + cfg.subBoost.mfWeight * mf;
+      else if (s.side === "away") w *= Math.max(0.4, 1 - cfg.subBoost.mfWeight * mf);
+    }
     return w;
   });
 }

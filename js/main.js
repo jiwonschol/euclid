@@ -14,6 +14,7 @@ const play = {
   ctx: null, motion: null,
   t: 0,
   phase: "idle", // idle | transition | playing | frozen | done
+  paused: false, // 일시정지 (§5 재생 컨트롤) — 경기 시간·모션만 멈춘다 (카드는 낼 수 있다)
   resolved: null, cueDone: false, signalDone: false,
   speed: 1,
   stripLines: [],
@@ -60,7 +61,7 @@ function setupSelectScreen() {
   $("screen-select").classList.remove("hidden");
 }
 
-// ── 경기 시작/재시작 ────────────────────────────────────────
+// ── 경기 시작/재시작/중지 ───────────────────────────────────
 function startMatch() {
   match = new Match(data, Math.floor(Math.random() * 2 ** 31));
   match.setAdvisor(advisor.id);
@@ -68,6 +69,9 @@ function startMatch() {
   $("screen-briefing").classList.add("hidden");
   $("screen-match").classList.remove("hidden");
   renderer.resize();
+  play.phase = "idle";
+  play.paused = false;
+  $("btn-pause").textContent = "⏸";
   play.speed = cfg.defaultSpeed;
   play.stripLines = [];
   buildSpeedControls();
@@ -78,7 +82,17 @@ function startMatch() {
   beginScene();
 }
 
+// 경기 중지 (§5 재생 컨트롤): 참모 선택으로 복귀. 이후 떠 있는 연출 타이머는 phase 가드가 무시한다.
+function stopMatch() {
+  play.phase = "done";
+  play.paused = false;
+  $("btn-pause").textContent = "⏸";
+  $("screen-match").classList.add("hidden");
+  $("screen-select").classList.remove("hidden");
+}
+
 function beginScene() {
+  if (play.phase === "done") return; // 중지 후 떠 있던 연출 타이머 무시
   const info = match.beginScene();
   play.ctx = info;
   // 모션 상태 생성 (장면 시작 배치 포함, 계획서 §2.6). matchState는 읽기 전용으로 넘긴다.
@@ -112,7 +126,7 @@ function frame(ts) {
   const dt = lastTs === null ? 0 : (ts - lastTs) / 1000;
   lastTs = ts;
 
-  if (play.phase === "playing" && play.ctx) {
+  if (!play.paused && play.phase === "playing" && play.ctx) {
     const step = dt * play.speed;
     play.t += step;
     const { duration, signal } = play.ctx;
@@ -163,6 +177,7 @@ function concludeScene() {
 }
 
 function aftermath() {
+  if (play.phase === "done") return; // 중지 후 떠 있던 연출 타이머 무시
   updateScoreboard();
   updateSidePanel();
   const fin = match.finishScene();
@@ -170,6 +185,7 @@ function aftermath() {
 
   if (fin.phase === "halftime") {
     strip(fin.line);
+    if (fin.foreshadow) strip(fin.foreshadow); // 후반 첫 장면 예고 (§8-C)
     showFullCutin(fin.fullCutin, cfg.cutin.fullSec / play.speed, "neutral", () => {
       updateSidePanel();
       beginScene();
@@ -178,11 +194,18 @@ function aftermath() {
     strip(fin.line);
     showFullCutin(fin.fullCutin, cfg.cutin.fullSec / play.speed, "neutral", showBriefing);
   } else {
+    if (fin.foreshadow) strip(fin.foreshadow); // 컴퓨터의 퀴즈 — 다음 장면 예고 (§8-C)
     beginScene();
   }
 }
 
 // ── 카드 (§8) ──────────────────────────────────────────────
+// 카드 위에서 비용·도착 시간·리스크가 읽혀야 한다 (§5 개정 — 카드 게임의 직관)
+function deliveryLabel(card) {
+  const n = card.delivery?.scenes ?? 0;
+  return n === 0 ? "즉시" : n === 1 ? "다음 장면 도착" : `${n}장면 뒤 도착`;
+}
+
 function buildCards() {
   const wrap = $("cards");
   wrap.innerHTML = "";
@@ -193,7 +216,11 @@ function buildCards() {
     const opts = card.options
       ? card.options.map((o) => `<button data-choice="${o.value}">${o.label}</button>`).join("")
       : `<button data-choice="">${card.name}</button>`;
-    block.innerHTML = `<div class="card-title">${card.name}</div><div class="card-opts">${opts}</div>`;
+    const cost = card.costsToken ? "● 개입권 1" : "교체권";
+    block.innerHTML = `
+      <div class="card-head"><span class="card-title">${card.name}</span><span class="card-cost">${cost}</span></div>
+      <div class="card-opts">${opts}</div>
+      <div class="card-info"><b>${deliveryLabel(card)}</b> · ${card.risk}</div>`;
     block.querySelectorAll("button").forEach((btn) => {
       btn.onclick = () => onCard(card.id, btn.dataset.choice || null);
     });
@@ -202,20 +229,22 @@ function buildCards() {
 }
 
 function onCard(cardId, choice) {
-  if (play.phase !== "playing") return; // 컷인 중에는 발동 불가
+  if (play.phase !== "playing") return; // 연출 중에는 발동 불가 (일시정지 중에는 가능 — 생각 시간)
   const r = match.playCard(cardId, choice);
   if (!r.ok) { strip(`— ${r.reason}`); return; }
 
-  // 확인 팝업 없음: 컷인 전환 자체가 "접수됐다"는 피드백 (§5)
-  play.phase = "frozen";
-  showFullCutin(r.cutin, (cfg.cutin.fullSec * 0.7) / play.speed, "user", () => {
-    for (const b of r.benchChanges) strip(b.line);
-    if (r.deliveryScenes > 0) { // 발동≠도착 — 전달 중임을 숨기지 않는다 (§8-B)
-      strip(`— 지시가 그라운드로 전달되고 있습니다 (${r.deliveryScenes === 1 ? "다음 장면" : `${r.deliveryScenes}장면 뒤`}부터)`);
-    }
-    updateSidePanel();
-    play.phase = "playing";
-  });
+  // §5 개정 (2026-07-14): 카드 발동은 경기를 멈추지 않는다 — 패를 놓으면(플래시+한 줄)
+  // 경기는 계속 흐르고, 효과는 §8-B 스케줄대로 도착한다.
+  const card = data.cards.cards.find((c) => c.id === cardId);
+  const label = card.options?.find((o) => o.value === choice)?.label;
+  strip(`⚑ ${card.name}${label ? ` — ${label}` : ""} 지시!`);
+  for (const b of r.benchChanges) strip(b.line);
+  if (r.deliveryScenes > 0) { // 발동≠도착 — 전달 중임을 숨기지 않는다 (§8-B)
+    strip(`— 지시가 그라운드로 전달되고 있습니다 (${r.deliveryScenes === 1 ? "다음 장면" : `${r.deliveryScenes}장면 뒤`}부터)`);
+  }
+  const block = document.querySelector(`.card-block[data-card="${cardId}"]`);
+  if (block) { block.classList.remove("played"); void block.offsetWidth; block.classList.add("played"); }
+  updateSidePanel();
 }
 
 // ── HUD ────────────────────────────────────────────────────
@@ -272,10 +301,7 @@ function updateSidePanel() {
       }
       if (cardId === "tactic") btn.classList.toggle("current", choice === s.tactic);
       btn.classList.toggle("queued", s.pendingDirectives.some((p) => p.cardId === cardId && p.choice === choice));
-      if (cardId === "substitution") {
-        btn.textContent = `교체 (${s.subsLeft})`;
-        if (s.subsLeft <= 0) disabled = true;
-      }
+      if (cardId === "substitution" && s.subsLeft <= 0) disabled = true;
       btn.disabled = disabled;
     });
   }
@@ -321,6 +347,14 @@ function showBriefing() {
 }
 
 $("btn-again").onclick = () => startMatch();
+
+// ── 재생 컨트롤 (§5 개정: 상단 스코어보드) ──────────────────
+$("btn-pause").onclick = () => {
+  if (play.phase === "done" || play.phase === "idle") return;
+  play.paused = !play.paused;
+  $("btn-pause").textContent = play.paused ? "▶" : "⏸";
+};
+$("btn-stop").onclick = () => stopMatch();
 
 // ── 디버그 (§9: 기본P/보정/실효P/주사위 상시 표시) ─────────
 $("debug-toggle").onclick = () => $("debug").classList.toggle("hidden");

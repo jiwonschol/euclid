@@ -38,8 +38,12 @@
       "name": "교체",
       "costsToken": false,
       "delivery": { "scenes": 0 },
-      "options": null,
-      "risk": "3회 제한."
+      "options": [
+        { "value": "fw", "label": "공격수" },
+        { "value": "mf", "label": "미드필더" },
+        { "value": "df", "label": "수비수" }
+      ],
+      "risk": "합계 3회. 공격수=득점 확률↑ · 미드필더=우리 장면 빈도↑ · 수비수=실점 확률↓ (§8-D)"
     }
   ]
 }

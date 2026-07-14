@@ -45,6 +45,13 @@
 
   "goodCallThreshold": 0.6,
 
+  "subBoost": {
+    "_comment": "교체 3종 효과 (계획서 §8-D). fw=투입 1인당 홈 공격 focal 성공 배수 가산, df=투입 1인당 상대 focal 확률 감쇄, mfWeight=투입 1인당 장면 가중 편향(홈↑/상대↓)",
+    "fw": 0.12,
+    "df": 0.12,
+    "mfWeight": 0.08
+  },
+
   "motion": {
     "_comment": "모션 엔진 v2 (계획서 §2). 속도는 실제 축구 m/s. 위치는 0-100 좌표, 계산은 meterScale로 미터 환산. 디자이너는 이 블록만 만지면 움직임이 바뀐다.",
     "meterScale": [1.05, 0.68],

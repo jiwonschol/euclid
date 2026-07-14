@@ -74,6 +74,19 @@ body {
 }
 #speed-controls button.active { background: #3b82f6; color: #fff; }
 
+/* 재생 컨트롤 (§5 개정: 일시정지/재생/중지 — 상단) */
+#play-controls { display: inline-flex; gap: 4px; }
+#play-controls button {
+  background: #262b35;
+  color: #e5e7eb;
+  border: none;
+  border-radius: 5px;
+  padding: 4px 10px;
+  cursor: pointer;
+  font-size: 13px;
+}
+#play-controls button:hover { background: #3b82f6; }
+
 /* 피치: 70% 축소·중앙 배치 + 실제 축구장 종횡비(105:68) 고정 (2026-07-14 디자이너 지시).
    창이 낮으면 높이 기준으로 함께 줄어들어 메시지 영역을 침범하지 않는다. */
 #pitch-wrap {
@@ -193,9 +206,23 @@ body {
 .card-opts button:hover:not(:disabled) { background: #3b82f6; }
 .card-opts button:disabled { opacity: 0.35; cursor: default; }
 .card-opts button.current { outline: 1px solid #3b82f6; }
+/* 카드 게임 직관 (§5 개정): 비용·도착·리스크가 카드 위에서 읽힌다 */
+.card-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+.card-head .card-title { margin-bottom: 0; }
+.card-cost { font-size: 11px; color: #fbbf24; font-weight: 700; }
+.card-info { font-size: 11px; color: #6b7280; margin-top: 6px; line-height: 1.45; }
+.card-info b { color: #93c5fd; font-weight: 700; }
+
 /* 지시 전달 중 (계획서 §8-B): 발동됐지만 아직 도착 안 한 지시 표시 */
 .card-block.pending .card-title::after { content: " · 전달 중"; color: #fbbf24; font-weight: 400; }
 .card-opts button.queued { outline: 1px dashed #fbbf24; }
+
+/* 패를 놓는 접수 연출 (§5 개정): 경기를 멈추지 않는 가벼운 플래시 */
+.card-block.played { animation: cardplay 0.7s ease-out; }
+@keyframes cardplay {
+  0% { outline: 2px solid #3b82f6; background: #1e3a5f; }
+  100% { outline: 2px solid transparent; background: #1a1d24; }
+}
 
 #debug-toggle {
   background: #262b35; color: #6b7280; border: none;

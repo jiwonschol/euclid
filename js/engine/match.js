@@ -39,6 +39,7 @@ export class Match {
       scenesThisHalf: 0,
       sceneCounter: 0,        // 경기 전체 장면 통산 번호 (지시 도착 스케줄 기준, §8-B)
       pendingDirectives: [],  // 전달 중인 지시: { cardId, choice, arriveAt } (§8-B)
+      subBoosts: { fw: 0, mf: 0, df: 0 }, // 교체 3종 투입 수 (§8-D)
       flags: { oppReactedToRed: false },
       finished: false,
     };
@@ -48,6 +49,7 @@ export class Match {
     this.log = [];
     this.usedCutins = new Set();
     this.current = null; // 진행 중인 장면 컨텍스트
+    this.queuedScene = null; // 예선택된 다음 장면 (§8-C 예고 시스템)
     this._setupHalf();
   }
 
@@ -71,9 +73,12 @@ export class Match {
   beginScene() {
     const s = this.state;
     s.sceneCounter += 1;
-    // 도착한 지시를 장면 선택 *이전에* 적용 — "다음 장면의 풀에 반영"이 성립하는 지점 (§8-B)
+    // 도착한 지시는 이 장면의 형상·counter 판정에 반영된다. 장면 풀에는 다음 예선택부터
+    // 반영 — 예고된 퀴즈는 재추첨되지 않는다(정직한 퀴즈, §8-B·§8-C).
     const arrivals = this._applyArrivals();
-    const scene = selectScene(this.data.scenes.scenes, s, this.cfg, this.rng);
+    // §8-C: 직전 장면 종료 때 예선택(예고)된 장면을 쓴다. 경기 첫 장면만 여기서 뽑는다.
+    const scene = this.queuedScene ?? selectScene(this.data.scenes.scenes, s, this.cfg, this.rng);
+    this.queuedScene = null;
     const halfEnd = this.cfg.halfMinutes * s.half;
     const remainingScenes = s.scenesThisHalf - s.sceneIndexInHalf;
     const span = Math.max(2, Math.round((halfEnd - s.minute) / Math.max(1, remainingScenes)) + randInt(this.rng, -1, 1));
@@ -188,6 +193,9 @@ export class Match {
       case "substitution": {
         if (s.subsLeft <= 0) return { ok: false, reason: "교체 횟수를 다 썼습니다" };
         s.subsLeft -= 1;
+        // 포지션 선택 교체 (§8-D): 즉시 반영 — 그 선수가 활약하는 건 다른 이야기
+        const pos = choice === "fw" || choice === "df" ? choice : "mf";
+        s.subBoosts[pos] += 1;
         const candidates = Object.keys(this.fatigue)
           .filter((id) => id !== "h1" && !s.sentOff.includes(id));
         const tired = candidates.sort((a, b) => this.fatigue[b] - this.fatigue[a])[0];
@@ -316,11 +324,14 @@ export class Match {
         s.tokens = this.cfg.interventionsPerHalf + (this.cfg.carryOverUnused ? s.tokens : 0);
         this._setupHalf();
         const view = derivedView(s);
+        const line = pickConditional(this.data.caster.halftime, view, this.rng)?.text ?? "";
+        const fullCutin = this._pickFullCutin("halftime");
         return {
           phase: "halftime",
-          line: pickConditional(this.data.caster.halftime, view, this.rng)?.text ?? "",
-          fullCutin: this._pickFullCutin("halftime"),
+          line,
+          fullCutin,
           benchChanges: [],
+          foreshadow: this._queueNext(), // 후반 첫 장면 예고 (§8-C)
         };
       }
       s.finished = true;
@@ -334,7 +345,33 @@ export class Match {
     }
 
     const changes = checkBetweenScenes(s, this.cfg, this.rng);
-    return { phase: "scene", benchChanges: this._decorateBench(changes) };
+    // §8-C: 다음 장면을 지금(판정 반영된 상태로) 예선택하고 예고를 흘린다 — 컴퓨터의 퀴즈.
+    // rng 소비 순서는 기존(beginScene 선택)과 동일하게 checkBetweenScenes 직후다.
+    const foreshadow = this._queueNext();
+    return { phase: "scene", benchChanges: this._decorateBench(changes), foreshadow };
+  }
+
+  // ── 예고 시스템 (§8-C) ─────────────────────────────────────
+  _queueNext() {
+    this.queuedScene = selectScene(this.data.scenes.scenes, this.state, this.cfg, this.rng);
+    return this._foreshadowFor(this.queuedScene);
+  }
+
+  // 예고 멘트: 장면 명시(foreshadow 필드) > side.태그 템플릿 > side 템플릿.
+  // 변형 선택은 sceneCounter 순환(결정론) — rng를 소비하면 무개입 판정 시퀀스가 바뀐다.
+  _foreshadowFor(scene) {
+    if (scene.foreshadow) return scene.foreshadow;
+    const fs = this.data.caster.foreshadow;
+    if (!fs) return null;
+    const side = scene.side ?? "neutral";
+    let pool = null;
+    for (const t of scene.tags ?? []) {
+      if (fs[`${side}.${t}`]) { pool = fs[`${side}.${t}`]; break; }
+    }
+    pool = pool ?? fs[side];
+    if (!pool) return null;
+    const arr = [].concat(pool);
+    return arr.length ? arr[this.state.sceneCounter % arr.length] : null;
   }
 
   _decorateBench(changes) {

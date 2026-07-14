@@ -15,11 +15,17 @@ export function classify(eventType) {
   return "flow";
 }
 
-// 홈 사기·적응 페널티가 홈 측 focal 성공률에 주는 배수
+// 홈 사기·적응 페널티·공격수 투입(§8-D)이 홈 측 focal 성공률에 주는 배수
 function homeModifiers(state, cfg) {
   let m = 1 + (state.morale - cfg.moraleStart) * cfg.moraleSuccessSlopePerPoint;
   if (state.adaptationLeft > 0) m *= cfg.adaptationPenalty.successMultiplier;
+  m *= 1 + cfg.subBoost.fw * (state.subBoosts?.fw ?? 0);
   return m;
+}
+
+// 수비수 투입(§8-D)이 상대 측 focal(실점) 확률에 주는 감쇄 배수
+function awayFocalModifier(state, cfg) {
+  return Math.max(0.4, 1 - cfg.subBoost.df * (state.subBoosts?.df ?? 0));
 }
 
 export function resolveOutcome(scene, state, cfg, rng, counterApplied) {
@@ -33,6 +39,7 @@ export function resolveOutcome(scene, state, cfg, rng, counterApplied) {
     // focal(대개 goal)은 PRD로 판정, 나머지는 잔여 확률에서 비례 추첨
     let statedP = focalEntry[1];
     if (scene.side === "home") statedP *= homeModifiers(state, cfg);
+    else if (scene.side === "away") statedP *= awayFocalModifier(state, cfg);
     const tracker = state.prd[scene.side === "home" ? "home" : "away"];
     const { success, info } = prdCheck(tracker, statedP, cfg.prd, rng);
     debug = { ...info, scene: scene.id, focal, counterApplied };
