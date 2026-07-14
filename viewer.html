@@ -199,6 +199,7 @@
     requestAnimationFrame(frame);
   }
   function newGame() { state = createMatch(seed, cfg, com, cards); acc = 0; feedId = 0; $('feed').innerHTML = ''; }
+  window.__dbg = { state: () => state, tick: (n) => { for (let i = 0; i < (n || 1); i++) tick(state); return state.clockSeconds; } };
 
   $('play').onclick = () => { playing = !playing; $('play').textContent = playing ? '❚❚ 일시정지' : '▶ 재생'; $('play').classList.toggle('on', playing); };
   $('restart').onclick = () => { seed++; newGame(); };
