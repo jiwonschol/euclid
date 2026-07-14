@@ -15,6 +15,7 @@ const play = {
   t: 0,
   phase: "idle", // idle | transition | playing | frozen | done
   paused: false, // 일시정지 (§5 재생 컨트롤) — 경기 시간·모션만 멈춘다 (카드는 낼 수 있다)
+  holdUntil: 0, // 카드 관전 보장 하한 (§5 개정)
   resolved: null, cueDone: false, signalDone: false,
   speed: 1,
   stripLines: [],
@@ -98,6 +99,7 @@ function beginScene() {
   // 모션 상태 생성 (장면 시작 배치 포함, 계획서 §2.6). matchState는 읽기 전용으로 넘긴다.
   play.motion = createMotion(info.scene, data.formations, match.state, cfg);
   play.t = 0;
+  play.holdUntil = 0; // 카드 관전 보장 하한 (§5 개정) — 이 장면에서 카드를 내면 갱신
   play.resolved = null;
   play.cueDone = false;
   play.signalDone = false;
@@ -145,7 +147,8 @@ function frame(ts) {
     // 배속은 dt 스케일로 일괄 적용 — 모든 운동이 비율 유지한 채 빨라진다 (§2.6).
     // playing 페이즈에서만 스텝: transition(컷)·frozen(컷인)에는 마지막 배치를 그대로 그린다.
     stepMotion(play.motion, step);
-    if (play.t >= duration) concludeScene();
+    // 카드를 낸 직후엔 시퀀스를 잘라내지 않는다 — holdUntil까지는 마무리를 미룬다 (§5 개정)
+    if (play.t >= duration && play.t >= play.holdUntil) concludeScene();
     updateClock();
   }
 
@@ -245,6 +248,11 @@ function onCard(cardId, choice) {
   const block = document.querySelector(`.card-block[data-card="${cardId}"]`);
   if (block) { block.classList.remove("played"); void block.offsetWidth; block.classList.add("played"); }
   updateSidePanel();
+
+  // 진행 중인 시퀀스는 보여줄 만큼 보여준다 (§5 개정): 카드를 늦게 냈어도 최소 관전 시간을 보장.
+  // 장면 원래 길이를 넘겨도 postCardMaxExtendSec까지만 — 웨이포인트 과다 오버런 방지.
+  const cap = play.ctx.duration + (cfg.postCardMaxExtendSec ?? 3);
+  play.holdUntil = Math.max(play.holdUntil, Math.min(cap, play.t + (cfg.postCardWatchSec ?? 3)));
 }
 
 // ── HUD ────────────────────────────────────────────────────

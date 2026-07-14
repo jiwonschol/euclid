@@ -15,6 +15,10 @@
   "defaultSpeed": 1.5,
   "sceneTransitionSec": 0.9,
 
+  "_comment_watch": "카드를 내면 진행 중인 시퀀스를 잘라내지 않는다 (계획서 §5 개정). 카드 발동 후 최소 postCardWatchSec초(경기시간)만큼 장면을 더 재생하고서야 마무리한다. 장면 원래 길이를 넘겨도 최대 postCardMaxExtendSec초까지만(웨이포인트 종료 후 정지 화면이 길어지지 않게).",
+  "postCardWatchSec": 3,
+  "postCardMaxExtendSec": 2.5,
+
   "adaptationPenalty": { "scenes": 2, "successMultiplier": 0.8 },
   "encourageMorale": { "first": 20, "later": 10 },
   "substitutionMorale": 5,
