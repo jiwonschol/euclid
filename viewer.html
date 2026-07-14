@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>euclid — 연속 경기 엔진 뷰어 (Stage 2)</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #14171c; color: #e8ecf1; font: 14px/1.5 system-ui, sans-serif; }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 16px; }
+  h1 { font-size: 15px; font-weight: 600; color: #9fb0c3; margin: 0 0 10px; }
+  .board { display: flex; align-items: center; gap: 16px; margin-bottom: 10px; flex-wrap: wrap; }
+  .score { font-size: 22px; font-weight: 700; letter-spacing: 0.5px; }
+  .score .a { color: #6f9bff; } .score .b { color: #ff8080; }
+  .clock { font-variant-numeric: tabular-nums; font-size: 18px; color: #cfd8e3; }
+  .phase, .poss { font-size: 12px; color: #8b9bb0; padding: 2px 8px; border: 1px solid #2b3340; border-radius: 999px; }
+  .controls { display: flex; gap: 8px; margin: 8px 0 12px; flex-wrap: wrap; }
+  button { background: #222a34; color: #e8ecf1; border: 1px solid #333e4c; border-radius: 8px; padding: 7px 13px; font-size: 13px; cursor: pointer; }
+  button:hover { background: #2b3542; }
+  button.on { background: #2f6bff; border-color: #2f6bff; color: #fff; }
+  canvas { width: 100%; height: auto; display: block; border-radius: 10px; box-shadow: 0 6px 24px rgba(0,0,0,0.4); background: #256; }
+  .note { color: #7d8a9c; font-size: 12px; margin-top: 10px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>euclid · 연속 경기 시뮬레이션 뷰어 <span style="color:#556">— Stage 2 (자율 이동, placeholder 구동)</span></h1>
+  <div class="board">
+    <div class="score"><span class="a">수원 <b id="sa">0</b></span> : <span class="b"><b id="sb">0</b> 인천</span></div>
+    <div class="clock" id="clock">00:00</div>
+    <div class="phase" id="phase">—</div>
+    <div class="poss" id="poss">점유 —</div>
+  </div>
+  <div class="controls">
+    <button id="play" class="on">❚❚ 일시정지</button>
+    <button id="restart">↻ 새 경기</button>
+    <span style="width:12px"></span>
+    <button class="spd on" data-s="1">1×</button>
+    <button class="spd" data-s="2">2×</button>
+    <button class="spd" data-s="4">4×</button>
+    <button class="spd" data-s="8">8×</button>
+  </div>
+  <canvas id="pitch" width="1000" height="648"></canvas>
+  <p class="note">파란 알 = 수원, 빨간 알 = 인천, 노랑/초록 = 골키퍼. 흰 테두리 = 볼 소유자, 노란 링 = 압박(first defender).
+    아직 실제 패스·슛·규칙은 없습니다(Stage 3~) — 지금은 <b>팀 형상·압박·공수 전환</b>이 축구답게 흐르는지 보는 단계입니다.</p>
+</div>
+
+<script type="module">
+  import { createMatch, tick, SIM_DT } from './js/game/match.js';
+  import { makeView, draw } from './js/ui/pitch2d.js';
+
+  const $ = (id) => document.getElementById(id);
+  const view = makeView($('pitch'));
+  let cfg = null, state = null, playing = true, speed = 1, acc = 0, last = performance.now(), seed = 1;
+
+  function fmtClock(sec) {
+    const m = Math.floor(sec / 60), s = Math.floor(sec % 60);
+    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  }
+  function hud() {
+    $('sa').textContent = state.score.A; $('sb').textContent = state.score.B;
+    $('clock').textContent = `${fmtClock(state.clockSeconds)} · ${state.half === 1 ? '전반' : '후반'}`;
+    $('phase').textContent = state.phase;
+    const poss = state.possessionTeamId;
+    $('poss').textContent = `점유 ${poss === 'A' ? '수원' : poss === 'B' ? '인천' : '—'}`;
+  }
+
+  function frame(now) {
+    const dt = Math.min(0.1, (now - last) / 1000); last = now;
+    if (playing && state) {
+      acc += dt * speed;
+      let n = 0;
+      while (acc >= SIM_DT && n < 2000) { tick(state); acc -= SIM_DT; n++; }
+    }
+    if (state) { draw(view, state); hud(); }
+    requestAnimationFrame(frame);
+  }
+
+  $('play').onclick = () => { playing = !playing; $('play').textContent = playing ? '❚❚ 일시정지' : '▶ 재생'; $('play').classList.toggle('on', playing); };
+  $('restart').onclick = () => { seed++; state = createMatch(seed, cfg); acc = 0; };
+  for (const b of document.querySelectorAll('.spd')) b.onclick = () => {
+    speed = +b.dataset.s;
+    for (const x of document.querySelectorAll('.spd')) x.classList.toggle('on', x === b);
+  };
+
+  fetch('./data/engine.json').then((r) => r.json()).then((j) => {
+    cfg = j; state = createMatch(seed, cfg); requestAnimationFrame(frame);
+  }).catch((e) => { document.body.insertAdjacentHTML('beforeend', `<p style="color:#f88">엔진 설정 로드 실패: ${e}. tools/serve.py 로 실행하세요.</p>`); });
+</script>
+</body>
+</html>

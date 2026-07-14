@@ -39,7 +39,7 @@ export function stepPlay(state, dt) {
 
   // 상대 골문 8m 앞을 향해 run 추진, z는 완만한 사인 드리프트(결정론)
   const targetX = dir * (FIELD.halfLength - 8);
-  const driftZ = Math.sin(state.clockSeconds * 0.35 + hash01(carrier.id) * 6.2832) * 14;
+  const driftZ = Math.sin(state.clockSeconds * 0.22 + hash01(carrier.id) * 6.2832) * 6;
   seek(carrier, { x: targetX, z: driftZ }, P.run, P, dt, P.arrivalRadius);
   carrier.hasBall = true;
 
