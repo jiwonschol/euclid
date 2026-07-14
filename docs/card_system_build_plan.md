@@ -45,7 +45,7 @@
 
 ## 슬라이스 (각 슬라이스 DoD = 헤드리스 통과 + 해당되면 브라우저 확인 + 커밋)
 - [x] **S1 · 효과 엔진 코어(헤드리스)** — `effects.js`: `state.effects`, `resolve()`(기본값=현재), `stepEffects` 만료, `addEffect` 스택규칙, `consumeNextAction`. decide/ai/attack를 `resolvedFor()` 경유로 리팩터(shot/pass/dribble/through에 ×1.0 identity 주입점). match.tick에 stepEffects+stepResolve. **게이트 통과(동작 불변) + 브라우저 검증 완료.** 커밋.
-- [ ] **S2 · CoachCard 데이터 + validator** — `data/cards.json` 16장 + 맥락 정의를 `CoachCard`/`TacticalModifier` 스키마로. `cards.js validateCard`(phase/timing→CP→target→precondition→cooldown, 실패 사유 문자열). 헤드리스 단위검증. 커밋.
+- [x] **S2 · CoachCard 데이터 + validator** — `data/cards.json` 에 `deck`(16장 CoachCard)+`context`(맥락)+`draw` 파라미터 추가(레거시 `cards`/CP/opponentAI 유지 → 뷰어 무손상). `cards.js`: matchTimings(타이밍 판정), validateCard(타이밍→CP→타겟→전제조건→쿨다운, 정확 사유), PRECONDS(onsideRunner/boxTargets). decide.gainControl 에 `_possChangedAt`(전환 타이밍). 헤드리스 30/30 + 브라우저 무손상 확인. 커밋.
 - [ ] **S3 · 덱·손패·드로우** — `state.deck/hand`, 드로우 타이머+볼재획득 보너스, 손패 상한, stale 스왑, `playFromHand`(검증→applyCard→CP차감→버림→드로우). B도 정책으로 카드 플레이(telegraph). `sim/cards-lint.mjs` 통과. 커밋.
 - [ ] **S4 · 맥락(context) 카드 / 큰 순간** — 큰 순간 감지(파이널서드 슛찬스/GK 1대1/수비 대결) 시 손패에 맥락 카드 1~2장 주입, NEXT_ACTION 보정, 창 종료 시 소멸. 헤드리스로 주입/소멸/보정 확인. 커밋.
 - [ ] **S5 · 뷰어 UI 개편(브라우저 검증)** — 부채꼴 손패·타겟팅·활성효과 칩·맥락 팝업·불가 사유. **브라우저: 콘솔 0, 카드 플레이 시 `__dbg.state()`의 resolve 값·effects 변화 + UI 갱신, 불가 카드 사유 표시, 스크린샷.** 커밋.
@@ -67,5 +67,6 @@ node sim/cards-lint.mjs   # (신규) 카드/효과/결정론
 S1~S7 전부 체크 && 전 헤드리스 게이트 green && 브라우저에서 (a)뷰어 콘솔 에러 0, (b)드로우된 손패 렌더, (c)카드 플레이가 `state.effects`/`resolve()`를 실제로 바꾸고 AI 동작/포지션에 반영, (d)불가 카드가 사유 표시, (e)상대 telegraph→유저 대응 루프 동작 — 을 **직접 확인**했을 때에만 promise 출력.
 
 ## 반복 로그 (append-only; 최신이 위)
+- **iter2 · S2 완료** — `data/cards.json`: deck 16 CoachCard(effects=TacticalModifier[])+context 3종(BALL_CARRIER_DUEL/DEFENSIVE_DUEL/GK 1대1)+draw 파라미터, 레거시 cards 유지(high_press→high_press_legacy 리네임으로 id 충돌 회피). `js/game/cards.js` 신규: matchTimings/validateCard/PRECONDS. decide.gainControl 에 `_possChangedAt`(전환 타이밍, determinism-safe). 게이트: sim:cards 30/30, 결정론 digest 불변(4-5|ev1704). 브라우저: 콘솔0·deck16/context/draw 파싱·레거시 손패11 정상 플레이(balanced→pending). 다음=S3(덱·손패·드로우+playFromHand+상대 AI).
 - **iter1 · S1 완료** — `js/game/effects.js` 신규(resolve/stepEffects/stepResolve/addEffect/consumeNextAction, modifier registry 17키). match.js(effects/resolved 상태 + tick 훅), ai/attack/decide를 resolvedFor 경유로 라우팅 + decide에 shot/pass/dribble/through ×bias(기본 1.0) 주입점. 게이트: sim:cards 15/15 ✓, sim:match/pos/play 베이스라인과 동일(play 합 57, pos 900건, 재현성 OK). **브라우저 검증**: viewer 콘솔0, state.effects/resolved 채워짐, live 엔진에 효과 주입 시 resolve가 반영(shotBias 1→2.5→1)·만료 원복 확인. 다음=S2(CoachCard 데이터+validator).
 - iter0 · 베이스라인 green: sim:match/pos/play ✓, viewer.html live 정상(콘솔0, __dbg 동작). 브랜치 feature/continuous-match-engine @ 618e89e.

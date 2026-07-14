@@ -5,8 +5,10 @@
 import { readFileSync } from 'node:fs';
 import { createMatch, tick, runToFulltime } from '../js/game/match.js';
 import { resolve, resolvedFor, addEffect, stepEffects, stepResolve } from '../js/game/effects.js';
+import { validateCard, deckCardById } from '../js/game/cards.js';
 
 const cfg = JSON.parse(readFileSync(new URL('../data/engine.json', import.meta.url)));
+const cards = JSON.parse(readFileSync(new URL('../data/cards.json', import.meta.url)));
 
 let pass = 0, fail = 0;
 const ok = (cond, msg) => { if (cond) { pass++; console.log('  ✓ ' + msg); } else { fail++; console.log('  ✗ ' + msg); } };
@@ -76,6 +78,71 @@ console.log('6) 결정론 — 카드 미사용 시 같은 시드 동일 결과(�
   const a = runToFulltime(createMatch(42, cfg));
   const b = runToFulltime(createMatch(42, cfg));
   ok(digest(a) === digest(b), `동일 (${digest(a)})`);
+}
+
+console.log('7) deck 스키마 (CoachCard §12)');
+{
+  const deck = cards.deck || [];
+  ok(deck.length >= 12, `deck ${deck.length}장 (목표 ≥12)`);
+  ok(deck.every((c) => c.id && c.name && typeof c.cost === 'number' && Array.isArray(c.timing) && Array.isArray(c.effects)),
+    '모든 카드 필수 필드(id/name/cost/timing/effects)');
+  ok(deck.every((c) => c.effects.every((e) => e.key && e.operation)), '모든 effect 에 key·operation');
+  const validOps = new Set(['ADD', 'MULTIPLY', 'OVERRIDE']);
+  ok(deck.every((c) => c.effects.every((e) => validOps.has(e.operation))), '모든 operation 이 ADD/MULTIPLY/OVERRIDE');
+}
+
+console.log('8) validateCard — 타이밍 & CP');
+{
+  const s = toInPlay(createMatch(3, cfg, null, cards)); s.cp = { A: 3, B: 3 };
+  ok(validateCard(s, 'A', deckCardById(cards, 'high_press')).ok, 'high_press(ANYTIME,3) CP3 → 가능');
+  s.cp.A = 2;
+  const r = validateCard(s, 'A', deckCardById(cards, 'high_press'));
+  ok(!r.ok && /CP/.test(r.reason), `CP 부족 거부 (${r.reason})`);
+}
+
+console.log('9) validateCard — 타이밍 불일치');
+{
+  const s = toInPlay(createMatch(4, cfg, null, cards)); s.cp = { A: 5, B: 5 };
+  s.possessionTeamId = 'B';                                   // A 비소유 → IN_POSSESSION 카드 불가
+  const r = validateCard(s, 'A', deckCardById(cards, 'long_shots'));
+  ok(!r.ok && /타이밍/.test(r.reason), `타이밍 불가 (${r.reason})`);
+  s.possessionTeamId = 'A';
+  ok(validateCard(s, 'A', deckCardById(cards, 'long_shots')).ok, 'A 소유 시 long_shots 가능');
+}
+
+console.log('10) validateCard — 전제조건(침투 패스: 온사이드 침투자)');
+{
+  const s = toInPlay(createMatch(5, cfg, null, cards)); s.cp = { A: 5, B: 5 }; s.possessionTeamId = 'A';
+  const card = deckCardById(cards, 'through_pass');
+  s.ball.position = { x: 40, y: 0, z: 0 };                    // A는 +x 공격
+  for (const p of Object.values(s.players)) if (p.teamId === 'A' && p.role !== 'GK') p.position.x = 25;  // 전원 공 뒤
+  const bOut = Object.values(s.players).filter((p) => p.teamId === 'B' && p.role !== 'GK');
+  bOut[0].position.x = 62; bOut[1].position.x = 60;           // 세컨드-라스트 라인 = 60
+  const rNo = validateCard(s, 'A', card);
+  ok(!rNo.ok && /침투자/.test(rNo.reason), `침투자 없음 → 거부 (${rNo.reason})`);
+  const runner = Object.values(s.players).find((p) => p.teamId === 'A' && p.role !== 'GK');
+  runner.position.x = 55; runner.position.z = 5;              // 공 앞·오프사이드 라인(60) 안쪽 = 온사이드
+  ok(validateCard(s, 'A', card).ok, '온사이드 침투자 존재 → 가능');
+}
+
+console.log('11) validateCard — 타겟(밀착 마크: 상대 선수)');
+{
+  const s = toInPlay(createMatch(6, cfg, null, cards)); s.cp = { A: 5, B: 5 };
+  const mm = deckCardById(cards, 'man_mark');
+  ok(!validateCard(s, 'A', mm, null).ok, '타겟 없음 → 거부');
+  ok(!validateCard(s, 'A', mm, 'A5').ok, '아군 지정 → 거부(상대 대상 카드)');
+  ok(validateCard(s, 'A', mm, 'B5').ok, '상대 선수 지정 → 가능');
+}
+
+console.log('12) validateCard — 쿨다운');
+{
+  const s = toInPlay(createMatch(7, cfg, null, cards)); s.cp = { A: 5, B: 5 };
+  const hp = deckCardById(cards, 'high_press');              // cooldownGroup 'line'
+  s.cardCooldowns = { A: { line: s.clockSeconds + 10 }, B: {} };
+  const r = validateCard(s, 'A', hp);
+  ok(!r.ok && /대기/.test(r.reason), `쿨다운 거부 (${r.reason})`);
+  s.cardCooldowns.A.line = s.clockSeconds - 1;
+  ok(validateCard(s, 'A', hp).ok, '쿨다운 경과 후 가능');
 }
 
 console.log(`\n${fail === 0 ? '✅ 전부 통과' : '❌ 실패 있음'}  (pass ${pass}, fail ${fail})`);

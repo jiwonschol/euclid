@@ -1,7 +1,102 @@
 {
-  "_comment": "감독 지시 카드 (계획서 §0.1 오디블, 연속 엔진용). set=도착 시 유저팀(A) tactics 반영. delivery=전달 시간(초). cost=CP. 전달 중 다른 카드=오디블(비용 1회). sub 카드는 즉시(교체, substitutionLimit 회).",
-  "cp": { "max": 10, "start": 3, "regenSec": 11 },
+  "_comment": "감독 카드 (계획서 §12 하이브리드). cp/substitutionLimit/cards(레거시 지시)/opponentAI = 현행 뷰어·directives.js 호환 유지. deck/context/draw = 신규 하스스톤형 카드(CoachCard 스키마, effects=TacticalModifier[]). effects.js resolve()가 modifier를 AI에 반영. cards.js validateCard 가 검증.",
+  "cp": { "max": 10, "start": 3, "regenSec": 11, "regainBonus": 1 },
   "substitutionLimit": 3,
+  "draw": {
+    "_comment": "덱→손패 드로우. startHand=시작 손패, handMax=상한(맥락 카드 포함), drawEverySec=일반 카드 자동 드로우 주기(경기초), staleSwapSec=이 시간 이상 미사용 카드는 교환 가능, regainDraw=볼 재획득 시 즉시 1장.",
+    "startHand": 4,
+    "handMax": 6,
+    "drawEverySec": 14,
+    "staleSwapSec": 40,
+    "regainDraw": true
+  },
+
+  "deck": [
+    { "id": "high_press", "name": "높은 압박", "category": "PRESS", "cost": 3, "timing": ["ANYTIME"], "targetType": "NONE", "durationSeconds": 20, "cooldownGroup": "line", "preconditions": [], "stacking": "REFRESH",
+      "effects": [ { "key": "press", "scope": "TEAM", "operation": "OVERRIDE", "value": "high" }, { "key": "lineHeight", "scope": "TEAM", "operation": "OVERRIDE", "value": "high" }, { "key": "pressAggression", "scope": "TEAM", "operation": "MULTIPLY", "value": 1.4 } ],
+      "rulesText": "압박선·수비 라인을 올리고 최대 압박 인원을 늘린다.", "tradeoffText": "탈취↑·피로↑이지만 뒷공간이 열린다." },
+
+    { "id": "low_block", "name": "낮은 블록", "category": "DEFENSE", "cost": 2, "timing": ["ANYTIME"], "targetType": "NONE", "durationSeconds": 20, "cooldownGroup": "line", "preconditions": [], "stacking": "REFRESH",
+      "effects": [ { "key": "lineHeight", "scope": "TEAM", "operation": "OVERRIDE", "value": "low" }, { "key": "press", "scope": "TEAM", "operation": "OVERRIDE", "value": "normal" }, { "key": "pressAggression", "scope": "TEAM", "operation": "MULTIPLY", "value": 0.8 } ],
+      "rulesText": "수비 라인과 팀 높이를 낮추고 중앙 간격을 좁힌다.", "tradeoffText": "스루패스엔 강하나 중거리 슛·점유를 내준다." },
+
+    { "id": "recover", "name": "즉시 복귀", "category": "MENTALITY", "cost": 1, "timing": ["DEFENSIVE_TRANSITION", "OUT_OF_POSSESSION"], "targetType": "NONE", "durationSeconds": 6, "cooldownGroup": "transition", "preconditions": [], "stacking": "REFRESH",
+      "effects": [ { "key": "transition", "scope": "TEAM", "operation": "OVERRIDE", "value": "recover" } ],
+      "rulesText": "카운터프레스를 포기하고 전원 수비 형태로 복귀한다.", "tradeoffText": "즉시 되찾을 기회를 버리는 대신 구조가 안전하다." },
+
+    { "id": "counter_press", "name": "카운터프레스", "category": "PRESS", "cost": 2, "timing": ["DEFENSIVE_TRANSITION"], "targetType": "NONE", "durationSeconds": 6, "cooldownGroup": "transition", "preconditions": [], "stacking": "REFRESH",
+      "effects": [ { "key": "transition", "scope": "TEAM", "operation": "OVERRIDE", "value": "counterPress" }, { "key": "pressAggression", "scope": "TEAM", "operation": "MULTIPLY", "value": 1.5 } ],
+      "rulesText": "공을 잃은 주변 2~3명이 즉시 짧게 압박한다.", "tradeoffText": "성공하면 높은 위치 탈취, 실패하면 구조가 열린다." },
+
+    { "id": "overlap_left", "name": "왼쪽 오버랩", "category": "ATTACK", "cost": 1, "timing": ["IN_POSSESSION"], "targetType": "NONE", "durationSeconds": 12, "cooldownGroup": "overlap", "preconditions": [], "stacking": "REPLACE",
+      "effects": [ { "key": "overlapSide", "scope": "TEAM", "operation": "OVERRIDE", "value": "left" }, { "key": "attackZone", "scope": "TEAM", "operation": "OVERRIDE", "value": "wing_left" } ],
+      "rulesText": "왼쪽 풀백이 전진하고 왼쪽 윙어는 안쪽으로 이동한다.", "tradeoffText": "반대편 수비수가 균형을 잡아야 한다." },
+
+    { "id": "overlap_right", "name": "오른쪽 오버랩", "category": "ATTACK", "cost": 1, "timing": ["IN_POSSESSION"], "targetType": "NONE", "durationSeconds": 12, "cooldownGroup": "overlap", "preconditions": [], "stacking": "REPLACE",
+      "effects": [ { "key": "overlapSide", "scope": "TEAM", "operation": "OVERRIDE", "value": "right" }, { "key": "attackZone", "scope": "TEAM", "operation": "OVERRIDE", "value": "wing_right" } ],
+      "rulesText": "오른쪽 풀백이 전진하고 오른쪽 윙어는 안쪽으로 이동한다.", "tradeoffText": "반대편 수비수가 균형을 잡아야 한다." },
+
+    { "id": "switch_play", "name": "측면 전환", "category": "BUILDUP", "cost": 1, "timing": ["IN_POSSESSION"], "targetType": "NONE", "durationSeconds": 8, "cooldownGroup": null, "preconditions": [], "stacking": "REFRESH",
+      "effects": [ { "key": "switchNext", "scope": "NEXT_ACTION", "operation": "OVERRIDE", "value": true } ],
+      "rulesText": "다음 소유 행동에서 공 반대쪽 빈 공간으로 장거리 대각 전개를 노린다.", "tradeoffText": "긴 패스라 차단되면 역습을 맞을 수 있다." },
+
+    { "id": "through_pass", "name": "침투 패스", "category": "ATTACK", "cost": 2, "timing": ["IN_POSSESSION"], "targetType": "NONE", "durationSeconds": 6, "cooldownGroup": null, "preconditions": [ { "type": "onsideRunner" } ], "stacking": "REFRESH",
+      "effects": [ { "key": "throughBias", "scope": "TEAM", "operation": "MULTIPLY", "value": 2.2 } ],
+      "rulesText": "온사이드 침투자에게 스루패스 효용을 크게 높인다.", "tradeoffText": "유효한 침투자가 없으면 사용할 수 없다." },
+
+    { "id": "quick_cross", "name": "빠른 크로스", "category": "ATTACK", "cost": 1, "timing": ["IN_POSSESSION"], "targetType": "NONE", "durationSeconds": 10, "cooldownGroup": null, "preconditions": [ { "type": "boxTargets", "min": 1 } ], "stacking": "REFRESH",
+      "effects": [ { "key": "crossEarly", "scope": "TEAM", "operation": "OVERRIDE", "value": true } ],
+      "rulesText": "공을 오래 끌기보다 이른 크로스를 우선한다.", "tradeoffText": "박스 안 인원이 부족하면 효과가 약하다." },
+
+    { "id": "passwork", "name": "패스워크 중심", "category": "BUILDUP", "cost": 2, "timing": ["ANYTIME"], "targetType": "NONE", "durationSeconds": 25, "cooldownGroup": "style", "preconditions": [], "stacking": "REPLACE",
+      "effects": [ { "key": "passBias", "scope": "TEAM", "operation": "MULTIPLY", "value": 1.35 }, { "key": "dribbleBias", "scope": "TEAM", "operation": "MULTIPLY", "value": 0.8 }, { "key": "tempo", "scope": "TEAM", "operation": "MULTIPLY", "value": 0.9 } ],
+      "rulesText": "짧은 패스·원투·지원 삼각형을 우선하고 드리블 위험을 낮춘다.", "tradeoffText": "느린 전개로 상대가 자리를 잡는다." },
+
+    { "id": "flair", "name": "개인기 중심", "category": "ATTACK", "cost": 2, "timing": ["ANYTIME"], "targetType": "NONE", "durationSeconds": 20, "cooldownGroup": "style", "preconditions": [], "stacking": "REPLACE",
+      "effects": [ { "key": "dribbleBias", "scope": "TEAM", "operation": "MULTIPLY", "value": 1.5 }, { "key": "passBias", "scope": "TEAM", "operation": "MULTIPLY", "value": 0.85 } ],
+      "rulesText": "뛰어난 드리블러의 1대1 시도 가중치를 높인다.", "tradeoffText": "턴오버 위험과 거츠 소모가 증가한다." },
+
+    { "id": "slow_tempo", "name": "템포 낮추기", "category": "MENTALITY", "cost": 1, "timing": ["ANYTIME"], "targetType": "NONE", "durationSeconds": 25, "cooldownGroup": "tempo", "preconditions": [], "stacking": "REFRESH",
+      "effects": [ { "key": "tempo", "scope": "TEAM", "operation": "MULTIPLY", "value": 0.7 }, { "key": "passBias", "scope": "TEAM", "operation": "MULTIPLY", "value": 1.15 }, { "key": "shotBias", "scope": "TEAM", "operation": "MULTIPLY", "value": 0.85 } ],
+      "rulesText": "안전 패스·볼 유지·체력 보존을 우선한다.", "tradeoffText": "득점 시도가 줄어 리드 상황에 적합하다." },
+
+    { "id": "all_out", "name": "전원 공격", "category": "ATTACK", "cost": 5, "timing": ["ANYTIME"], "targetType": "NONE", "durationSeconds": 30, "cooldownGroup": "commit", "preconditions": [], "stacking": "REFRESH",
+      "effects": [ { "key": "tactic", "scope": "TEAM", "operation": "OVERRIDE", "value": "attack" }, { "key": "lineHeight", "scope": "TEAM", "operation": "OVERRIDE", "value": "high" }, { "key": "commitForward", "scope": "TEAM", "operation": "ADD", "value": 3 }, { "key": "shotBias", "scope": "TEAM", "operation": "MULTIPLY", "value": 1.2 } ],
+      "rulesText": "라인과 박스 침투 인원을 크게 올린다(최소 2+GK 역습 대비는 유지).", "tradeoffText": "수비 위험이 크게 증가한다." },
+
+    { "id": "man_mark", "name": "핵심 선수 밀착 마크", "category": "DEFENSE", "cost": 2, "timing": ["ANYTIME"], "targetType": "OPPONENT_PLAYER", "durationSeconds": 30, "cooldownGroup": null, "preconditions": [], "stacking": "REPLACE",
+      "effects": [ { "key": "manMark", "scope": "PLAYER", "operation": "OVERRIDE", "value": "$target" } ],
+      "rulesText": "가장 적합한 수비수 한 명이 지정한 상대를 추적한다.", "tradeoffText": "한 수비수가 여러 명을 동시에 마크할 수 없다." },
+
+    { "id": "long_shots", "name": "중거리 슛 허용", "category": "ATTACK", "cost": 2, "timing": ["IN_POSSESSION"], "targetType": "NONE", "durationSeconds": 15, "cooldownGroup": "shot", "preconditions": [], "stacking": "REFRESH",
+      "effects": [ { "key": "shotBias", "scope": "TEAM", "operation": "MULTIPLY", "value": 1.6 } ],
+      "rulesText": "일정 능력 이상 선수의 슛 임계값을 낮춘다.", "tradeoffText": "무리한 슛이 늘어난다." },
+
+    { "id": "conserve_guts", "name": "거츠 절약", "category": "MENTALITY", "cost": 1, "timing": ["ANYTIME"], "targetType": "NONE", "durationSeconds": 30, "cooldownGroup": null, "preconditions": [], "stacking": "REFRESH",
+      "effects": [ { "key": "gutsThresh", "scope": "TEAM", "operation": "MULTIPLY", "value": 1.5 } ],
+      "rulesText": "특수 기술 사용 임계값을 높이고 일반 행동을 우선한다.", "tradeoffText": "결정적 순간의 필살기 빈도가 줄어든다." }
+  ],
+
+  "context": {
+    "_comment": "맥락 카드(§12). 큰 순간에만 손패에 임시로 나타나며 창이 끝나면 사라진다. 덱에서 뽑지 않음. mods=NEXT_ACTION 보정(결과를 강제하지 않고 효용만 크게 편향).",
+    "BALL_CARRIER_DUEL": [
+      { "id": "ctx_dribble", "name": "드리블 강행", "cost": 1, "effects": [ { "key": "nextAction", "scope": "NEXT_ACTION", "operation": "OVERRIDE", "value": "dribble" } ] },
+      { "id": "ctx_safe", "name": "안전 패스", "cost": 0, "effects": [ { "key": "nextAction", "scope": "NEXT_ACTION", "operation": "OVERRIDE", "value": "safe" } ] },
+      { "id": "ctx_onetwo", "name": "원투", "cost": 1, "effects": [ { "key": "nextAction", "scope": "NEXT_ACTION", "operation": "OVERRIDE", "value": "oneTwo" } ] },
+      { "id": "ctx_shootnow", "name": "즉시 슛", "cost": 1, "effects": [ { "key": "nextAction", "scope": "NEXT_ACTION", "operation": "OVERRIDE", "value": "shot" } ] }
+    ],
+    "DEFENSIVE_DUEL": [
+      { "id": "ctx_tackle", "name": "태클", "cost": 1, "effects": [ { "key": "nextAction", "scope": "NEXT_ACTION", "operation": "OVERRIDE", "value": "tackle" } ] },
+      { "id": "ctx_cut", "name": "패스 길 차단", "cost": 0, "effects": [ { "key": "nextAction", "scope": "NEXT_ACTION", "operation": "OVERRIDE", "value": "cut" } ] },
+      { "id": "ctx_block", "name": "슛 블록", "cost": 1, "effects": [ { "key": "nextAction", "scope": "NEXT_ACTION", "operation": "OVERRIDE", "value": "block" } ] },
+      { "id": "ctx_jockey", "name": "지연", "cost": 0, "effects": [ { "key": "nextAction", "scope": "NEXT_ACTION", "operation": "OVERRIDE", "value": "jockey" } ] }
+    ],
+    "GOALKEEPER_ONE_ON_ONE": [
+      { "id": "ctx_rush", "name": "돌진", "cost": 1, "effects": [ { "key": "nextAction", "scope": "NEXT_ACTION", "operation": "OVERRIDE", "value": "rush" } ] },
+      { "id": "ctx_hold", "name": "자세 유지", "cost": 0, "effects": [ { "key": "nextAction", "scope": "NEXT_ACTION", "operation": "OVERRIDE", "value": "hold" } ] }
+    ]
+  },
+
   "cards": [
     { "id": "attack_wing",    "name": "측면 공격", "cost": 2, "delivery": 2.5, "set": { "tactic": "attack", "attackZone": "wing" },    "desc": "라인↑·측면 전개. 윙어 폭+풀백 오버랩, 크로스로 마무리." },
     { "id": "attack_central", "name": "중앙 공격", "cost": 2, "delivery": 2.5, "set": { "tactic": "attack", "attackZone": "central" }, "desc": "라인↑·중앙 침투. 스트라이커+레이트런, 스루패스로 마무리." },
@@ -10,11 +105,12 @@
     { "id": "balanced",   "name": "안정",       "cost": 1, "delivery": 1.5, "set": { "tactic": "balanced", "press": "normal", "attackZone": "central" }, "desc": "균형 잡힌 기본 대형으로." },
     { "id": "line_up",    "name": "라인 올리기", "cost": 1, "delivery": 1.5, "set": { "lineHeight": "high" }, "desc": "수비 라인을 끌어올린다." },
     { "id": "line_down",  "name": "라인 내리기", "cost": 1, "delivery": 1.5, "set": { "lineHeight": "low" },  "desc": "수비 라인을 낮춘다." },
-    { "id": "high_press", "name": "높은 압박",   "cost": 2, "delivery": 1.5, "set": { "press": "high" },     "desc": "전방 압박 강화. 탈취↑, 뒷공간 위험." },
+    { "id": "high_press_legacy", "name": "높은 압박",   "cost": 2, "delivery": 1.5, "set": { "press": "high" },     "desc": "전방 압박 강화. 탈취↑, 뒷공간 위험." },
     { "id": "sub_fw",     "name": "공격수 투입", "cost": 2, "delivery": 0,   "sub": "fw", "desc": "교체(즉시). 슛 정확도↑." },
     { "id": "sub_mf",     "name": "미드필더 투입", "cost": 2, "delivery": 0, "sub": "mf", "desc": "교체(즉시). 볼 지키기·중원↑." },
     { "id": "sub_df",     "name": "수비수 투입", "cost": 2, "delivery": 0,   "sub": "df", "desc": "교체(즉시). 실점 위험↓." }
   ],
+
   "opponentAI": {
     "_comment": "상대(인천) 감독 AI. decideEvery 초마다 점수차·시간·모멘텀으로 전술 선택. telegraphSec 만큼 김성주 신호를 먼저 흘리고(유저가 읽고 대응할 창) 그 뒤 실제 반영.",
     "decideEvery": 22,

@@ -62,7 +62,7 @@ function gainControl(state, p, note) {
   b._cross = false;
   b.lastTouchPlayerId = p.id; b.lastTouchTeamId = p.teamId;
   const changed = state.possessionTeamId !== p.teamId;
-  if (changed) { state._seqPasses = 0; state._seqTarget = drawSeqTarget(state.rng); }   // 새 시퀀스 → 목표 패스 수
+  if (changed) { state._seqPasses = 0; state._seqTarget = drawSeqTarget(state.rng); state._possChangedAt = state.clockSeconds; }   // 새 시퀀스 → 목표 패스 수 + 전환 타이밍 기록
   state.possessionTeamId = p.teamId;
   p.hasBall = true;
   state._carryStart = state.clockSeconds;
