@@ -12,7 +12,7 @@ import { FIELD, FORMATION_433, anchorToWorld } from './field.js';
 import { stepPositioning } from './ai.js';
 import { stepPlay, placeKickoff } from './decide.js';
 import { stepCommentary } from './commentary.js';
-import { stepDirectives, stepOpponentAI } from './directives.js';
+import { stepCards } from './hand.js';
 import { stepEffects, stepResolve } from './effects.js';
 
 export const SIM_HZ = 15;               // 시뮬 주파수(계획서 §3 권장 10~20Hz)
@@ -216,10 +216,7 @@ export function tick(state) {
         stepPlay(state, SIM_DT);          // 공 물리·소유·utility 의사결정
         stepPositioning(state, SIM_DT);   // 22명 형상·압박·GK 배치
         clampPlayers(state);              // 선수는 피치를 벗어나지 않는다
-        if (state.cardsCfg) {             // 지시 도착·CP 회복 + 상대 AI(김성주 신호) — 중계 전에
-          stepDirectives(state, SIM_DT, state.cardsCfg);
-          stepOpponentAI(state, SIM_DT, state.cardsCfg);
-        }
+        if (state.cardsCfg) stepCards(state, SIM_DT, state.cardsCfg);   // 덱·손패·CP·전달중·상대 AI(김성주) — 중계 전에
         if (state.commentaryCfg) stepCommentary(state, SIM_DT, state.commentaryCfg);  // 실시간 중계
       }
       state.clockSeconds += SIM_DT;

@@ -6,6 +6,7 @@ import { readFileSync } from 'node:fs';
 import { createMatch, tick, runToFulltime } from '../js/game/match.js';
 import { resolve, resolvedFor, addEffect, stepEffects, stepResolve } from '../js/game/effects.js';
 import { validateCard, deckCardById } from '../js/game/cards.js';
+import { playFromHand } from '../js/game/hand.js';
 
 const cfg = JSON.parse(readFileSync(new URL('../data/engine.json', import.meta.url)));
 const cards = JSON.parse(readFileSync(new URL('../data/cards.json', import.meta.url)));
@@ -14,7 +15,8 @@ let pass = 0, fail = 0;
 const ok = (cond, msg) => { if (cond) { pass++; console.log('  ✓ ' + msg); } else { fail++; console.log('  ✗ ' + msg); } };
 const near = (a, b, e = 1e-9) => Math.abs(a - b) <= e;
 
-function toInPlay(s) { let n = 0; while (s.phase !== 'IN_PLAY' && n < 100) { tick(s); n++; } return s; }
+// IN_PLAY 진입 + 최소 1틱 실행(clock>0)까지 — stepCards(ensureCards)가 돌아 state.cards 가 생기도록.
+function toInPlay(s) { let n = 0; while ((s.phase !== 'IN_PLAY' || s.clockSeconds === 0) && n < 100) { tick(s); n++; } return s; }
 
 console.log('1) 기본 resolve = 스탠스 미러 + 무효과 기본값');
 {
@@ -143,6 +145,58 @@ console.log('12) validateCard — 쿨다운');
   ok(!r.ok && /대기/.test(r.reason), `쿨다운 거부 (${r.reason})`);
   s.cardCooldowns.A.line = s.clockSeconds - 1;
   ok(validateCard(s, 'A', hp).ok, '쿨다운 경과 후 가능');
+}
+
+console.log('13) 덱/손패 초기화 · 카드 보존 불변식');
+{
+  const s = toInPlay(createMatch(10, cfg, null, cards));
+  const cc = s.cards.A;
+  ok(cc && cc.hand.length >= 3 && cc.hand.length <= cards.draw.handMax, `시작 손패 ${cc.hand.length}장 (≤${cards.draw.handMax})`);
+  ok(cc.deck.length + cc.hand.length + cc.discard.length === (cards.deck.length), '덱+손패+버림 = 총 카드수(보존)');
+  ok(!!s.cardRng && s.cp.A != null && s.cp.B != null, 'cardRng·양 팀 CP 초기화');
+}
+
+console.log('14) playFromHand → 전달중 → 도착 → 효과 발동');
+{
+  const s = toInPlay(createMatch(11, cfg, null, cards)); s.cp.A = 3;
+  s.cards.A.hand = [{ id: 'high_press', card: deckCardById(cards, 'high_press'), drawnAt: s.clockSeconds }];
+  const r = playFromHand(s, 'A', 0, null, cards);
+  ok(r.ok, 'high_press 플레이 성공');
+  ok(s.pending.A && s.pending.A.card.id === 'high_press', '전달중(pending)에 등록');
+  ok(s.cp.A === 0, `CP 차감 3→0 (실제 ${s.cp.A})`);
+  for (let i = 0; i < 45; i++) tick(s);                       // 전달(2s) 경과
+  ok(s.effects.A.some((e) => e.id === 'high_press'), '도착 후 효과 활성');
+  const R = resolvedFor(s, 'A');
+  ok(R.press === 'high' && R.lineHeight === 'high', 'resolve 에 press=high·line=high 반영');
+  ok(s.cards.A.discard.includes('high_press'), '사용 카드 버림더미로');
+}
+
+console.log('15) 오디블 — 전달 중 교체 + CP 재정산');
+{
+  const s = toInPlay(createMatch(12, cfg, null, cards)); s.cp.A = 5;
+  s.cards.A.hand = [
+    { id: 'high_press', card: deckCardById(cards, 'high_press'), drawnAt: 0 },  // cost 3
+    { id: 'slow_tempo', card: deckCardById(cards, 'slow_tempo'), drawnAt: 0 },  // cost 1
+  ];
+  playFromHand(s, 'A', 0, null, cards);                        // high_press 전달중, CP 5→2
+  ok(s.cp.A === 2, `첫 플레이 CP 5→2 (${s.cp.A})`);
+  const r = playFromHand(s, 'A', 0, null, cards);              // 남은 slow_tempo 를 오디블
+  ok(r.ok && r.audible, '오디블 성공');
+  ok(s.pending.A.card.id === 'slow_tempo', '전달중 카드 교체됨');
+  ok(s.cp.A === 4, `CP 재정산 2+환불3−1=4 (${s.cp.A})`);
+  ok(s.cards.A.hand.some((x) => x.id === 'high_press'), '이전 전달중 카드 손패 복귀');
+}
+
+console.log('16) 상대(B) 카드 AI(김성주 예고→적용) + 카드 포함 결정론');
+{
+  const full = (seed) => { const s = createMatch(seed, cfg, null, cards); while (s.phase !== 'FULLTIME') tick(s); return s; };
+  const a = full(20);
+  const sigT = a.eventLog.filter((e) => e.type === 'SIGNAL' && e.telegraph).length;
+  const sigA = a.eventLog.filter((e) => e.type === 'SIGNAL' && e.applied).length;
+  ok(sigT > 0 && sigA > 0, `상대 카드: 예고 ${sigT}회·적용 ${sigA}회`);
+  const dg = (s) => `${s.score.A}-${s.score.B}|ev${s.eventLog.length}|cr${s.cardRng.state}|bx${s.ball.position.x.toFixed(2)}`;
+  const b = full(20);
+  ok(dg(a) === dg(b), `카드 포함 결정론 동일 (${dg(a)})`);
 }
 
 console.log(`\n${fail === 0 ? '✅ 전부 통과' : '❌ 실패 있음'}  (pass ${pass}, fail ${fail})`);

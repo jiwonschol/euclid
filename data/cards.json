@@ -8,7 +8,8 @@
     "handMax": 6,
     "drawEverySec": 14,
     "staleSwapSec": 40,
-    "regainDraw": true
+    "regainDraw": true,
+    "deliverySec": 2
   },
 
   "deck": [

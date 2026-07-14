@@ -90,14 +90,14 @@ function validateTarget(state, team, card, target) {
  * 카드 검증(§12 순서): 1)타이밍 2)CP 3)타겟 4)전제조건 5)쿨다운. 실패 시 정확한 사유.
  * @returns {{ok:boolean, reason?:string}}
  */
-export function validateCard(state, team, card, target) {
+export function validateCard(state, team, card, target, opts = {}) {
   if (!card) return { ok: false, reason: '없는 카드' };
   // 1) 타이밍
   const timings = matchTimings(state, team);
   if (card.timing && card.timing.length && !card.timing.some((t) => timings.has(t)))
     return { ok: false, reason: timingReason(card.timing) };
-  // 2) CP
-  const cp = state.cp ? state.cp[team] || 0 : 0;
+  // 2) CP (오디블 환불분 cpBonus 반영)
+  const cp = (state.cp ? state.cp[team] || 0 : 0) + (opts.cpBonus || 0);
   if (cp < card.cost) return { ok: false, reason: `CP 부족 (${Math.floor(cp)}/${card.cost})` };
   // 3) 타겟
   const tv = validateTarget(state, team, card, target);

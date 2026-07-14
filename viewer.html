@@ -60,6 +60,14 @@
   .card .cn { font-weight: 700; display: flex; justify-content: space-between; align-items: baseline; }
   .card .cn .cc { color: #ffd54a; font-variant-numeric: tabular-nums; font-size: 12px; }
   .card .cd { font-size: 11px; color: #8090a2; margin-top: 4px; line-height: 1.4; }
+  .card .cmeta { font-size: 10px; color: #66748a; margin-top: 5px; letter-spacing: 0.3px; }
+  .card.audible:not(:disabled) { border-color: #7a6a2a; }
+  .effects { display: inline-flex; gap: 6px; flex-wrap: wrap; }
+  .subrow { display: flex; gap: 8px; margin-top: 9px; flex-wrap: wrap; }
+  .subbtn { font-size: 12px; padding: 6px 12px; background: #182028; border: 1px dashed #38465a; color: #b9c4d2; border-radius: 8px; }
+  .subbtn:hover:not(:disabled) { background: #202b36; } .subbtn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .toast { position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%) translateY(12px); background: #2a1f22; color: #ffb4ac; border: 1px solid #5a3238; padding: 9px 16px; border-radius: 9px; font-size: 13px; opacity: 0; pointer-events: none; transition: opacity .18s, transform .18s; z-index: 20; }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
   @media (max-width: 820px) { .main { grid-template-columns: 1fr; } .statrow { grid-template-columns: 1fr 1fr; } }
 </style>
 </head>
@@ -113,16 +121,20 @@
       <span class="dchip active" id="active">전술: 균형</span>
       <span class="dchip" id="subs">교체 0/3</span>
       <span class="dchip pending" id="pending" style="display:none"></span>
-      <span class="hint">카드 = '전달 중' → 도착. 전달 중 다른 카드 = 오디블(교체·비용 1회).</span>
+      <span class="effects" id="effects"></span>
+      <span class="hint">덱에서 뽑은 손패를 냄 → '전달 중' → 도착. 전달 중 다른 카드 = 오디블.</span>
     </div>
     <div class="hand" id="hand"></div>
+    <div class="subrow" id="subrow"></div>
   </div>
 </div>
 
 <script type="module">
   import { createMatch, tick, SIM_DT } from './js/game/match.js';
   import { makeView, draw } from './js/ui/pitch2d.js';
-  import { playDirective } from './js/game/directives.js';
+  import { playFromHand, playSub } from './js/game/hand.js';
+  import { validateCard } from './js/game/cards.js';
+  import { resolvedFor } from './js/game/effects.js';
   const $ = (id) => document.getElementById(id);
   const view = makeView($('pitch'));
   let cfg = null, com = null, cards = null, state = null, playing = true, speed = 1, acc = 0, last = performance.now(), seed = 1, feedId = 0;
@@ -163,33 +175,96 @@
 
   const TAC = { balanced: '균형', attack: '공격', counter: '역습', park: '잠그기' };
   const LH = { low: '라인↓', mid: '', high: '라인↑' };
+  const CAT = { MENTALITY: '심리', PRESS: '압박', BUILDUP: '빌드업', ATTACK: '공격', DEFENSE: '수비', PLAYER: '선수', KEEPER: 'GK', SET_PIECE: '세트피스' };
   const tacLabel = (t) => ['전술: ' + (TAC[t.tactic] || t.tactic), LH[t.lineHeight], t.press === 'high' ? '압박↑' : ''].filter(Boolean).join(' · ');
-  const cardCost = (id) => { const c = cards.cards.find((x) => x.id === id); return c ? c.cost : 0; };
-  function buildHand() {
-    const h = $('hand'); h.innerHTML = '';
-    for (const c of cards.cards) {
-      const b = document.createElement('button'); b.className = 'card'; b.dataset.id = c.id;
-      b.innerHTML = `<div class="cn"><span>${c.name}</span><span class="cc">${c.cost} CP</span></div><div class="cd">${c.desc}</div>`;
-      b.onclick = () => { if (!state) return; const r = playDirective(state, c.id, cards); if (!r.ok) b.animate([{ borderColor: '#c4504a' }, { borderColor: '#2b3646' }], { duration: 450 }); };
-      h.appendChild(b);
+  const SUBS = [{ k: 'fw', n: '공격수', cost: 2 }, { k: 'mf', n: '미드필더', cost: 2 }, { k: 'df', n: '수비수', cost: 2 }];
+
+  function toast(msg) {
+    let t = $('toast'); if (!t) { t = document.createElement('div'); t.id = 'toast'; t.className = 'toast'; document.body.appendChild(t); }
+    t.textContent = msg; t.classList.add('show'); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('show'), 1600);
+  }
+
+  // 타겟 카드(밀착 마크): 상대(B) 최전방 선수 자동 지정. (클릭 타겟팅은 S5)
+  function defaultTarget(card) {
+    if (card.targetType !== 'OPPONENT_PLAYER') return null;
+    const dir = state.attackDirection.B; let best = null, bx = -Infinity;
+    for (const p of Object.values(state.players)) {
+      if (p.teamId !== 'B' || p.role === 'GK' || p.sentOff) continue;
+      const adv = dir * p.position.x; if (adv > bx) { bx = adv; best = p; }
+    }
+    return best ? best.id : null;
+  }
+  function playCard(i) {
+    if (!state || !state.cards) return;
+    const slot = state.cards.A.hand[i]; if (!slot) return;
+    const r = playFromHand(state, 'A', i, defaultTarget(slot.card), cards);
+    if (!r.ok) toast(r.reason);
+  }
+
+  let handSig = '';
+  function renderHand() {
+    const cc = state.cards && state.cards.A; if (!cc) return;
+    const h = $('hand');
+    const sig = cc.hand.map((s) => s.id).join(',') + '|' + (state.pending.A ? state.pending.A.id : '');
+    if (sig !== handSig) {                                   // 손패 구성 변화 시에만 재생성
+      handSig = sig; h.innerHTML = '';
+      cc.hand.forEach((slot, i) => {
+        const c = slot.card;
+        const dur = c.durationSeconds != null ? `${c.durationSeconds}초`
+          : (c.effects.some((e) => e.scope === 'NEXT_ACTION') ? '다음 행동' : '즉시');
+        const b = document.createElement('button'); b.className = 'card'; b.dataset.i = i;
+        b.innerHTML = `<div class="cn"><span>${c.name}</span><span class="cc">${c.cost} CP</span></div>`
+          + `<div class="cd">${c.rulesText || ''}</div>`
+          + `<div class="cmeta">${CAT[c.category] || c.category} · ${dur}</div>`;
+        b.onclick = () => playCard(i);
+        h.appendChild(b);
+      });
+    }
+    const refund = state.pending.A ? state.pending.A.card.cost : 0;
+    for (const b of h.children) {
+      const slot = cc.hand[+b.dataset.i]; if (!slot) continue;
+      const v = validateCard(state, 'A', slot.card, defaultTarget(slot.card), { cpBonus: refund });
+      b.disabled = !v.ok;
+      b.title = v.ok ? (slot.card.tradeoffText || '') : v.reason;   // 불가 사유 hover
+      b.classList.toggle('audible', !!state.pending.A);
     }
   }
+
+  let subsBuilt = false;
+  function renderSubs() {
+    const r = $('subrow'); if (!r) return;
+    if (!subsBuilt) {
+      subsBuilt = true;
+      for (const s of SUBS) {
+        const b = document.createElement('button'); b.className = 'subbtn'; b.dataset.k = s.k;
+        b.textContent = `${s.n} 투입 · ${s.cost}`;
+        b.onclick = () => { const rr = playSub(state, 'A', s.k, s.cost, cards); if (!rr.ok) toast(rr.reason); };
+        r.appendChild(b);
+      }
+    }
+    const used = state.subUsed ? state.subUsed.A : 0, lim = cards.substitutionLimit || 3;
+    for (const b of r.children) { const s = SUBS.find((x) => x.k === b.dataset.k); b.disabled = state.cp.A < s.cost || used >= lim; }
+  }
+
+  function renderEffects() {
+    const box = $('effects'); if (!box || !state.effects) return;
+    box.innerHTML = state.effects.A.map((e) => {
+      const rem = e.until != null ? ` ${Math.max(0, e.until - state.clockSeconds).toFixed(0)}s` : '';
+      return `<span class="dchip active">${(e.meta && e.meta.name) || e.id}${rem}</span>`;
+    }).join('');
+  }
+
   function deck() {
-    if (!state || !state.cp) return;
-    const cp = Math.floor(state.cp.A);
-    $('cp').textContent = cp;
-    $('active').textContent = tacLabel(state.tactics.A);
+    if (!state || !state.cp || !state.cards) return;
+    $('cp').textContent = Math.floor(state.cp.A);
+    $('active').textContent = tacLabel(resolvedFor(state, 'A'));
+    renderEffects();
     const p = state.pending.A, pe = $('pending');
     if (p) { pe.style.display = ''; pe.textContent = `전달 중: ${p.name} (${Math.max(0, p.applyAt - state.clockSeconds).toFixed(1)}s)`; }
     else pe.style.display = 'none';
-    const refund = p ? cardCost(p.cardId) : 0;
-    const subLimit = cards.substitutionLimit || 3, subUsed = state.subUsed || 0;
-    $('subs').textContent = `교체 ${subUsed}/${subLimit}`;
-    for (const b of $('hand').children) {
-      const c = cards.cards.find((x) => x.id === b.dataset.id), isSub = !!c.sub;
-      b.disabled = c.cost > cp + (isSub ? 0 : refund) || (isSub && subUsed >= subLimit);
-      b.classList.toggle('audible', !!p && !isSub);
-    }
+    $('subs').textContent = `교체 ${state.subUsed ? state.subUsed.A : 0}/${cards.substitutionLimit || 3}`;
+    renderSubs();
+    renderHand();
   }
 
   function frame(now) {
@@ -198,7 +273,7 @@
     if (state) { draw(view, state); hud(); stats(); feed(); deck(); }
     requestAnimationFrame(frame);
   }
-  function newGame() { state = createMatch(seed, cfg, com, cards); acc = 0; feedId = 0; $('feed').innerHTML = ''; }
+  function newGame() { state = createMatch(seed, cfg, com, cards); acc = 0; feedId = 0; handSig = ''; $('feed').innerHTML = ''; }
   window.__dbg = { state: () => state, tick: (n) => { for (let i = 0; i < (n || 1); i++) tick(state); return state.clockSeconds; } };
 
   $('play').onclick = () => { playing = !playing; $('play').textContent = playing ? '❚❚ 일시정지' : '▶ 재생'; $('play').classList.toggle('on', playing); };
@@ -206,7 +281,7 @@
   for (const b of document.querySelectorAll('.spd')) b.onclick = () => { speed = +b.dataset.s; for (const x of document.querySelectorAll('.spd')) x.classList.toggle('on', x === b); };
 
   Promise.all([fetch('./data/engine.json').then(r => r.json()), fetch('./data/commentary.json').then(r => r.json()), fetch('./data/cards.json').then(r => r.json())])
-    .then(([e, c, cd]) => { cfg = e; com = c; cards = cd; buildHand(); newGame(); requestAnimationFrame(frame); })
+    .then(([e, c, cd]) => { cfg = e; com = c; cards = cd; newGame(); requestAnimationFrame(frame); })
     .catch((err) => { document.body.insertAdjacentHTML('beforeend', `<p style="color:#f88">로드 실패: ${err}. tools/serve.py 로 실행하세요.</p>`); });
 </script>
 </body>

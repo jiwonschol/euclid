@@ -4,7 +4,7 @@
 
 import { readFileSync } from 'node:fs';
 import { createMatch, tick, HALF_SECONDS } from '../js/game/match.js';
-import { playDirective } from '../js/game/directives.js';
+import { playFromHand, playSub } from '../js/game/hand.js';
 
 const L = (p) => JSON.parse(readFileSync(new URL('../data/' + p, import.meta.url)));
 const cfg = L('engine.json'), com = L('commentary.json'), cards = L('cards.json');
@@ -12,15 +12,29 @@ const cfg = L('engine.json'), com = L('commentary.json'), cards = L('cards.json'
 let fail = 0;
 const bad = (m) => { console.log('  ✗ ' + m); fail++; };
 
-// 결정론 스크립트 지시(틱 기준) — 지시/오디블/교체 경로까지 스트레스
-const script = [[200, 'attack_wing'], [430, 'high_press'], [900, 'counter'], [1400, 'sub_fw'], [2500, 'attack_central'], [4000, 'park']];
+// 결정론 스크립트 지시(틱 기준) — 손패 플레이/오디블/교체 경로까지 스트레스.
+// 200·215 는 전달(2s=30틱) 안쪽 → 두 번째가 오디블. 1400·4300 은 교체.
+const actTicks = new Set([200, 215, 430, 900, 1400, 2500, 4000, 4300]);
+const subTicks = new Set([1400, 4300]);
+
+function act(s) {
+  const cc = s.cards && s.cards.A; if (!cc) return;
+  for (let i = 0; i < cc.hand.length; i++) {                 // 유효한 첫 손패 카드를 낸다(전달중이면 오디블)
+    const c = cc.hand[i].card;
+    const tgt = c.targetType === 'OPPONENT_PLAYER' ? 'B9' : null;
+    if (playFromHand(s, 'A', i, tgt, cards).ok) break;
+  }
+}
 
 function runMatch(seed, withDirectives) {
   const s = createMatch(seed, cfg, com, cards);
-  let n = 0, si = 0;
+  let n = 0;
   while (s.phase !== 'FULLTIME' && n < 200000) {
     tick(s); n++;                                   // assertFinite 내장(NaN→throw)
-    if (withDirectives && si < script.length && n === script[si][0]) { playDirective(s, script[si][1], cards); si++; }
+    if (withDirectives) {
+      if (actTicks.has(n)) act(s);
+      if (subTicks.has(n)) playSub(s, 'A', 'fw', 2, cards);
+    }
   }
   return s;
 }
