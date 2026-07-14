@@ -29,7 +29,8 @@ function assignDefenders(state, defTeam, carrier, cfg) {
     const d = dist2(p.position, carrier.position);
     if (d < bd) { bd = d; best = p; }
   }
-  const pressBonus = resolvedFor(state, defTeam).press === 'high' ? 8 : 0;
+  const dres = resolvedFor(state, defTeam);
+  const pressBonus = (dres.press === 'high' ? 8 : 0) + (dres.pressAggression - 1) * 10;   // 압박 강도 카드 → 압박 개시 거리↑
   const desired = best && bd <= P.engageDist + pressBonus ? best.id : null;
 
   // 히스테리시스: 현재 압박자가 유효하고 지정 후 hysteresisSec 미만이면 유지

@@ -6,7 +6,8 @@ import { readFileSync } from 'node:fs';
 import { createMatch, tick, runToFulltime } from '../js/game/match.js';
 import { resolve, resolvedFor, addEffect, stepEffects, stepResolve } from '../js/game/effects.js';
 import { validateCard, deckCardById } from '../js/game/cards.js';
-import { playFromHand } from '../js/game/hand.js';
+import { playFromHand, applyCard } from '../js/game/hand.js';
+import { assignMarking } from '../js/game/defend.js';
 
 const cfg = JSON.parse(readFileSync(new URL('../data/engine.json', import.meta.url)));
 const cards = JSON.parse(readFileSync(new URL('../data/cards.json', import.meta.url)));
@@ -197,6 +198,28 @@ console.log('16) 상대(B) 카드 AI(김성주 예고→적용) + 카드 포함 
   const dg = (s) => `${s.score.A}-${s.score.B}|ev${s.eventLog.length}|cr${s.cardRng.state}|bx${s.ball.position.x.toFixed(2)}`;
   const b = full(20);
   ok(dg(a) === dg(b), `카드 포함 결정론 동일 (${dg(a)})`);
+}
+
+console.log('17) 카드 효과가 실제 포지셔닝에 반영 — 밀착 마크(manMark)');
+{
+  const s = toInPlay(createMatch(30, cfg, null, cards));
+  s.possessionTeamId = 'B';                                   // A 수비(A 공격 방향 +x → 자기 골 −x)
+  const b9 = s.players.B9; b9.position = { x: -30, z: 6 };    // A 진영의 위협
+  const marksNo = assignMarking(s, 'A', null, null);
+  const nearNo = Object.values(marksNo).some((m) => Math.hypot(m.x - b9.position.x, m.z - b9.position.z) < 2.0);
+  applyCard(s, 'A', deckCardById(cards, 'man_mark'), 'B9'); stepResolve(s);
+  ok(resolvedFor(s, 'A').manMark === 'B9', 'resolve.manMark = B9');
+  const marks = assignMarking(s, 'A', null, null);
+  const near = Object.values(marks).some((m) => Math.hypot(m.x - b9.position.x, m.z - b9.position.z) < 2.0);
+  ok(Object.keys(marks).length > 0 && near, '지정 마크 시 B9 를 밀착(목표가 B9 인근 <2m)');
+  ok(!nearNo || near, '카드 전/후 마킹 동작(회귀 아님)');
+}
+
+console.log('18) 키 소비 회귀 — 카드 미사용 시 baseline digest 불변(identity)');
+{
+  const digest = (s) => `${s.score.A}-${s.score.B}|ev${s.eventLog.length}|bx${s.ball.position.x.toFixed(3)}`;
+  const a = runToFulltime(createMatch(42, cfg));               // 카드 없음
+  ok(digest(a) === '4-5|ev1704|bx-50.802', `baseline 불변 (${digest(a)})`);
 }
 
 console.log(`\n${fail === 0 ? '✅ 전부 통과' : '❌ 실패 있음'}  (pass ${pass}, fail ${fail})`);

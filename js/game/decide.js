@@ -183,10 +183,10 @@ function decideAction(state, carrier, dir) {
   let shotMul = (tac.tactic === 'attack' ? 1.3 : tac.tactic === 'park' ? 0.5 : 1) * tac.shotBias;
   if (carrier._crossFinish) { shotMul *= 2.5; carrier._crossFinish = false; }   // 크로스 원터치 마무리
 
-  const fwdW = A.wForward * (tac.tactic === 'attack' ? 1.4 : tac.tactic === 'counter' ? 1.2 : tac.tactic === 'park' ? 0.5 : 1);
+  const fwdW = A.wForward * (tac.tactic === 'attack' ? 1.4 : tac.tactic === 'counter' ? 1.2 : tac.tactic === 'park' ? 0.5 : 1) * tac.tempo;   // 템포 낮추기 → 전진 성향↓(안전 지향)
   const throughMul = (tac.tactic === 'counter' ? 0.3 : 0.15) * tac.throughBias;          // 역습은 스루 선호
   const zone = tac ? tac.attackZone : null;                           // 측면/중앙 전개 편향
-  const wingSide = zone === 'wing' ? (carrier.position.z < 0 ? -1 : 1) : 0;
+  const wingSide = zone === 'wing' ? (carrier.position.z < 0 ? -1 : 1) : zone === 'wing_left' ? -1 : zone === 'wing_right' ? 1 : 0;
   const carrierFinal = dBallOwn(dir, carrier.position.x) > 62;
   // 시퀀스 마무리 게이팅(목표 패스 분포): 목표 패스 전엔 슛/크로스 억제(빌드업), 후엔 부추김
   const seqTarget = state._seqTarget || 4;
@@ -223,7 +223,7 @@ function decideAction(state, carrier, dir) {
       && Math.abs(mate.position.z) < 14 && dBallOwn(dir, mate.position.x) > 70;
     // 존 편향: 크로스 > 측면 전개 > 중앙 전진. 크로스도 마무리라 시퀀스 게이팅 적용.
     let zoneBonus = 0;
-    if (isCross) zoneBonus = 0.7 * (culmReady ? 1.3 : 0.22);
+    if (isCross) zoneBonus = 0.7 * (culmReady ? 1.3 : (tac.crossEarly ? 1.0 : 0.22));   // 빠른 크로스 → 마무리 전에도 크로스 우선
     else if (wingSide !== 0 && Math.sign(mate.position.z) === wingSide && Math.abs(mate.position.z) > 16) zoneBonus = 0.5;
     else if (zone === 'central' && Math.abs(mate.position.z) < 12 && prog > 4) zoneBonus = 0.22;
     const u = A.wPass * tac.passBias * (0.3 + fwdW * clamp(prog / 20, -0.4, 1) + Math.min(1, open / 8) * 0.5)

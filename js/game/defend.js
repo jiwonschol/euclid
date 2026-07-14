@@ -4,11 +4,12 @@
 
 import { dBallOwn } from './shape.js';
 import { FIELD } from './field.js';
+import { resolvedFor } from './effects.js';
 
 const dist2 = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 
 /**
- * @returns {Record<string,{x:number,z:number}>} 수비수 id → 마크 목표(위협의 골side 1.8m)
+ * @returns {Record<string,{x:number,z:number}>} 수비수 id → 마크 목표(위협의 골side)
  */
 export function assignMarking(state, defTeam, presserId, coverId) {
   const dir = state.attackDirection[defTeam];         // 수비팀 공격 방향(자기 골문=반대)
@@ -16,9 +17,16 @@ export function assignMarking(state, defTeam, presserId, coverId) {
   const ownGoalX = -dir * FIELD.halfLength;
 
   // 위협: 상대 아웃필더 중 우리 진영(자기 골문 45m 이내), 공 소유자 제외, 골문 가까운 순
-  const threats = Object.values(state.players)
+  let threats = Object.values(state.players)
     .filter((p) => p.teamId === attackTeam && p.role !== 'GK' && !p.sentOff && !p.hasBall && dBallOwn(dir, p.position.x) < 45)
     .sort((a, b) => Math.abs(a.position.x - ownGoalX) - Math.abs(b.position.x - ownGoalX));
+
+  // 밀착 마크 카드(§12): 지정 상대 선수를 진영 무관 최우선 마크
+  const manId = resolvedFor(state, defTeam).manMark;
+  if (manId) {
+    const t = state.players[manId];
+    if (t && t.teamId === attackTeam && !t.sentOff && !t.hasBall) threats = [t, ...threats.filter((p) => p.id !== manId)];
+  }
 
   const free = Object.values(state.players).filter(
     (p) => p.teamId === defTeam && p.role !== 'GK' && !p.sentOff && p.id !== presserId && p.id !== coverId);
@@ -33,7 +41,8 @@ export function assignMarking(state, defTeam, presserId, coverId) {
     if (!best) break;
     used.add(best.id);
     const gx = ownGoalX - t.position.x, gz = 0 - t.position.z, gl = Math.hypot(gx, gz) || 1;
-    marks[best.id] = { x: t.position.x + (gx / gl) * 2.2, z: t.position.z + (gz / gl) * 2.2 };   // 골side 커버(밀착 과다·겹침 방지)
+    const md = t.id === manId ? 1.6 : 2.2;                                                       // 지정 마크는 더 밀착
+    marks[best.id] = { x: t.position.x + (gx / gl) * md, z: t.position.z + (gz / gl) * md };     // 골side 커버(밀착 과다·겹침 방지)
   }
   return marks;
 }
