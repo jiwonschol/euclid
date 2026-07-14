@@ -70,6 +70,7 @@ function makePlayer(teamId, spec, shirt, attackDir) {
     homeAnchor: { ax: spec.ax, az: spec.az },
     hasBall: false,
     sentOff: false,
+    yellowCards: 0,        // §11 경고 누적 — 2장이면 레드와 동일(퇴장)
   };
 }
 
@@ -159,6 +160,7 @@ function flipDirections(state) {
 
 function resetToFormation(state) {
   for (const p of Object.values(state.players)) {
+    if (p.sentOff) continue;   // 퇴장 선수는 후반에도 복귀하지 않는다(§11)
     const w = anchorToWorld(p.homeAnchor, state.attackDirection[p.teamId]);
     p.position = { x: w.x, z: w.z };
     p.velocity = { x: 0, z: 0 };
@@ -174,6 +176,7 @@ function resetToFormation(state) {
 function clampPlayers(state) {
   const mx = FIELD.halfLength - 0.5, mz = FIELD.halfWidth - 0.5;
   for (const p of Object.values(state.players)) {
+    if (p.sentOff) continue;   // 퇴장 선수는 피치 밖에 둔다(§4 불변조건)
     p.position.x = p.position.x < -mx ? -mx : p.position.x > mx ? mx : p.position.x;
     p.position.z = p.position.z < -mz ? -mz : p.position.z > mz ? mz : p.position.z;
   }

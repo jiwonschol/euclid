@@ -221,7 +221,9 @@ console.log('18) 키 소비 회귀 — 카드 미사용 시 baseline digest 불�
 {
   const digest = (s) => `${s.score.A}-${s.score.B}|ev${s.eventLog.length}|bx${s.ball.position.x.toFixed(3)}`;
   const a = runToFulltime(createMatch(42, cfg));               // 카드 없음
-  ok(digest(a) === '4-5|ev1704|bx-50.802', `baseline 불변 (${digest(a)})`);
+  // 골든값은 '카드 미사용 시 동작 불변'을 잠그는 회귀 기준점이다. 엔진을 의도적으로 바꾸면
+  // 여기도 함께 재산출한다. 2026-07-15 갱신 사유: carrierId 해제(패스 후 동결 수정)·§11 반칙/PK·지원 삼각형.
+  ok(digest(a) === '4-6|ev1771|bx-51.128', `baseline 불변 (${digest(a)})`);
 }
 
 console.log('19) NEXT_ACTION 카드 소비(측면 전환)');

@@ -46,9 +46,21 @@ export function assignAttackTargets(state, team) {
   // 밸런스: 가장 후방 2명은 역습 대비로 남긴다(§5) → 공격 목표 안 줌(shape 유지)
   const balance = new Set([...players].sort((a, b) => a.homeAnchor.ax - b.homeAnchor.ax).slice(0, 2).map((p) => p.id));
   // 서포트: 캐리어 최근접 2명(밸런스 제외) → 콤비네이션 각
-  const support = new Set(carrier
-    ? players.filter((p) => !balance.has(p.id)).sort((a, b) => dist2(a.position, carrier.position) - dist2(b.position, carrier.position)).slice(0, 2).map((p) => p.id)
-    : []);
+  const supportArr = carrier
+    ? players.filter((p) => !balance.has(p.id)).sort((a, b) => dist2(a.position, carrier.position) - dist2(b.position, carrier.position)).slice(0, 2)
+    : [];
+  const support = new Set(supportArr.map((p) => p.id));
+  // 지원 삼각형(§5·§6): 두 서포트를 캐리어 기준 '반대쪽'에 세워 패스 각을 최소 2개 만든다.
+  // 정적 포메이션 az 로 side 를 잡으면 둘이 같은 쪽에 겹쳐(실측 67.7%) 각이 하나뿐이었다.
+  const supportSide = {};
+  if (supportArr.length) {
+    const sideOf = (p) => (p.position.z >= carrier.position.z ? 1 : -1);
+    supportSide[supportArr[0].id] = sideOf(supportArr[0]);
+    if (supportArr[1]) {
+      const s1 = sideOf(supportArr[1]);
+      supportSide[supportArr[1].id] = s1 === supportSide[supportArr[0].id] ? -s1 : s1;   // 겹치면 반대쪽으로
+    }
+  }
   let lateCount = 0;
   const maxLate = 1 + (commit >= 1 ? Math.min(2, Math.round(commit)) : 0);
   const targets = {};
@@ -60,7 +72,7 @@ export function assignAttackTargets(state, team) {
 
     if (support.has(p.id) && carrier) {
       tx = carrier.position.x + dir * 6;                 // 캐리어 앞·옆 → 짧은 패스 삼각형
-      tz = carrier.position.z + side * 9;
+      tz = carrier.position.z + (supportSide[p.id] ?? side) * 9;
     } else if (p.role === 'FB' && wingSide !== 0 && side === wingSide) {
       tx = onside(dir, ball.x + dir * 14, olX, 2);        // 측면 존 오버랩(풀백 전진)
       tz = side * 26;

@@ -10,6 +10,7 @@
     "sim:pos": "node sim/positioning-lint.mjs",
     "sim:play": "node sim/play-lint.mjs",
     "sim:seq": "node sim/seq-dist.mjs 30",
+    "sim:rules": "node sim/rules-lint.mjs",
     "sim:cards": "node sim/cards-lint.mjs",
     "sim:stability": "node sim/stability.mjs",
     "start": "python3 tools/serve.py 8642"

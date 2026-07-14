@@ -104,7 +104,21 @@ function emitEvent(state, C, e) {
     case 'SUB': push(state, fill(C.sub || '🔁 교체 — {NAME}.', { NAME: e.name }), 'directive'); break;
     case 'SIGNAL': { const sig = C.signal[e.key]; if (sig) push(state, fill(e.telegraph ? sig.tele : sig.done, { O: nm.B }), 'signal'); break; }
     case 'OFFSIDE': push(state, fill(pick(state, 'offside', C.offside), { T: T(e.team) }), 'play'); break;
-    case 'RESTART': { const r = C.restart && C.restart[e.kind]; if (r) push(state, fill(r, { T: T(e.team) }), e.kind === 'corner' ? 'save' : 'play'); break; }
+    // §11 반칙 — 텍스트가 코어다: 반칙·경고·퇴장은 반드시 중계에 실린다. e.team=반칙한 팀
+    case 'FOUL': {
+      const hard = e.sev >= 0.6 && C.foul_hard;
+      const tpl = hard ? pick(state, 'foul_hard', C.foul_hard) : pick(state, 'foul', C.foul);
+      if (tpl) push(state, fill(tpl, { O: T(e.team), T: O(e.team) }), e.pk ? 'goal' : 'play');
+      break;
+    }
+    case 'CARD': {
+      const c = C.card; if (!c) break;
+      const tpl = e.card === 'red' ? c.red : (e.second ? c.second : c.yellow);
+      if (tpl) push(state, fill(tpl, { O: T(e.team) }), 'save');
+      break;
+    }
+    case 'SENT_OFF': if (C.sent_off) push(state, fill(C.sent_off, { O: T(e.team) }), 'save'); break;
+    case 'RESTART': { const r = C.restart && C.restart[e.kind]; if (r) push(state, fill(r, { T: T(e.team) }), e.kind === 'corner' || e.kind === 'penalty' ? 'save' : 'play'); break; }
     default: break;
   }
 }

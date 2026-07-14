@@ -22,6 +22,10 @@ function setFlat(ball, from, toX, toZ, speed, mode, kind) {
   ball.velocity = { x: (dx / d) * speed, y: 0, z: (dz / d) * speed };
   ball.mode = mode;
   ball.ownerId = null;
+  // 공이 발을 떠나면 캐리어도 해제한다. 안 하면 stale carrierId 때문에 ai.stepPositioning 이
+  // 패서를 "캐리어라서 decide 가 옮긴다"고 건너뛰는데 decide 는 CONTROLLED 일 때만 옮겨서
+  // 비행 내내 아무도 그를 안 옮긴다 = 패스 후 제자리 동결(경기당 232회·최장 5.7초).
+  ball.carrierId = null;
   ball.flightKind = kind;
 }
 

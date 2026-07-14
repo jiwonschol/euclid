@@ -81,6 +81,9 @@ function updatePossession(state, dt) {
     const opp = nearestOpp(state, carrier.teamId, carrier.position);
     const mf = carrier.teamId === 'A' ? (state.subBoost?.A?.mf || 0) : 0;
     if (opp && opp.d <= ctl.controlRadius && state.rng.chance(cfg.action.turnoverBase * dt * (1 - 0.18 * mf))) {  // mf 교체=볼 지키기↑
+      // 태클 접촉 → resolver(§11): 합법이면 아래 루즈볼, 반칙이면 프리킥/PK(+경고/퇴장)
+      const res = cfg.foul ? resolveTackle(state, opp.p, carrier, cfg.foul) : { foul: false };
+      if (res.foul) { foulRestart(state, opp.p, carrier, res); return; }
       b.mode = 'LOOSE'; b.carrierId = null; b.ownerId = null; carrier.hasBall = false;
       b.velocity = { x: (state.rng.float() - 0.5) * 5, y: 0, z: (state.rng.float() - 0.5) * 5 };
       b.lastTouchPlayerId = opp.p.id; b.lastTouchTeamId = opp.p.teamId;
@@ -103,7 +106,9 @@ function updatePossession(state, dt) {
         if (gk && Math.abs(gk.position.z - crossZ) <= cfg.gk.diveReach && state.rng.chance(Math.min(0.98, cfg.gk.saveProb + 0.03 * df))) {
           if (state.rng.chance(cfg.gk.catchRatio)) { gainControl(state, gk, 'SAVE'); return; }  // 캐치
           b.mode = 'LOOSE';                                                                      // 파리: 골문서 멀리 걷어냄
-          b.position = { x: gk.position.x, y: 0, z: gk.position.z };
+          // 공을 GK 좌표로 덮어쓰지 않는다(§18 "패스가 순간이동함" 금지 — 실측 1틱 9.53m 점프).
+          // 공은 현재 지점에 두고 높이만 접지, 속도만 걷어내는 방향으로 준다.
+          b.position = { x: b.position.x, y: 0, z: b.position.z };
           b.velocity = { x: -Math.sign(b.velocity.x) * 9 + (state.rng.float() - 0.5) * 3, y: 0, z: (state.rng.float() - 0.5) * 5 };
           b.lastTouchPlayerId = gk.id; b.lastTouchTeamId = gk.teamId; log(state, 'SAVE', { by: gk.id, parry: true });
           return;
@@ -312,6 +317,7 @@ function carrierAct(state, dt) {
 // ── 득점/재개 ──────────────────────────────────────────────
 function resetFormation(state) {
   for (const p of Object.values(state.players)) {
+    if (p.sentOff) continue;   // 퇴장 선수는 재배치하지 않는다(§4 불변조건)
     const w = anchorToWorld(p.homeAnchor, state.attackDirection[p.teamId]);
     p.position = { x: w.x, z: w.z }; p.velocity = { x: 0, z: 0 };
     p.hasBall = false; p._shape = null;
@@ -370,6 +376,105 @@ function outRestart(state, ev) {
   state._carryStart = null; state._decideAt = null;
   giveRestart(state, team, spot);
   log(state, 'RESTART', { kind: type, team });   // kind (type 는 이벤트타입과 충돌하므로)
+}
+
+// ── 반칙·프리킥·PK·경고/퇴장 (마스터 §11) ──────────────────
+// 태클 접촉의 방향(등 뒤 진입)·강도(태클러 속도)·시드난수로 판정한다. 계획서: "무조건 100% 실패시키지
+// 말라. 통계와 상황에 큰 보정만 준다." → 합법 / careless(프리킥) / reckless(옐로) / excessive(레드).
+function resolveTackle(state, tackler, carrier, F) {
+  const cv = carrier.velocity, csp = Math.hypot(cv.x, cv.z);
+  let behind = 0;
+  if (csp > 0.5) {                                                  // 캐리어 진행 방향 기준 등 뒤에서 들어왔나
+    const ux = cv.x / csp, uz = cv.z / csp;
+    const rx = tackler.position.x - carrier.position.x, rz = tackler.position.z - carrier.position.z;
+    const rl = Math.hypot(rx, rz) || 1;
+    behind = clamp(-((rx / rl) * ux + (rz / rl) * uz), 0, 1);       // 1 = 정확히 등 뒤
+  }
+  const tv = tackler.velocity;
+  const intensity = clamp(Math.hypot(tv.x, tv.z) / F.speedRef, 0, 1);   // 접촉 강도
+  // 자기 박스 안에서는 극도로 조심한다(반칙=PK) → 반칙 확률 급감
+  const inOwnBox = penaltyBoxOf(carrier.position.x, carrier.position.z, state.attackDirection[tackler.teamId]) === 'own';
+  const prob = (F.baseProb + F.behindBonus * behind) * (inOwnBox ? (F.boxCaution ?? 1) : 1);
+  if (!state.rng.chance(clamp(prob, 0, 0.95))) return { foul: false };
+  const severity = clamp(0.35 * intensity + 0.35 * behind + 0.3 * state.rng.float(), 0, 1);
+  return { foul: true, severity, card: severity >= F.excessiveAt ? 'red' : severity >= F.recklessAt ? 'yellow' : null };
+}
+
+/** 퇴장: §4 불변조건 "퇴장 선수는 경기장에 존재하지 않는다" → 피치 밖으로 내보낸다(clamp/reset 이 건너뜀). */
+function sendOff(state, p, reason) {
+  p.sentOff = true; p.hasBall = false;
+  if (state.ball.carrierId === p.id) { state.ball.carrierId = null; state.ball.ownerId = null; state.ball.mode = 'LOOSE'; }
+  p.position = { x: 0, z: -(FIELD.halfWidth + 6) };
+  p.velocity = { x: 0, z: 0 };
+  log(state, 'SENT_OFF', { by: p.id, team: p.teamId, reason });
+}
+
+/** 경고 누적. 옐로 2장 = 레드(§11). */
+function bookPlayer(state, p, card) {
+  if (card === 'yellow') {
+    p.yellowCards = (p.yellowCards || 0) + 1;
+    const second = p.yellowCards >= 2;
+    log(state, 'CARD', { by: p.id, team: p.teamId, card: 'yellow', second });
+    if (second) sendOff(state, p, 'second_yellow');
+  } else if (card === 'red') {
+    log(state, 'CARD', { by: p.id, team: p.teamId, card: 'red' });
+    sendOff(state, p, 'red');
+  }
+}
+
+// 상대를 공에서 dist(m) 밖으로 물린다(§11 9.15m). rng 미소비 — 겹치면 고정 방향 폴백(결정론).
+function pushBack(state, team, spot, dist, exceptId) {
+  for (const p of Object.values(state.players)) {
+    if (p.teamId !== team || p.sentOff || p.id === exceptId) continue;
+    const dx = p.position.x - spot.x, dz = p.position.z - spot.z;
+    const d = Math.hypot(dx, dz);
+    if (d >= dist) continue;
+    const ux = d > 0.01 ? dx / d : 1, uz = d > 0.01 ? dz / d : 0;
+    p.position = {
+      x: clamp(spot.x + ux * dist, -FIELD.halfLength + 1, FIELD.halfLength - 1),
+      z: clamp(spot.z + uz * dist, -FIELD.halfWidth + 1, FIELD.halfWidth - 1),
+    };
+    p.velocity = { x: 0, z: 0 };
+  }
+}
+
+/** 페널티킥 배치(§11): 키커=페널티 마크, 수비 GK=골라인, 나머지=박스 밖·마크 뒤·공에서 9.15m. */
+function penaltyRestart(state, attTeam, defTeam, F) {
+  const dir = state.attackDirection[attTeam];
+  const spot = { x: dir * (FIELD.halfLength - FIELD.penaltySpot), z: 0 };
+  giveRestart(state, attTeam, spot);                       // 마크 최근접 필드 플레이어가 키커
+  const kickerId = state.ball.carrierId;
+  const gk = Object.values(state.players).find((p) => p.teamId === defTeam && p.role === 'GK' && !p.sentOff);
+  if (gk) { gk.position = { x: dir * (FIELD.halfLength - 0.4), z: 0 }; gk.velocity = { x: 0, z: 0 }; }
+  const backX = spot.x - dir * F.pkClearBack;              // 마크 뒤 & 박스 밖(11+10=21m > 16.5m)
+  for (const p of Object.values(state.players)) {
+    if (p.sentOff || p.id === kickerId || (gk && p.id === gk.id)) continue;
+    const inBox = penaltyBoxOf(p.position.x, p.position.z, state.attackDirection[defTeam]) === 'own';
+    if (inBox || dist2(p.position, spot) < F.wallDist) {
+      p.position = { x: backX, z: clamp(p.position.z, -FIELD.halfWidth + 2, FIELD.halfWidth - 2) };
+      p.velocity = { x: 0, z: 0 };
+    }
+  }
+  log(state, 'RESTART', { kind: 'penalty', team: attTeam });
+}
+
+/** 반칙 → 직접 프리킥. 반칙한 팀의 자기 페널티 박스 안이면 페널티킥(§11). */
+function foulRestart(state, offender, victim, res) {
+  const F = state.cfg.foul;
+  const defTeam = offender.teamId, attTeam = victim.teamId;
+  const spot = {
+    x: clamp(victim.position.x, -FIELD.halfLength + 2, FIELD.halfLength - 2),
+    z: clamp(victim.position.z, -FIELD.halfWidth + 2, FIELD.halfWidth - 2),
+  };
+  const isPk = penaltyBoxOf(spot.x, spot.z, state.attackDirection[defTeam]) === 'own';
+  log(state, 'FOUL', { by: offender.id, team: defTeam, on: victim.id, sev: Math.round(res.severity * 100) / 100, pk: isPk, card: res.card || null });
+  if (res.card) bookPlayer(state, offender, res.card);
+  state._carryStart = null; state._decideAt = null;
+  state.ball.mode = 'DEAD_BALL'; state.ball.velocity = { x: 0, y: 0, z: 0 }; state.ball._offside = null;
+  if (isPk) { penaltyRestart(state, attTeam, defTeam, F); return; }
+  giveRestart(state, attTeam, spot);
+  pushBack(state, defTeam, spot, F.wallDist, null);
+  log(state, 'RESTART', { kind: 'freekick', team: attTeam });
 }
 
 // ── 진입점 ─────────────────────────────────────────────────
