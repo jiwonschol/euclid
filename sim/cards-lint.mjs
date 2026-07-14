@@ -4,9 +4,9 @@
 
 import { readFileSync } from 'node:fs';
 import { createMatch, tick, runToFulltime } from '../js/game/match.js';
-import { resolve, resolvedFor, addEffect, stepEffects, stepResolve } from '../js/game/effects.js';
+import { resolve, resolvedFor, addEffect, stepEffects, stepResolve, consumeNextAction } from '../js/game/effects.js';
 import { validateCard, deckCardById } from '../js/game/cards.js';
-import { playFromHand, applyCard } from '../js/game/hand.js';
+import { playFromHand, applyCard, offerContext } from '../js/game/hand.js';
 import { assignMarking } from '../js/game/defend.js';
 
 const cfg = JSON.parse(readFileSync(new URL('../data/engine.json', import.meta.url)));
@@ -220,6 +220,39 @@ console.log('18) 키 소비 회귀 — 카드 미사용 시 baseline digest 불�
   const digest = (s) => `${s.score.A}-${s.score.B}|ev${s.eventLog.length}|bx${s.ball.position.x.toFixed(3)}`;
   const a = runToFulltime(createMatch(42, cfg));               // 카드 없음
   ok(digest(a) === '4-5|ev1704|bx-50.802', `baseline 불변 (${digest(a)})`);
+}
+
+console.log('19) NEXT_ACTION 카드 소비(측면 전환)');
+{
+  const s = toInPlay(createMatch(31, cfg, null, cards));
+  applyCard(s, 'A', deckCardById(cards, 'switch_play'), null); stepResolve(s);
+  ok(resolvedFor(s, 'A').switchNext === true, 'switch_play → switchNext=true');
+  ok(s.effects.A.some((e) => e.scope === 'NEXT_ACTION'), 'NEXT_ACTION 스코프 효과 등록');
+  const n0 = s.effects.A.length;
+  consumeNextAction(s, 'A'); stepResolve(s);
+  ok(s.effects.A.length === n0 - 1 && resolvedFor(s, 'A').switchNext === false, '1회 소비 후 해제');
+}
+
+console.log('20) 맥락(context) 카드 주입 → 즉시 적용 → 만료');
+{
+  const s = toInPlay(createMatch(32, cfg, null, cards));
+  s.possessionTeamId = 'A'; s._card.ctx = null; s._card.ctxCd = 0;
+  const dir = s.attackDirection.A;
+  const carrier = s.players.A9; s.ball.carrierId = 'A9'; carrier.hasBall = true;
+  carrier.position = { x: dir * 45, z: 0 }; s.ball.position = { x: dir * 45, y: 0, z: 0 };
+  s.players.B5.position = { x: dir * 45 - dir * 2, z: 1 };          // 2m 압박 → 볼소유 대결
+  offerContext(s, cards);
+  const ctx = s.cards.A.hand.filter((x) => x.ctx);
+  ok(ctx.length > 0 && ctx.every((x) => x.ctx === 'BALL_CARRIER_DUEL'), `맥락 카드 ${ctx.length}장 주입(볼소유 대결)`);
+  const shootIdx = s.cards.A.hand.findIndex((x) => x.ctx && x.card.id === 'ctx_shootnow');
+  s.cp.A = 2;
+  const r = playFromHand(s, 'A', shootIdx, null, cards);
+  ok(r.ok && r.instant, '맥락 카드 즉시 적용(전달중 없음)');
+  stepResolve(s);
+  ok(resolvedFor(s, 'A').nextAction === 'shot', 'nextAction=shot 활성');
+  s._card.ctx.until = s.clockSeconds - 1;                            // 창 만료
+  offerContext(s, cards);
+  ok(!s.cards.A.hand.some((x) => x.ctx), '창 만료 시 미사용 맥락 카드 제거');
 }
 
 console.log(`\n${fail === 0 ? '✅ 전부 통과' : '❌ 실패 있음'}  (pass ${pass}, fail ${fail})`);

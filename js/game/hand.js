@@ -8,8 +8,11 @@
 import { createRng } from './rng.js';
 import { addEffect } from './effects.js';
 import { validateCard, deckCardById } from './cards.js';
+import { dBallOwn } from './shape.js';
+import { FIELD } from './field.js';
 
 const other = (t) => (t === 'A' ? 'B' : 'A');
+const dist = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 
 function log(state, type, data) {
   state.eventLog.push({ t: Math.round(state.clockSeconds * 100) / 100, half: state.half, type, ...data });
@@ -77,6 +80,15 @@ export function playFromHand(state, team, handIndex, target, C) {
   const slot = cc.hand[handIndex];
   if (!slot) return { ok: false, reason: '빈 손패 슬롯' };
   const card = slot.card;
+  if (slot.ctx) {                                     // 맥락 카드: 즉시 적용(전달중/오디블 없음)
+    const v0 = validateCard(state, 'A', card, target);
+    if (!v0.ok) return v0;
+    state.cp.A -= card.cost;
+    const ci = cc.hand.indexOf(slot); if (ci >= 0) cc.hand.splice(ci, 1);
+    applyCard(state, 'A', card, target);
+    log(state, 'DIRECTIVE_ARRIVED', { name: card.name, instant: true });
+    return { ok: true, instant: true };
+  }
   const cur = state.pending.A;
   const refund = cur ? cur.card.cost : 0;
   const v = validateCard(state, 'A', card, target, { cpBonus: refund });
@@ -131,6 +143,43 @@ function handleRegain(state, C) {
     }
     d.lastPoss = poss;
   }
+}
+
+// ── 맥락(context) 카드: 큰 순간에 손패에 임시로 나타났다 사라진다(§12) ──
+function detectMoment(state) {
+  const carrier = state.ball.carrierId ? state.players[state.ball.carrierId] : null;
+  if (state.possessionTeamId === 'A' && carrier && carrier.teamId === 'A' && carrier.role !== 'GK') {
+    const dir = state.attackDirection.A;
+    if (dBallOwn(dir, carrier.position.x) > FIELD.length * 0.72) {              // 파이널 서드
+      let near = Infinity;
+      for (const p of Object.values(state.players))
+        if (p.teamId === 'B' && p.role !== 'GK' && !p.sentOff) near = Math.min(near, dist(p.position, carrier.position));
+      if (near < 4) return 'BALL_CARRIER_DUEL';                                 // 압박받는 볼 소유 대결
+    }
+  }
+  return null;
+}
+
+/** 큰 순간이면 맥락 카드를 손패에 주입, 창이 끝나면 제거. 유저(A)만. rng 미소비. */
+export function offerContext(state, C) {
+  const d = state._card, cc = state.cards.A;
+  if (d.ctx) {                                                                  // 제공 중: 만료/상황 종료 시 제거
+    if (state.clockSeconds > d.ctx.until || state.possessionTeamId !== 'A') {
+      for (let i = cc.hand.length - 1; i >= 0; i--) if (cc.hand[i].ctx) cc.hand.splice(i, 1);
+      d.ctx = null;
+    }
+    return;
+  }
+  if (state.clockSeconds < (d.ctxCd || 0)) return;                              // 스로틀
+  const kind = detectMoment(state);
+  if (!kind) return;
+  const defs = (C.context && C.context[kind]) || [];
+  if (!defs.length) return;
+  const ids = [];
+  for (const def of defs) { cc.hand.push({ id: def.id, card: def, ctx: kind, drawnAt: state.clockSeconds }); ids.push(def.id); }
+  d.ctx = { kind, until: state.clockSeconds + 4.5, ids };
+  d.ctxCd = state.clockSeconds + 12;
+  log(state, 'CONTEXT', { kind, n: ids.length });
 }
 
 // ── 상대(B) 감독 AI: 상황 판단 → 김성주 예고 → 적용 ──────────────
@@ -197,6 +246,7 @@ export function stepCards(state, dt, C) {
   d.drawAcc += dt;
   while (d.drawAcc >= C.draw.drawEverySec) { d.drawAcc -= C.draw.drawEverySec; drawOne(state, C); }
   handleRegain(state, C);
+  offerContext(state, C);
   stepPending(state, C);
   stepOpponentCards(state, dt, C);
 }

@@ -6,7 +6,7 @@ import { seek } from './movement.js';
 import { stepBallPhysics, launchPass, launchCross, launchShot } from './ball.js';
 import { FIELD, oppGoalX, anchorToWorld, penaltyBoxOf } from './field.js';
 import { dBallOwn } from './shape.js';
-import { resolvedFor } from './effects.js';
+import { resolvedFor, consumeNextAction } from './effects.js';
 
 const other = (t) => (t === 'A' ? 'B' : 'A');
 const dist2 = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
@@ -232,6 +232,19 @@ function decideAction(state, carrier, dir) {
   }
   // 드리블
   opts.push({ kind: 'dribble', u: A.wDribble * tac.dribbleBias * (0.3 + clamp(pressure / 6, 0, 1) * 0.5) + (dGoal > A.shotMaxDist ? 0.2 : 0) + noise() });
+
+  // NEXT_ACTION 카드(측면 전환·맥락 카드): 다음 소유 행동 효용을 편향하고 1회 소비.
+  if (tac.nextAction || tac.switchNext) {
+    for (const o of opts) {
+      if (tac.nextAction === 'shot' && o.kind === 'shot') o.u *= 3;
+      else if (tac.nextAction === 'through' && o.kind === 'through') o.u *= 3;
+      else if (tac.nextAction === 'dribble' && o.kind === 'dribble') o.u *= 3;
+      else if (tac.nextAction === 'safe') { if (o.kind === 'shot') o.u *= 0.2; else if (o.kind === 'pass') o.u *= 2; }
+      else if (tac.nextAction === 'oneTwo' && o.kind === 'pass' && o.mate && dist2(carrier.position, o.mate.position) < 14) o.u *= 2.5;
+      if (tac.switchNext && o.mate && Math.abs(o.mate.position.z - carrier.position.z) > 22) o.u *= 2.5;   // 측면 전환: 반대쪽 롱패스
+    }
+    consumeNextAction(state, carrier.teamId);
+  }
 
   opts.sort((x, y) => y.u - x.u);
   const pick = opts[0];

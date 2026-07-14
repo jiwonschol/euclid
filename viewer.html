@@ -62,6 +62,8 @@
   .card .cd { font-size: 11px; color: #8090a2; margin-top: 4px; line-height: 1.4; }
   .card .cmeta { font-size: 10px; color: #66748a; margin-top: 5px; letter-spacing: 0.3px; }
   .card.audible:not(:disabled) { border-color: #7a6a2a; }
+  .card.ctx { border-color: #b8892a; background: #241f14; }
+  .card.ctx:hover:not(:disabled) { border-color: #ffd54a; background: #2b2416; }
   .effects { display: inline-flex; gap: 6px; flex-wrap: wrap; }
   .subrow { display: flex; gap: 8px; margin-top: 9px; flex-wrap: wrap; }
   .subbtn { font-size: 12px; padding: 6px 12px; background: #182028; border: 1px dashed #38465a; color: #b9c4d2; border-radius: 8px; }
@@ -209,13 +211,14 @@
     if (sig !== handSig) {                                   // 손패 구성 변화 시에만 재생성
       handSig = sig; h.innerHTML = '';
       cc.hand.forEach((slot, i) => {
-        const c = slot.card;
+        const c = slot.card, isCtx = !!slot.ctx;
         const dur = c.durationSeconds != null ? `${c.durationSeconds}초`
           : (c.effects.some((e) => e.scope === 'NEXT_ACTION') ? '다음 행동' : '즉시');
-        const b = document.createElement('button'); b.className = 'card'; b.dataset.i = i;
+        const meta = isCtx ? '⚡ 맥락 · 즉시' : `${CAT[c.category] || c.category || ''} · ${dur}`;
+        const b = document.createElement('button'); b.className = 'card' + (isCtx ? ' ctx' : ''); b.dataset.i = i;
         b.innerHTML = `<div class="cn"><span>${c.name}</span><span class="cc">${c.cost} CP</span></div>`
-          + `<div class="cd">${c.rulesText || ''}</div>`
-          + `<div class="cmeta">${CAT[c.category] || c.category} · ${dur}</div>`;
+          + `<div class="cd">${c.rulesText || (isCtx ? '지금 이 순간의 선택' : '')}</div>`
+          + `<div class="cmeta">${meta}</div>`;
         b.onclick = () => playCard(i);
         h.appendChild(b);
       });
