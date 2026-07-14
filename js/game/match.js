@@ -9,7 +9,8 @@
 
 import { createRng } from './rng.js';
 import { FIELD, FORMATION_433, anchorToWorld } from './field.js';
-import { stepPlay, stepPositioning } from './ai.js';
+import { stepPositioning } from './ai.js';
+import { stepPlay, placeKickoff } from './decide.js';
 
 export const SIM_HZ = 15;               // 시뮬 주파수(계획서 §3 권장 10~20Hz)
 export const SIM_DT = 1 / SIM_HZ;       // 한 틱 = 1/15 경기초
@@ -151,6 +152,15 @@ function resetToFormation(state) {
   state.ball.carrierId = null;
 }
 
+// 선수를 피치 경계 안으로 클램프(살짝 안쪽 — 라인 밖에서 공을 차 순간 OOB 되는 것 방지)
+function clampPlayers(state) {
+  const mx = FIELD.halfLength - 0.5, mz = FIELD.halfWidth - 0.5;
+  for (const p of Object.values(state.players)) {
+    p.position.x = p.position.x < -mx ? -mx : p.position.x > mx ? mx : p.position.x;
+    p.position.z = p.position.z < -mz ? -mz : p.position.z > mz ? mz : p.position.z;
+  }
+}
+
 function assertFinite(state) {
   const b = state.ball.position;
   if (!Number.isFinite(b.x) || !Number.isFinite(b.y) || !Number.isFinite(b.z))
@@ -175,17 +185,17 @@ export function tick(state) {
       break;
 
     case 'KICKOFF':
-      // 간이: 공을 인플레이로 넘긴다. (실제 킥오프 터치/규칙은 Stage 4)
       state.phase = 'IN_PLAY';
-      state.ball.mode = 'CONTROLLED';
       logEvent(state, 'IN_PLAY');
+      if (state.cfg) placeKickoff(state, state.possessionTeamId);   // 킥오프팀에게 공 확정 지급
+      else state.ball.mode = 'CONTROLLED';                          // 골격 모드(cfg 없음)
       break;
 
     case 'IN_PLAY': {
       if (state.cfg) {
-        // Stage 2: placeholder 경기 구동 + 22명 포지셔닝. (공 물리·규칙은 Stage 3~)
-        stepPlay(state, SIM_DT);
-        stepPositioning(state, SIM_DT);
+        stepPlay(state, SIM_DT);          // 공 물리·소유·utility 의사결정
+        stepPositioning(state, SIM_DT);   // 22명 형상·압박·GK 배치
+        clampPlayers(state);              // 선수는 피치를 벗어나지 않는다
       }
       state.clockSeconds += SIM_DT;
       const half1End = state.half === 1 && state.clockSeconds >= HALF_SECONDS;

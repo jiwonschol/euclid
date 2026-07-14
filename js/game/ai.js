@@ -8,59 +8,9 @@ import { seek, computeSeparation, hash01, clamp } from './movement.js';
 import {
   teamShape, teamBackDist, anchorFor, easeShape, depthRanks, dBallOwn, distToWorldX,
 } from './shape.js';
-import { FIELD } from './field.js';
 
 const other = (t) => (t === 'A' ? 'B' : 'A');
 const dist2 = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
-
-/** 팀 team 필드 플레이어(GK 제외) 중 pos 최근접 1인 */
-function nearestOutfield(state, team, pos) {
-  let best = null, bd = Infinity;
-  for (const p of Object.values(state.players)) {
-    if (p.teamId !== team || p.role === 'GK' || p.sentOff) continue;
-    const d = dist2(p.position, pos);
-    if (d < bd) { bd = d; best = p; }
-  }
-  return best;
-}
-
-// ── Stage 2 placeholder 경기 구동 ───────────────────────────
-/** 캐리어를 상대 골문 쪽으로 드리블시키고, 파이널서드 도달 시 소유권을 교체한다(임시). */
-export function stepPlay(state, dt) {
-  const cfg = state.cfg, P = cfg.player, ball = state.ball;
-  if (!state.possessionTeamId) state.possessionTeamId = state.kickoffFirstHalf;
-
-  let carrier = ball.carrierId ? state.players[ball.carrierId] : null;
-  if (!carrier || carrier.teamId !== state.possessionTeamId || carrier.role === 'GK') {
-    carrier = nearestOutfield(state, state.possessionTeamId, ball.position);
-    ball.carrierId = carrier.id;
-  }
-  const dir = state.attackDirection[carrier.teamId];
-
-  // 상대 골문 8m 앞을 향해 run 추진, z는 완만한 사인 드리프트(결정론)
-  const targetX = dir * (FIELD.halfLength - 8);
-  const driftZ = Math.sin(state.clockSeconds * 0.22 + hash01(carrier.id) * 6.2832) * 6;
-  seek(carrier, { x: targetX, z: driftZ }, P.run, P, dt, P.arrivalRadius);
-  carrier.hasBall = true;
-
-  // 공은 캐리어 진행방향 살짝 앞
-  ball.position = { x: carrier.position.x + dir * cfg.ball.carryAhead, y: 0, z: carrier.position.z };
-  ball.velocity = { x: carrier.velocity.x, y: 0, z: carrier.velocity.z };
-  ball.mode = 'CONTROLLED';
-  ball.ownerId = carrier.id;
-  ball.lastTouchPlayerId = carrier.id;
-  ball.lastTouchTeamId = carrier.teamId;
-
-  // 파이널서드 도달 → 소유권 교체(임시 턴오버)
-  if (dBallOwn(dir, ball.position.x) >= cfg.play.turnoverDist) {
-    carrier.hasBall = false;
-    const nt = other(carrier.teamId);
-    state.possessionTeamId = nt;
-    const nc = nearestOutfield(state, nt, ball.position);
-    ball.carrierId = nc.id;
-    state.eventLog.push({ t: Math.round(state.clockSeconds * 100) / 100, half: state.half, type: 'TURNOVER', to: nt });
-  }
-}
 
 // ── 수비 역할 배정: first defender(압박1인) + cover(1인) ──────
 function assignDefenders(state, defTeam, carrier, cfg) {
@@ -151,9 +101,27 @@ export function stepPositioning(state, dt) {
   const ps = assignDefenders(state, defTeam, carrier, cfg);
   const sep = computeSeparation(players, cfg);
 
+  // 패스 수신자 / 루즈볼 최근접 추격자는 형상보다 공을 우선한다
+  const bmode = state.ball.mode;
+  const recvId = (bmode === 'GROUND_PASS' || bmode === 'AERIAL_PASS') ? state.ball.intendedTargetPlayerId : null;
+  let chaserId = null;
+  if (bmode === 'LOOSE') {
+    let bd = Infinity;
+    for (const p of Object.values(players)) { if (p.sentOff || p.role === 'GK') continue; const d = dist2(p.position, state.ball.position); if (d < bd) { bd = d; chaserId = p.id; } }
+  }
+
   for (const p of Object.values(players)) {
-    if (p.sentOff || p.id === carrierId) continue;   // 캐리어는 stepPlay 가 이동
+    if (p.sentOff || p.id === carrierId) continue;   // 캐리어는 decide.stepPlay 가 이동
     const dir = state.attackDirection[p.teamId];
+
+    // 공으로 달려가는 선수(패스 수신·루즈볼 추격)는 형상 무시하고 공 지점으로
+    if ((p.id === recvId && state.ball.intendedTargetPoint) || p.id === chaserId) {
+      const o = sep[p.id];
+      const t = p.id === recvId ? state.ball.intendedTargetPoint : state.ball.position;
+      seek(p, { x: t.x + o.x, z: t.z + o.z }, P.run, P, dt, P.arrivalRadius);
+      continue;
+    }
+
     let target, spd;
 
     if (p.role === 'GK') {

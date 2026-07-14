@@ -48,7 +48,11 @@
     "boxX": 16,
     "trackClampY": 9,
     "sweeperRatio": 0.3,
-    "sweeperMaxX": 18
+    "sweeperMaxX": 18,
+    "saveZone": 8,
+    "diveReach": 4.4,
+    "saveProb": 0.9,
+    "catchRatio": 0.9
   },
 
   "idle": {
@@ -58,12 +62,34 @@
   },
 
   "ball": {
-    "_comment": "공(§2.4). 이번 Stage 2에선 placeholder 캐리만 사용. 실제 패스/슛 물리는 Stage 3.",
-    "carryAhead": 1.1
+    "_comment": "공 물리(§2.4·마스터 §7). 속도 m/s, distRef=그 최대속도 도달 거리(m). 지상은 friction 감속, 공중은 gravity 포물선. settleSpeed 미만이면 정지, restitution=착지 반발.",
+    "carryAhead": 1.1,
+    "passMin": 16, "passMax": 22, "passDistRef": 45,
+    "loftMin": 14, "loftMax": 18, "loftDistRef": 40, "loftHeight": 2.2,
+    "shotMin": 24, "shotMax": 31, "shotDistRef": 28,
+    "friction": 5.5, "settleSpeed": 1.0, "gravity": 9.8, "restitution": 0.35,
+    "collectSpeed": 7
   },
 
-  "play": {
-    "_comment": "Stage 2 placeholder 경기 구동(추후 Stage 3 utility AI로 대체). 캐리어가 상대 골문 쪽으로 드리블하다 turnoverDist(자기 골문 거리 m) 도달 시 소유권 교체 → 공이 피치를 오르내리며 형상 전환을 시연.",
-    "turnoverDist": 82
+  "control": {
+    "_comment": "볼 컨트롤·인터셉트·슛블록(마스터 §7). controlRadius=이 거리 안이면 컨트롤 시도, controlSpeedMax=이보다 빠른 공은 즉시 소유 불가, interceptRadius=패스 레인 가로채기, blockRadius/blockProb=슈터 앞 레인 수비수 슛 블록.",
+    "controlRadius": 1.5,
+    "controlSpeedMax": 14,
+    "interceptRadius": 1.7,
+    "looseControlRadius": 2.0,
+    "blockRadius": 1.4,
+    "blockProb": 0.6
+  },
+
+  "action": {
+    "_comment": "utility 의사결정(마스터 §6). 값은 효용 가중. 매 decideEvery 초마다 캐리어가 행동 재평가. minCarry=최소 소유시간('죽죽' 방지).",
+    "decideEvery": 0.5,
+    "minCarry": 0.7,
+    "shotMaxDist": 17,
+    "passMaxDist": 40,
+    "throughMaxDist": 35,
+    "wDribble": 1.0, "wPass": 1.25, "wShot": 0.55, "wForward": 0.6,
+    "turnoverBase": 0.65,
+    "noise": 0.12
   }
 }

@@ -119,8 +119,8 @@ section('4) cfg 풀경기 안정성 (NaN·속도·재현성·턴오버)');
   ok(a.s.phase === 'FULLTIME', 'FULLTIME 도달');
   ok(a.maxSpd <= SPRINT * 1.02, `풀경기 속도 캡 준수 (max ${a.maxSpd.toFixed(2)})`);
   ok(Math.abs(a.s.clockSeconds - 2 * HALF_SECONDS) < 1, `시계 ≈5400 (${a.s.clockSeconds.toFixed(1)})`);
-  const turnovers = a.s.eventLog.filter((e) => e.type === 'TURNOVER').length;
-  ok(turnovers > 5, `placeholder 턴오버 발생 (${turnovers}건)`);
+  const plays = a.s.eventLog.filter((e) => e.type === 'PASS' || e.type === 'SHOT').length;
+  ok(plays > 20, `경기 이벤트 발생 (패스·슛 ${plays}건)`);
   const b = runFull(77);
   ok(JSON.stringify(a.s.eventLog) === JSON.stringify(b.s.eventLog), '재현성: 시드 77 두 판 로그 동일');
 }

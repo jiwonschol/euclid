@@ -25,7 +25,7 @@
 </head>
 <body>
 <div class="wrap">
-  <h1>euclid · 연속 경기 시뮬레이션 뷰어 <span style="color:#556">— Stage 2 (자율 이동, placeholder 구동)</span></h1>
+  <h1>euclid · 연속 경기 시뮬레이션 뷰어 <span style="color:#556">— Stage 3 (창발 경기: 패스·슛·수비·득점)</span></h1>
   <div class="board">
     <div class="score"><span class="a">수원 <b id="sa">0</b></span> : <span class="b"><b id="sb">0</b> 인천</span></div>
     <div class="clock" id="clock">00:00</div>
@@ -43,7 +43,8 @@
   </div>
   <canvas id="pitch" width="1000" height="648"></canvas>
   <p class="note">파란 알 = 수원, 빨간 알 = 인천, 노랑/초록 = 골키퍼. 흰 테두리 = 볼 소유자, 노란 링 = 압박(first defender).
-    아직 실제 패스·슛·규칙은 없습니다(Stage 3~) — 지금은 <b>팀 형상·압박·공수 전환</b>이 축구답게 흐르는지 보는 단계입니다.</p>
+    선수 AI가 <b>패스·스루·드리블·슛</b>을 스스로 판단하고 가로채기·태클·GK 선방·득점이 창발합니다.
+    (오프사이드·정식 재개는 Stage 4 — 그전이라 득점이 실제보다 많습니다.)</p>
 </div>
 
 <script type="module">
