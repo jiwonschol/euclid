@@ -94,6 +94,7 @@ function emitEvent(state, C, e) {
     case 'INTERCEPT': push(state, fill(pick(state, 'intercept', E.intercept), { T: T(e.team) }), 'play'); break;
     case 'BLOCK': push(state, fill(pick(state, 'block', E.block), { T: T(e.team) }), 'play'); break;
     case 'CROSS': push(state, fill(pick(state, 'cross', E.cross), { T: T(e.team) }), 'play'); break;
+    case 'THROUGH': { const c = state._comm; c.thru = (c.thru || 0) + 1; if (c.thru % 2 === 0) push(state, fill(pick(state, 'through', E.through), { T: T(e.team) }), 'play'); break; }
     case 'HALFTIME': push(state, `— 전반 종료. ${T('A')} ${e.score.A} : ${e.score.B} ${T('B')} —`, 'sys'); break;
     case 'SECOND_HALF': push(state, `— 후반 시작 —`, 'sys'); break;
     case 'FULLTIME': push(state, `— 경기 종료! 최종 ${T('A')} ${e.score.A} : ${e.score.B} ${T('B')} —`, 'sys'); break;

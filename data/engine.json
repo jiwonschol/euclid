@@ -125,6 +125,8 @@
     "wShot": 1,
     "wForward": 0.7,
     "turnoverBase": 0.42,
+    "buildSuppress": 0.12,
+    "culmBoost": 1.25,
     "noise": 0.12
   }
 }

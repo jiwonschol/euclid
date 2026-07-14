@@ -11,6 +11,18 @@ const other = (t) => (t === 'A' ? 'B' : 'A');
 const dist2 = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 
+// 시퀀스 목표 패스 수(디자이너 목표 분포: 1패스 10% · 3-5 40% · 6-8 30% · 나머지 20%).
+// 소유 획득 시 뽑아, 이 수만큼 빌드업한 뒤 마무리(슛/크로스)하도록 캐리어 결정을 편향한다.
+function drawSeqTarget(rng) {
+  // draw%는 측정%와 1:1이 아니다(긴 시퀀스가 턴오버로 잘려 하향) → 6-8을 과공급해 측정치를 목표(10/40/30)에 맞춤.
+  const r = rng.float();
+  if (r < 0.11) return 1;
+  if (r < 0.18) return 2;
+  if (r < 0.55) return 3 + Math.floor(rng.float() * 3);   // 3-5 (draw 37% → 측정 ~42)
+  if (r < 0.94) return 6 + Math.floor(rng.float() * 3);   // 6-8 (draw 39% → 측정 ~31, 턴오버 보정)
+  return 9 + Math.floor(rng.float() * 4);                 // 9-12
+}
+
 function nearestOpp(state, team, pos, includeGK = true) {
   let best = null, bd = Infinity;
   for (const p of Object.values(state.players)) {
@@ -49,6 +61,7 @@ function gainControl(state, p, note) {
   b._cross = false;
   b.lastTouchPlayerId = p.id; b.lastTouchTeamId = p.teamId;
   const changed = state.possessionTeamId !== p.teamId;
+  if (changed) { state._seqPasses = 0; state._seqTarget = drawSeqTarget(state.rng); }   // 새 시퀀스 → 목표 패스 수
   state.possessionTeamId = p.teamId;
   p.hasBall = true;
   state._carryStart = state.clockSeconds;
@@ -174,15 +187,21 @@ function decideAction(state, carrier, dir) {
   const zone = tac ? tac.attackZone : null;                           // 측면/중앙 전개 편향
   const wingSide = zone === 'wing' ? (carrier.position.z < 0 ? -1 : 1) : 0;
   const carrierFinal = dBallOwn(dir, carrier.position.x) > 62;
+  // 시퀀스 마무리 게이팅(목표 패스 분포): 목표 패스 전엔 슛/크로스 억제(빌드업), 후엔 부추김
+  const seqTarget = state._seqTarget || 4;
+  const culmReady = (state._seqPasses || 0) >= seqTarget;
+  const quick = seqTarget <= 1;                                    // 빠른 공격(1패스): 원거리라도 즉시 마무리
+  const buildMul = culmReady ? (A.culmBoost || 1.0) * (quick ? 1.3 : 1) : (A.buildSuppress || 0.18);
   const opts = [];
 
-  // 슛 — 박스라고 무조건 쏘지 않는다. GK가 못 막는 '빈 곳'이 있을 때만(막힌 슛은 안 쏘고 각을 만든다).
-  if (dGoal <= A.shotMaxDist) {
+  // 슛 — 박스라고 무조건 쏘지 않는다. GK가 못 막는 '빈 곳'이 있을 때만. 마무리 단계엔 사거리 확장(빠른 공격은 더).
+  const shotRange = A.shotMaxDist + (culmReady ? (quick ? 6 : 2) : 0);
+  if (dGoal <= shotRange) {
     const dgk = Object.values(state.players).find((p) => p.teamId === defTeam && p.role === 'GK' && !p.sentOff);
     const gkZ = dgk ? dgk.position.z : 0;
     const cornerZ = gkZ >= 0 ? -FIELD.goalHalfWidth : FIELD.goalHalfWidth;       // GK 반대쪽 먼 코너
     const openness = clamp((Math.abs(cornerZ - gkZ) - 3.4) / 6, 0.04, 1);        // GK가 커버 못 하는 여유(가팔라야 막힌슛 안 쏨)
-    const u = A.wShot * shotMul * (1 - dGoal / A.shotMaxDist) * shotAngleQuality(carrier.position)
+    const u = A.wShot * shotMul * buildMul * (1 - dGoal / shotRange) * shotAngleQuality(carrier.position)
       * openness * (0.55 + 0.45 * clamp(pressure / 5, 0, 1)) + noise();
     opts.push({ kind: 'shot', u });
   }
@@ -201,9 +220,9 @@ function decideAction(state, carrier, dir) {
     // 크로스: 측면 깊은 위치 → 중앙 박스 아군 공중 배달(측면 공격 마무리)
     const isCross = wingSide !== 0 && Math.abs(carrier.position.z) > 15 && carrierFinal
       && Math.abs(mate.position.z) < 14 && dBallOwn(dir, mate.position.x) > 70;
-    // 존 편향: 크로스 > 측면 전개 > 중앙 전진
+    // 존 편향: 크로스 > 측면 전개 > 중앙 전진. 크로스도 마무리라 시퀀스 게이팅 적용.
     let zoneBonus = 0;
-    if (isCross) zoneBonus = 0.7;
+    if (isCross) zoneBonus = 0.7 * (culmReady ? 1.3 : 0.22);
     else if (wingSide !== 0 && Math.sign(mate.position.z) === wingSide && Math.abs(mate.position.z) > 16) zoneBonus = 0.5;
     else if (zone === 'central' && Math.abs(mate.position.z) < 12 && prog > 4) zoneBonus = 0.22;
     const u = A.wPass * (0.3 + fwdW * clamp(prog / 20, -0.4, 1) + Math.min(1, open / 8) * 0.5)
@@ -223,7 +242,7 @@ function decideAction(state, carrier, dir) {
     const aimZ = (state.rng.float() - 0.5) * 2 * wide;
     const aimY = 0.25 + state.rng.float() * (0.5 + dg * 0.05);     // 가끔 크로스바 위로
     launchShot(b, carrier.position, { x: goal.x, z: aimZ, y: aimY }, carrier.teamId, carrier.id, cfg.ball);
-    carrier.hasBall = false; log(state, 'SHOT', { by: carrier.id, team: carrier.teamId });
+    carrier.hasBall = false; log(state, 'SHOT', { by: carrier.id, team: carrier.teamId, seq: state._seqPasses || 0 });
     // 슛 블록: 슈터 앞 레인에 수비수(비 GK)가 바짝 있으면 확률적으로 막힘(루즈볼)
     if (laneMinDist(state, carrier.position, { x: goal.x, z: aimZ }, defTeam) < cfg.control.blockRadius && state.rng.chance(cfg.control.blockProb)) {
       b.mode = 'LOOSE';
@@ -236,6 +255,7 @@ function decideAction(state, carrier, dir) {
     // 패스 순간 오프사이드 스냅샷(수신자가 실제로 받으면 콜)
     b._offside = isOffside(state, pick.mate, carrier.teamId) ? { team: carrier.teamId, x: pick.mate.position.x, z: pick.mate.position.z } : null;
     carrier.hasBall = false;
+    state._seqPasses = (state._seqPasses || 0) + 1;
     log(state, pick.aerial ? 'CROSS' : (pick.kind === 'through' ? 'THROUGH' : 'PASS'), { by: carrier.id, to: pick.mate.id, team: carrier.teamId });
   } else {
     // 드리블: 상대 골문 쪽 열린 공간. 압박 가까우면 측면으로 회피.
