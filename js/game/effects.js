@@ -16,7 +16,7 @@ function defaults() {
     // 카드 modifier 대상 키 (registry — docs/card_system_build_plan.md)
     shotBias: 1, dribbleBias: 1, passBias: 1, throughBias: 1, tempo: 1, pressAggression: 1,
     crossEarly: false, overlapSide: null, switchNext: false, transition: null,
-    commitForward: 0, manMark: null, gutsThresh: 1, nextAction: null,
+    commitForward: 0, manMark: null, nextAction: null,   // gutsThresh 제거: §13 거츠 미구현으로 소비자가 없던 데드 키
   };
 }
 

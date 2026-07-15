@@ -8,7 +8,15 @@
   :root { color-scheme: dark; }
   * { box-sizing: border-box; }
   body { margin: 0; background: #0f1216; color: #e8ecf1; font: 14px/1.55 system-ui, -apple-system, sans-serif; }
-  .wrap { max-width: 1180px; margin: 0 auto; padding: 16px; }
+  /* 1280×720 에서도 손패가 화면 안에 있어야 한다(§2 "화면 하단 손패" · §17 UI 완료조건).
+     문서 흐름이던 때는 페이지가 936px 이 되어 손패 top=797 > 720 → 스크롤해야 자기 패가 보였다.
+     뷰포트 높이 flex 열로 바꿔 손패를 바닥에 고정하고, 남는 높이를 중계/필드가 나눠 갖는다. */
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 12px 16px; height: 100vh; box-sizing: border-box;
+          display: flex; flex-direction: column; gap: 10px; }
+  .wrap > .deck { flex: 0 0 auto; }                    /* 손패는 항상 바닥 */
+  .main { flex: 1 1 auto; min-height: 0; }             /* 남는 높이를 갖되 줄어들 수 있어야 */
+  .main > * { min-height: 0; }
+  .feedwrap { display: flex; flex-direction: column; min-height: 0; height: 100%; }
   .top { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; margin-bottom: 12px; }
   .score { font-size: 24px; font-weight: 800; letter-spacing: 0.3px; }
   .score .a { color: #6f9bff; } .score .b { color: #ff8080; }
@@ -34,7 +42,7 @@
   .main { display: grid; grid-template-columns: 1.25fr 1fr; gap: 14px; align-items: start; }
   .feedwrap { background: #12161c; border: 1px solid #212a34; border-radius: 12px; padding: 4px; }
   .feedhead { font-size: 11px; color: #8090a2; letter-spacing: 0.5px; padding: 7px 10px 4px; text-transform: uppercase; }
-  .feed { height: 540px; overflow-y: auto; padding: 4px 10px 10px; scroll-behavior: smooth; }
+  .feed { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 4px 10px 10px; scroll-behavior: smooth; }
   .line { padding: 4px 2px; border-bottom: 1px solid rgba(255,255,255,0.035); }
   .line .ts { color: #5f6b7a; font-variant-numeric: tabular-nums; font-size: 12px; margin-right: 7px; }
   .line.flow { color: #d3dae3; }
@@ -43,7 +51,9 @@
   .line.goal { color: #ffd54a; font-weight: 800; font-size: 15px; }
   .line.stat { color: #8ea2b8; background: rgba(120,150,190,0.06); border-radius: 6px; padding: 5px 8px; }
   .line.sys { color: #c8d2de; font-weight: 700; text-align: center; border-bottom: none; margin: 6px 0; }
-  canvas { width: 100%; height: auto; display: block; border-radius: 10px; background: #256; box-shadow: 0 6px 20px rgba(0,0,0,0.4); }
+  /* 필드는 남는 높이에 맞춰 줄어든다(비율 유지) — 안 그러면 820×560 고정분이 손패를 폴드 밖으로 민다 */
+  canvas { width: 100%; height: auto; max-height: 100%; object-fit: contain; display: block; border-radius: 10px; background: #256; box-shadow: 0 6px 20px rgba(0,0,0,0.4); }
+  .main > div:last-child { display: flex; flex-direction: column; min-height: 0; }
   .legend { font-size: 12px; color: #7d8a9c; margin-top: 8px; line-height: 1.7; }
 
   .deck { margin-top: 14px; background: #12161c; border: 1px solid #212a34; border-radius: 12px; padding: 12px 14px; }
