@@ -12,7 +12,7 @@ import { FIELD, FORMATION_433, anchorToWorld } from './field.js';
 import { stepPositioning } from './ai.js';
 import { stepPlay, placeKickoff } from './decide.js';
 import { stepCommentary } from './commentary.js';
-import { stepCards } from './hand.js';
+import { stepStance } from './stance.js';
 import { stepEffects, stepResolve } from './effects.js';
 
 export const SIM_HZ = 15;               // 시뮬 주파수(계획서 §3 권장 10~20Hz)
@@ -79,10 +79,10 @@ function makePlayer(teamId, spec, shirt, attackDir) {
  * @param {number} [seed]
  * @param {any} [cfg]  data/engine.json (선수 운동학·형상·압박·GK). 없으면 시계/단계만 도는 골격 모드.
  * @param {any} [commentaryCfg]  data/commentary.json. 주면 실시간 중계(state.feed)·스탯(state.stats) 생성.
- * @param {any} [cardsCfg]  data/cards.json. 주면 지시 카드·CP·상대 AI(김성주 신호) 활성.
+ * @param {any} [stanceCfg]  data/stance.json. 주면 감독 스탠스 카드·빌드업/하이라이트·참모·상대 AI 활성.
  * @returns {MatchState}
  */
-export function createMatch(seed = 1, cfg = null, commentaryCfg = null, cardsCfg = null) {
+export function createMatch(seed = 1, cfg = null, commentaryCfg = null, stanceCfg = null) {
   const rng = createRng(seed);
   const attackDir = { A: /** @type {1} */ (1), B: /** @type {-1} */ (-1) };
 
@@ -102,7 +102,7 @@ export function createMatch(seed = 1, cfg = null, commentaryCfg = null, cardsCfg
     seed,
     cfg,
     commentaryCfg,
-    cardsCfg,
+    stanceCfg,
     phase: 'PRE_KICKOFF',
     half: 1,
     clockSeconds: 0,
@@ -219,7 +219,7 @@ export function tick(state) {
         stepPlay(state, SIM_DT);          // 공 물리·소유·utility 의사결정
         stepPositioning(state, SIM_DT);   // 22명 형상·압박·GK 배치
         clampPlayers(state);              // 선수는 피치를 벗어나지 않는다
-        if (state.cardsCfg) stepCards(state, SIM_DT, state.cardsCfg);   // 덱·손패·CP·전달중·상대 AI(김성주) — 중계 전에
+        if (state.stanceCfg) stepStance(state, SIM_DT, state.stanceCfg);  // 스탠스 전달중·빌드업/하이라이트·참모·상대 AI — 중계 전에
         if (state.commentaryCfg) stepCommentary(state, SIM_DT, state.commentaryCfg);  // 실시간 중계
       }
       state.clockSeconds += SIM_DT;

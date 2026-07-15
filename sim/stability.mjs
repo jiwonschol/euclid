@@ -4,36 +4,36 @@
 
 import { readFileSync } from 'node:fs';
 import { createMatch, tick, HALF_SECONDS } from '../js/game/match.js';
-import { playFromHand, playSub } from '../js/game/hand.js';
+import { selectStance, playSub, acceptAdvice } from '../js/game/stance.js';
 
 const L = (p) => JSON.parse(readFileSync(new URL('../data/' + p, import.meta.url)));
-const cfg = L('engine.json'), com = L('commentary.json'), cards = L('cards.json');
+const cfg = L('engine.json'), com = L('commentary.json'), stc = L('stance.json');
 
 let fail = 0;
 const bad = (m) => { console.log('  ✗ ' + m); fail++; };
 
-// 결정론 스크립트 지시(틱 기준) — 손패 플레이/오디블/교체 경로까지 스트레스.
+// 결정론 스크립트 지시(틱 기준) — 스탠스 선택/오디블/참모 조언/교체 경로까지 스트레스.
 // 200·215 는 전달(2s=30틱) 안쪽 → 두 번째가 오디블. 1400·4300 은 교체.
 const actTicks = new Set([200, 215, 430, 900, 1400, 2500, 4000, 4300]);
 const subTicks = new Set([1400, 4300]);
+const PICKS = [['defend_zone', 'wing'], ['mentality', 'all_out'], ['line', 'up'],
+               ['press', 'high'], ['attack_zone', 'central'], ['defend_zone', 'central']];
 
 function act(s) {
-  const cc = s.cards && s.cards.A; if (!cc) return;
-  for (let i = 0; i < cc.hand.length; i++) {                 // 유효한 첫 손패 카드를 낸다(전달중이면 오디블)
-    const c = cc.hand[i].card;
-    const tgt = c.targetType === 'OPPONENT_PLAYER' ? 'B9' : null;
-    if (playFromHand(s, 'A', i, tgt, cards).ok) break;
-  }
+  if (!s.stance) return;
+  if (s.advice && s.tickCount % 3 === 0) { acceptAdvice(s, stc); return; }   // 참모 조언 경로
+  const [g, o] = PICKS[s.tickCount % PICKS.length];
+  selectStance(s, 'A', g, o, stc);
 }
 
 function runMatch(seed, withDirectives) {
-  const s = createMatch(seed, cfg, com, cards);
+  const s = createMatch(seed, cfg, com, stc);
   let n = 0;
   while (s.phase !== 'FULLTIME' && n < 200000) {
     tick(s); n++;                                   // assertFinite 내장(NaN→throw)
     if (withDirectives) {
       if (actTicks.has(n)) act(s);
-      if (subTicks.has(n)) playSub(s, 'A', 'fw', 2, cards);
+      if (subTicks.has(n)) playSub(s, 'fw', stc);
     }
   }
   return s;

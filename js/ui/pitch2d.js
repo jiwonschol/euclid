@@ -88,6 +88,9 @@ export function draw(view, state, opts = {}) {
   const L = layout(canvas);
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   drawPitch(ctx, L);
+  // 빌드업 구간엔 선수·공을 그리지 않는다(경기장만). 의미 없는 플레이를 재생하지 않는 게
+  // 이 게임의 문법 — 그 시간에 유저는 중계를 읽고 카드로 반응한다.
+  if (opts.hidePlayers) return;
   drawPlayers(ctx, L, state, opts);
   drawBall(ctx, L, state);
 }

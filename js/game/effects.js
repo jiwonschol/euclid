@@ -17,6 +17,7 @@ function defaults() {
     shotBias: 1, dribbleBias: 1, passBias: 1, throughBias: 1, tempo: 1, pressAggression: 1,
     crossEarly: false, overlapSide: null, switchNext: false, transition: null,
     commitForward: 0, manMark: null, nextAction: null,   // gutsThresh 제거: §13 거츠 미구현으로 소비자가 없던 데드 키
+    defendZone: 'balance',   // 수비 방향 스탠스. 상대의 실제 공격 방향(threat)과 맞으면 수비 성공↑, 반대면↓ (stance.threatMul)
   };
 }
 

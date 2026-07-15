@@ -7,6 +7,7 @@ import { stepBallPhysics, launchPass, launchCross, launchShot } from './ball.js'
 import { FIELD, oppGoalX, anchorToWorld, penaltyBoxOf } from './field.js';
 import { dBallOwn } from './shape.js';
 import { resolvedFor, consumeNextAction } from './effects.js';
+import { threatMul } from './stance.js';
 
 const other = (t) => (t === 'A' ? 'B' : 'A');
 const dist2 = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
@@ -80,7 +81,9 @@ function updatePossession(state, dt) {
     // 태클 경합: 캐리어 근처 상대가 controlRadius 내면 매 틱 소량 확률로 탈취(루즈볼)
     const opp = nearestOpp(state, carrier.teamId, carrier.position);
     const mf = carrier.teamId === 'A' ? (state.subBoost?.A?.mf || 0) : 0;
-    if (opp && opp.d <= ctl.controlRadius && state.rng.chance(cfg.action.turnoverBase * dt * (1 - 0.18 * mf))) {  // mf 교체=볼 지키기↑
+    // 읽고 대응: 수비팀의 '수비 방향' 스탠스가 상대의 실제 공격 방향과 맞으면 탈취 확률↑, 반대로 읽었으면↓
+    const tm = state.stanceCfg ? threatMul(state, other(carrier.teamId), state.stanceCfg) : 1;
+    if (opp && opp.d <= ctl.controlRadius && state.rng.chance(cfg.action.turnoverBase * tm * dt * (1 - 0.18 * mf))) {  // mf 교체=볼 지키기↑
       // 태클 접촉 → resolver(§11): 합법이면 아래 루즈볼, 반칙이면 프리킥/PK(+경고/퇴장)
       const res = cfg.foul ? resolveTackle(state, opp.p, carrier, cfg.foul) : { foul: false };
       if (res.foul) { foulRestart(state, opp.p, carrier, res); return; }

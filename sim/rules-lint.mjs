@@ -7,7 +7,7 @@ import { createMatch, tick } from '../js/game/match.js';
 import { FIELD, penaltyBoxOf } from '../js/game/field.js';
 
 const cfg = JSON.parse(readFileSync(new URL('../data/engine.json', import.meta.url)));
-const cards = JSON.parse(readFileSync(new URL('../data/cards.json', import.meta.url)));
+const stc = JSON.parse(readFileSync(new URL('../data/stance.json', import.meta.url)));
 const comm = JSON.parse(readFileSync(new URL('../data/commentary.json', import.meta.url)));
 
 let pass = 0, fail = 0;
@@ -17,7 +17,7 @@ const ok = (c, m) => { if (c) { pass++; console.log(`  ✓ ${m}`); } else { fail
 const N = 20;
 const runs = [];
 for (let seed = 1; seed <= N; seed++) {
-  const s = createMatch(seed, cfg, comm, cards);
+  const s = createMatch(seed, cfg, comm, stc);
   const seen = { pitchViolation: 0, dupRestart: 0 };
   let lastOut = null;
   while (s.phase !== 'FULLTIME') {

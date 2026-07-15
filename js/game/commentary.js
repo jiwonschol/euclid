@@ -98,11 +98,16 @@ function emitEvent(state, C, e) {
     case 'HALFTIME': push(state, `— 전반 종료. ${T('A')} ${e.score.A} : ${e.score.B} ${T('B')} —`, 'sys'); break;
     case 'SECOND_HALF': push(state, `— 후반 시작 —`, 'sys'); break;
     case 'FULLTIME': push(state, `— 경기 종료! 최종 ${T('A')} ${e.score.A} : ${e.score.B} ${T('B')} —`, 'sys'); break;
-    case 'DIRECTIVE_PENDING': push(state, fill(C.directive.pending, { NAME: e.name, SEC: e.sec }), 'directive'); break;
-    case 'DIRECTIVE_AUDIBLE': push(state, fill(C.directive.audible, { NAME: e.name, FROM: e.from }), 'directive'); break;
-    case 'DIRECTIVE_ARRIVED': push(state, fill(C.directive.arrived, { NAME: e.name }), 'directive'); break;
-    case 'SUB': push(state, fill(C.sub || '🔁 교체 — {NAME}.', { NAME: e.name }), 'directive'); break;
-    case 'SIGNAL': { const sig = C.signal[e.key]; if (sig) push(state, fill(e.telegraph ? sig.tele : sig.done, { O: nm.B }), 'signal'); break; }
+    // 감독 스탠스 카드 — 유저가 낸 카드가 '들어갔다'는 걸 반드시 글로 확인시킨다
+    case 'STANCE_PENDING': push(state, fill(C.stance.pending, { GROUP: e.group, NAME: e.name, SEC: e.sec }), 'directive'); break;
+    case 'STANCE_AUDIBLE': push(state, fill(C.stance.audible, { NAME: e.name, FROM: e.from }), 'directive'); break;
+    case 'STANCE_ARRIVED': push(state, fill(C.stance.arrived, { GROUP: e.group, NAME: e.name }), 'directive'); break;
+    case 'OPP_STANCE': push(state, fill(C.stance.opp, { O: T('B'), NAME: e.name }), 'signal'); break;
+    case 'ADVICE': push(state, `🎙️ 참모 — ${e.text}`, 'signal'); break;
+    case 'ADVICE_TAKEN': push(state, `🎙️ 참모의 조언을 받아들입니다.`, 'directive'); break;
+    case 'SUB': push(state, `🔁 교체 — ${e.name}.`, 'directive'); break;
+    case 'SUB_REPORT': push(state, `🔁 ${e.text}`, 'directive'); break;
+    case 'HIGHLIGHT_START': push(state, fill(pick(state, 'hl', C.highlight.start), { T: T(e.team) }), 'goal'); break;
     case 'OFFSIDE': push(state, fill(pick(state, 'offside', C.offside), { T: T(e.team) }), 'play'); break;
     // §11 반칙 — 텍스트가 코어다: 반칙·경고·퇴장은 반드시 중계에 실린다. e.team=반칙한 팀
     case 'FOUL': {
@@ -146,6 +151,18 @@ function emitFlow(state, C) {
   else cm.flowRepeat = 0;
   cm.lastFlow = key;
   push(state, fill(pick(state, 'flow_' + key, C.flow[key] || C.flow.midfield), { T, O }), 'flow');
+
+  // 빌드업(바둑알 꺼짐) 구간엔 '유저가 반응할 근거'를 준다 — 상대가 어디로 오는지.
+  // 이 힌트를 읽고 수비 방향 카드를 고르는 게 이 게임의 문법이다.
+  if (state.seq && state.seq.mode === 'BUILDUP' && C.hint) {
+    const hk = poss === 'A'
+      ? (state.seq.threat === 'wing' ? 'we_wing' : 'we_central')
+      : (state.seq.threat === 'wing' ? 'opp_wing' : 'opp_central');
+    if (hk !== cm.lastHint) {
+      cm.lastHint = hk;
+      push(state, fill(pick(state, 'hint_' + hk, C.hint[hk]), { T, O }), 'signal');
+    }
+  }
 }
 
 function emitStat(state, C) {
