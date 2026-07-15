@@ -68,6 +68,35 @@ export function selectStance(state, team, groupId, optionId, C) {
   return { ok: true, audible: !!prev };
 }
 
+/**
+ * 하프타임 브리핑: 참모가 전반을 요약해 '질의'하고 선수들이 제안한다.
+ * 전반 끝나고 곧장 후반으로 넘기지 않고, 유저가 읽고 고쳐 잡는 시간(§디자이너).
+ * 순수 함수 — rng 미소비.
+ */
+export function halftimeBrief(state, C) {
+  const st = state.stats, out = [];
+  const tot = st.possTicks.A + st.possTicks.B || 1;
+  const poss = Math.round(100 * st.possTicks.A / tot);
+  const diff = state.score.A - state.score.B;
+  out.push({ who: '요약', text: `전반 ${state.score.A} : ${state.score.B} · 점유 ${poss}% · 유효슈팅 ${st.onTarget.A}-${st.onTarget.B} · xG ${st.xg.A.toFixed(1)}-${st.xg.B.toFixed(1)}` });
+
+  // 참모: 전반에 상대가 어디로 왔는지 → 후반 대비를 '질의'
+  const threat = state.seq && state.seq.threat === 'wing' ? 'wing' : 'central';
+  out.push({ who: '참모', text: threat === 'wing'
+    ? '전반 내내 상대가 측면으로 왔습니다. 후반도 그럴 겁니다 — 측면 수비로 잠글까요?'
+    : '상대가 중앙만 노렸습니다. 후반은 중앙을 두껍게 가는 게 맞습니다 — 어떻게 할까요?',
+    suggest: { group: 'defend_zone', option: threat } });
+
+  if (diff < 0) out.push({ who: '참모', text: '지고 있습니다. 후반엔 던져야 합니다.', suggest: { group: 'mentality', option: 'all_out' } });
+  else if (diff > 0) out.push({ who: '참모', text: '앞서고 있습니다. 라인을 내려 지킬까요?', suggest: { group: 'line', option: 'down' } });
+
+  // 선수 제안 — 상태에서 뽑은 직접적인 요구
+  if (poss < 45) out.push({ who: '미드필더', text: '중원에서 볼이 안 옵니다. 템포를 우리가 잡게 해주세요.', suggest: { group: 'mentality', option: 'counter' } });
+  if (st.onTarget.A === 0) out.push({ who: '공격수', text: '슛 각이 안 납니다. 측면에서 올려주면 붙어보겠습니다.', suggest: { group: 'attack_zone', option: 'wing' } });
+  if (st.xg.B > st.xg.A) out.push({ who: '수비수', text: '뒷공간이 계속 열립니다. 라인을 내려주세요.', suggest: { group: 'line', option: 'down' } });
+  return out;
+}
+
 /** 참모 조언 그대로 받아들이기 → 그 스탠스를 낸다. */
 export function acceptAdvice(state, C) {
   ensureStance(state, C);
@@ -113,17 +142,19 @@ function stepSeq(state, C) {
 
   if (s.mode === 'BUILDUP') {
     s.threat = threat;
+    // 하이라이트는 '랠리'다 — 드물고 의미 있어야 한다. 조건이 느슨하면 경기당 205회가 되어
+    // 아무것도 특별하지 않게 된다(실측). 파이널서드 + 패스 누적 + 쿨다운을 모두 요구한다.
     const ready = elapsed >= B.minSec;
+    const cooled = state.clockSeconds - (s.lastEnd || -999) >= B.cooldownSec;
     const real = d > B.highlightFinalThird && passes >= B.highlightMinPasses;
-    if (ready && real) {
+    if (ready && cooled && real) {
       s.mode = 'HIGHLIGHT'; s.since = state.clockSeconds; s.id++;
       log(state, 'HIGHLIGHT_START', { team: poss, threat, passes });
     }
   } else {
-    // 하이라이트 종료: 소유권이 넘어갔거나 공이 파이널서드를 벗어나면
-    if (d < B.highlightFinalThird - 10 || elapsed > 25) {
-      s.mode = 'BUILDUP'; s.since = state.clockSeconds;
-      log(state, 'HIGHLIGHT_END', {});
+    // 하이라이트 종료: 공이 파이널서드를 확실히 벗어나거나 시간 초과
+    if (d < B.highlightFinalThird - 12 || elapsed > B.maxSec) {
+      s.mode = 'BUILDUP'; s.since = state.clockSeconds; s.lastEnd = state.clockSeconds;
     }
   }
 }
@@ -201,7 +232,50 @@ function stepOpp(state, C) {
   }
 }
 
-/** 매 틱: 전달 중 도착 · 시퀀스 모드 · 참모 · 상대 AI · 교체 결과 보고 */
+// ── 지시 성공 (이 게임의 재미 = 감독의 선택) ────────────────
+// 유저가 고른 카드의 '의도'대로 결과가 나오면 알린다. 골이 아니어도 된다 —
+// '측면 수비'를 걸어두고 측면에서 실제로 끊어내면 그게 지시 성공이다.
+const SUCCESS = [
+  { group: 'defend_zone', when: (s, e, R) => e.type === 'TACKLE' && e.team === 'A' && R.defendZone !== 'balance' && R.defendZone === s.seq.threat,
+    text: (o) => `${o} 지시가 통했습니다 — 상대의 공격 방향을 읽고 끊어냈습니다.` },
+  { group: 'defend_zone', when: (s, e, R) => e.type === 'INTERCEPT' && e.team === 'A' && R.defendZone !== 'balance' && R.defendZone === s.seq.threat,
+    text: (o) => `${o} 지시가 통했습니다 — 예상한 길목에서 가로챘습니다.` },
+  { group: 'press', when: (s, e, R) => e.type === 'TACKLE' && e.team === 'A' && R.press === 'high',
+    text: () => `높은 압박이 통했습니다 — 높은 위치에서 볼을 뺏어냅니다.` },
+  { group: 'attack_zone', when: (s, e, R) => (e.type === 'SHOT' || e.type === 'GOAL') && e.team === 'A' && R.attackZone === 'wing' && s.seq.threat === 'wing',
+    text: () => `측면 공격 지시가 통했습니다 — 측면을 열어 슛까지 갔습니다.` },
+  { group: 'attack_zone', when: (s, e, R) => (e.type === 'SHOT' || e.type === 'GOAL') && e.team === 'A' && R.attackZone === 'central' && s.seq.threat === 'central',
+    text: () => `중앙 공격 지시가 통했습니다 — 중앙을 뚫고 슛까지 갔습니다.` },
+  { group: 'mentality', when: (s, e, R) => (e.type === 'SHOT' || e.type === 'GOAL') && e.team === 'A' && R.tactic === 'attack',
+    text: () => `전원 공격이 통했습니다 — 쏟아부은 인원이 슛을 만듭니다.` },
+  { group: 'mentality', when: (s, e, R) => e.type === 'SHOT' && e.team === 'A' && R.tactic === 'counter',
+    text: () => `역습 지시가 통했습니다 — 뺏자마자 단숨에 슛까지.` },
+  { group: 'line', when: (s, e, R) => e.type === 'OFFSIDE' && e.team === 'B' && R.lineHeight === 'high',
+    text: () => `라인 올리기가 통했습니다 — 상대를 오프사이드로 잡았습니다.` },
+];
+
+function stepSuccess(state, C) {
+  const st = state._st;
+  if (st.sucIdx == null) st.sucIdx = 0;
+  const R = state.resolved && state.resolved.A;
+  if (!R) { st.sucIdx = state.eventLog.length; return; }
+  for (; st.sucIdx < state.eventLog.length; st.sucIdx++) {
+    const e = state.eventLog[st.sucIdx];
+    if (state.clockSeconds - (st.sucAt || -999) < (C.successCooldownSec || 120)) continue;
+    for (const r of SUCCESS) {
+      if (state.stance.A[r.group] === 'balance') continue;         // 밸런스는 '선택'이 아니다
+      let hit = false;
+      try { hit = r.when(state, e, R); } catch { hit = false; }
+      if (!hit) continue;
+      const g = groupById(C, r.group), o = optById(g, state.stance.A[r.group]);
+      st.sucAt = state.clockSeconds;
+      log(state, 'DIRECTIVE_SUCCESS', { group: g.name, option: o.name, text: r.text(o.name) });
+      return;
+    }
+  }
+}
+
+/** 매 틱: 전달 중 도착 · 시퀀스 모드 · 참모 · 상대 AI · 교체 결과 보고 · 지시 성공 */
 export function stepStance(state, dt, C) {
   ensureStance(state, C);
   const p = state.pending.A;
@@ -212,6 +286,7 @@ export function stepStance(state, dt, C) {
     state.pending.A = null;
   }
   stepSeq(state, C);
+  stepSuccess(state, C);
   stepAdvisor(state, C);
   stepOpp(state, C);
 

@@ -46,7 +46,9 @@ for (let seed = 1; seed <= 100; seed++) {
   try { s = runMatch(seed, seed % 10 === 0); }
   catch (e) { bad(`시드 ${seed} 예외: ${e.message}`); continue; }
   if (s.phase !== 'FULLTIME') { bad(`시드 ${seed} 풀타임 미도달(데드락?)`); continue; }
-  if (Math.abs(s.clockSeconds - 2 * HALF_SECONDS) > 1) { bad(`시드 ${seed} 시계 이상 ${s.clockSeconds}`); continue; }
+  // 하프 길이는 설정값이다(프로토 플레이=780, 정규=2700) → 5400 하드코딩 금지
+  const full = 2 * (s.halfSeconds || HALF_SECONDS);
+  if (Math.abs(s.clockSeconds - full) > 1) { bad(`시드 ${seed} 시계 이상 ${s.clockSeconds} (기대 ${full})`); continue; }
   const g = s.score.A + s.score.B; goals += g; minG = Math.min(minG, g); maxG = Math.max(maxG, g); done++;
 }
 console.log(`  완주 ${done}/100경기, 골 평균 ${(goals / 100).toFixed(2)} (최소 ${minG} 최대 ${maxG})`);

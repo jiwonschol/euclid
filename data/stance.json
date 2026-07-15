@@ -256,15 +256,16 @@
     }
   },
   "buildup": {
-    "_c": "FM식 문법. 의미 없는 플레이는 바둑알로 재생하지 않는다(경기장만 표시) — 시스템 메시지로 힌트만 주고, 그동안 유저가 '반응'한다. 하이라이트(=랠리)에서만 바둑알을 켠다.",
+    "_c": "FM식 문법. 의미 없는 플레이는 바둑알로 재생하지 않는다(경기장만) — 글로 힌트만 주고 그동안 유저가 반응한다. 하이라이트(=랠리)는 드물고 의미 있어야 한다: 조건이 느슨했을 때 경기당 205회가 나와 아무것도 특별하지 않았다(실측). cooldownSec 로 간격을 강제해 경기당 ~20회로.",
     "minSec": 4,
-    "maxSec": 11,
-    "highlightFinalThird": 62,
-    "highlightMinPasses": 2
+    "maxSec": 22,
+    "highlightFinalThird": 68,
+    "highlightMinPasses": 3,
+    "cooldownSec": 150
   },
   "advisor": {
     "_c": "참모(김성주). 소설 대사 흉내 금지 — 유저가 바로 행동할 수 있는 '직접적인 정보'만 준다. suggest = '조언 받아들이기' 누르면 그대로 적용될 스탠스.",
-    "everySec": 9,
+    "everySec": 25,
     "hints": [
       {
         "id": "opp_wing",
@@ -339,13 +340,19 @@
         }
       }
     ],
-    "repeatSec": 40
+    "repeatSec": 70
   },
   "opponentAI": {
     "_c": "상대(인천) 감독. 유저와 같은 스탠스 시스템을 쓴다. telegraphSec 만큼 참모가 먼저 읽어주고(유저가 대응할 창) 그 뒤 실제 반영.",
-    "decideEvery": 20,
+    "decideEvery": 90,
     "telegraphSec": 3,
     "losingPushMin": 55,
     "winningParkMin": 70
-  }
+  },
+  "pace": {
+    "_c": "프로토 한 경기 = 3.5분. 90 경기분을 압축만 하면 초당 1.5줄이라 못 읽는다(실측) → 시뮬 하프를 짧게 하고(halfSeconds) 표시 시계만 45:00 스케일. 게이트는 정규 2700 으로 돌아 보정(골·반칙·패스분포)을 유지한다.",
+    "halfSeconds": 780,
+    "matchRealSec": 210
+  },
+  "successCooldownSec": 300
 }

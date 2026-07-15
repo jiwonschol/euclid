@@ -4,8 +4,8 @@
     "A": "수원",
     "B": "인천"
   },
-  "beatSec": 1.6,
-  "statSec": 16,
+  "beatSec": 6,
+  "statSec": 200,
   "flow": {
     "buildup_deep": [
       "{T}#가 자기 진영에서 천천히 빌드업합니다.",
@@ -222,5 +222,6 @@
     "end": [
       "— 장면 종료 —"
     ]
-  }
+  },
+  "flowMinGapSec": 120
 }

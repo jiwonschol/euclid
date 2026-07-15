@@ -102,6 +102,26 @@
   .bu { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
         background: rgba(10,14,18,0.82); border-radius: 10px; color: #7f8fa3; font-size: 15px; letter-spacing: 1px; pointer-events: none; }
   .pitchwrap { position: relative; min-height: 0; flex: 1 1 auto; display: flex; }
+  /* 지시 성공 — 이 게임의 재미는 '감독의 선택'이 통했다는 확인이다 */
+  .succ { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+          gap: 6px; pointer-events: none; opacity: 0; transition: opacity .2s; }
+  .succ.show { opacity: 1; }
+  .succ b { font-size: 30px; font-weight: 900; color: #ffd54a; text-shadow: 0 3px 14px rgba(0,0,0,.9); letter-spacing: 2px; }
+  .succ span { font-size: 14px; color: #fff; background: rgba(10,14,18,.82); padding: 5px 12px; border-radius: 8px; }
+  /* 하프타임 — 참모 질의 + 선수 제안 */
+  .htback { position: fixed; inset: 0; background: rgba(4,6,9,.78); z-index: 40; display: none; }
+  .htback.show { display: block; }
+  .ht { position: fixed; left: 50%; top: 50%; transform: translate(-50%,-50%); width: min(680px, 92vw);
+        max-height: 82vh; background: #12161c; border: 1px solid #34506e; border-radius: 14px; padding: 20px 24px;
+        overflow-y: auto; display: none; flex-direction: column; gap: 11px; z-index: 41;
+        box-shadow: 0 20px 60px rgba(0,0,0,.7); }
+  .ht.show { display: flex; }
+  .ht h3 { margin: 0 0 4px; font-size: 22px; color: #ffd54a; }
+  .htrow { display: flex; gap: 11px; align-items: center; font-size: 15px; padding: 7px 0; border-top: 1px solid #1e2733; }
+  .htw { flex: 0 0 66px; color: #7f8fa3; font-weight: 700; font-size: 13px; }
+  .htt { flex: 1; color: #dbe6f2; }
+  .htb { font-size: 12px; padding: 5px 12px; background: #2563c9; border: 0; color: #fff; border-radius: 6px; cursor: pointer; white-space: nowrap; }
+  .htgo { margin-top: 10px; align-self: center; font-size: 16px; font-weight: 700; padding: 9px 24px; background: #2f7d3a; border: 0; color: #fff; border-radius: 9px; cursor: pointer; }
   .pitchwrap > canvas { max-height: 100%; align-self: flex-start; }
 </style>
 </head>
@@ -135,6 +155,14 @@
       <div class="lbl">유효슈팅</div>
       <div class="shots"><span class="a" id="stA">0</span> <small>·</small> <span class="b" id="stB">0</span></div>
     </div>
+    <div class="stat">
+      <div class="lbl">xG (기대득점)</div>
+      <div class="shots"><span class="a" id="xgA">0.0</span> <small>·</small> <span class="b" id="xgB">0.0</span></div>
+    </div>
+    <div class="stat">
+      <div class="lbl">코너킥</div>
+      <div class="shots"><span class="a" id="ckA">0</span> <small>·</small> <span class="b" id="ckB">0</span></div>
+    </div>
   </div>
 
   <div class="main">
@@ -143,7 +171,7 @@
       <div class="feed" id="feed"></div>
     </div>
     <div>
-      <div class="pitchwrap"><canvas id="pitch" width="820" height="560"></canvas><div class="bu" id="bu" style="display:none">빌드업 — 중계로 상황을 읽으세요</div></div>
+      <div class="pitchwrap"><canvas id="pitch" width="820" height="560"></canvas><div class="bu" id="bu" style="display:none">빌드업 — 중계로 상황을 읽으세요</div><div class="succ" id="succ"><b>지시 성공</b><span id="succt"></span></div></div>
       <div class="legend">파랑 수원 · 빨강 인천 · 노랑/초록 GK. 흰 테두리=볼 소유, 노란 링=압박.<br>
         경기는 <b>글(중계)</b>로 읽고, 바둑판은 그 실현입니다.</div>
     </div>
@@ -164,21 +192,25 @@
     <div class="subrow" id="subrow"></div>
   </div>
 </div>
+<div class="htback" id="htback"></div>
+<div class="ht" id="ht"></div>
 
 <script type="module">
-  import { createMatch, tick, SIM_DT } from './js/game/match.js';
+  import { createMatch, tick, SIM_DT, HALF_SECONDS } from './js/game/match.js';
   import { makeView, draw, pickPlayer } from './js/ui/pitch2d.js';
-  import { selectStance, acceptAdvice, playSub } from './js/game/stance.js';
+  import { selectStance, acceptAdvice, playSub, halftimeBrief } from './js/game/stance.js';
   import { resolvedFor } from './js/game/effects.js';
   const $ = (id) => document.getElementById(id);
   const view = makeView($('pitch'));
   let cfg = null, com = null, stc = null, state = null, playing = true, speed = 1, acc = 0, last = performance.now(), seed = 1, feedId = 0;
 
   const fmt = (s) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+  // 시뮬 하프는 짧지만(프로토 3.5분) 시계는 45:00 하프로 보여준다 — 축구를 보고 있다는 감각.
+  const shown = (t) => t * (HALF_SECONDS / (state?.halfSeconds || HALF_SECONDS));
 
   function hud() {
     $('sa').textContent = state.score.A; $('sb').textContent = state.score.B;
-    $('clock').textContent = `${fmt(state.clockSeconds)} · ${state.half === 1 ? '전반' : '후반'}`;
+    $('clock').textContent = `${fmt(shown(state.clockSeconds))} · ${state.half === 1 ? '전반' : '후반'}`;
     $('phase').textContent = state.phase === 'IN_PLAY' ? '경기 중' : state.phase;
   }
   function stats() {
@@ -192,6 +224,8 @@
     if (m >= 0) { fill.style.left = (50 - pct) + '%'; fill.style.width = pct + '%'; fill.style.background = '#3a63c4'; }
     else { fill.style.left = '50%'; fill.style.width = pct + '%'; fill.style.background = '#c44a4a'; }
     $('stA').textContent = s.onTarget.A; $('stB').textContent = s.onTarget.B;
+    $('xgA').textContent = s.xg.A.toFixed(1); $('xgB').textContent = s.xg.B.toFixed(1);
+    $('ckA').textContent = s.corners.A; $('ckB').textContent = s.corners.B;
   }
   function feed() {
     if (!state.feed) return;
@@ -200,7 +234,7 @@
       if (f.id <= feedId) continue; feedId = f.id;
       const div = document.createElement('div');
       div.className = 'line ' + f.kind;
-      if (f.kind !== 'sys') { const ts = document.createElement('span'); ts.className = 'ts'; ts.textContent = fmt(f.t); div.appendChild(ts); }
+      if (f.kind !== 'sys') { const ts = document.createElement('span'); ts.className = 'ts'; ts.textContent = fmt(shown(f.t)); div.appendChild(ts); }
       div.appendChild(document.createTextNode(f.text));
       box.appendChild(div);
     }
@@ -283,18 +317,62 @@
     renderSubs(); renderStance(); renderAdvice();
   }
 
+  // ── 지시 성공: 마지막 DIRECTIVE_SUCCESS 를 피치 중앙에 띄우고 그 시퀀스를 보여준다 ──
+  let succSeen = 0, succUntil = 0;
+  function succ() {
+    const evs = state.eventLog;
+    for (let i = evs.length - 1; i >= 0 && i >= evs.length - 40; i--) {
+      const e = evs[i];
+      if (e.type !== 'DIRECTIVE_SUCCESS') continue;
+      if (e.t > succSeen) { succSeen = e.t; succUntil = performance.now() + 2600; $('succt').textContent = e.text; }
+      break;
+    }
+    $('succ').classList.toggle('show', performance.now() < succUntil);
+  }
+
+  // ── 하프타임: 참모 질의 + 선수 제안 → 유저가 고쳐 잡고 '후반 시작' ──
+  let htBuilt = false;
+  function halftime() {
+    const on = state.phase === 'HALFTIME';
+    $('ht').classList.toggle('show', on); $('htback').classList.toggle('show', on);
+    if (!on) { htBuilt = false; return; }
+    if (htBuilt) return;
+    htBuilt = true;
+    const box = $('ht'); box.innerHTML = '<h3>하프타임</h3>';
+    for (const b of halftimeBrief(state, stc)) {
+      const row = document.createElement('div'); row.className = 'htrow';
+      row.innerHTML = `<div class="htw">${b.who}</div><div class="htt">${b.text}</div>`;
+      if (b.suggest) {
+        const btn = document.createElement('button'); btn.className = 'htb'; btn.textContent = '받아들이기';
+        btn.onclick = () => { selectStance(state, 'A', b.suggest.group, b.suggest.option, stc); btn.textContent = '적용됨'; btn.disabled = true; };
+        row.appendChild(btn);
+      }
+      box.appendChild(row);
+    }
+    const go = document.createElement('button'); go.className = 'htgo'; go.textContent = '후반 시작 ▶';
+    go.onclick = () => { state.resumeRequested = true; $('ht').classList.remove('show'); $('htback').classList.remove('show'); };
+    box.appendChild(go);
+  }
+
   function frame(now) {
     const dt = Math.min(0.1, (now - last) / 1000); last = now;
-    if (playing && state) { acc += dt * speed; let n = 0; while (acc >= SIM_DT && n < 2000) { tick(state); acc -= SIM_DT; n++; } }
+    if (playing && state) { acc += dt * speed * baseRate(); let n = 0; while (acc >= SIM_DT && n < 6000) { tick(state); acc -= SIM_DT; n++; } }
     if (state) {
       const bu = state.seq && state.seq.mode === 'BUILDUP';
       draw(view, state, { hidePlayers: bu });      // 빌드업: 경기장만 — 유저는 글로 읽고 반응한다
       $('bu').style.display = bu ? '' : 'none';
-      hud(); stats(); feed(); deck();
+      hud(); stats(); feed(); deck(); succ(); halftime();
     }
     requestAnimationFrame(frame);
   }
-  function newGame() { state = createMatch(seed, cfg, com, stc); acc = 0; feedId = 0; $('feed').innerHTML = ''; }
+    // 압축 배율(마스터 §3): 시뮬은 5400 경기초를 그대로 돌리고 실시간만 압축한다.
+  // 안 하면 1× = 90분 실플레이가 되어 "경기가 안 끝난다"(디자이너 지적 #1).
+  const baseRate = () => (2 * (state?.halfSeconds || HALF_SECONDS)) / (stc.pace?.matchRealSec || 210);
+  function newGame() {
+    state = createMatch(seed, cfg, com, stc);
+    state.haltAtHalftime = true;        // 하프타임에 멈춘다(참모 질의·선수 제안)
+    acc = 0; feedId = 0; htBuilt = false; $('feed').innerHTML = ''; $('ht').classList.remove('show'); $('htback').classList.remove('show');
+  }
   window.__dbg = { state: () => state, tick: (n) => { for (let i = 0; i < (n || 1); i++) tick(state); return state.clockSeconds; } };
 
   $('play').onclick = () => { playing = !playing; $('play').textContent = playing ? '❚❚ 일시정지' : '▶ 재생'; $('play').classList.toggle('on', playing); };

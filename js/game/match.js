@@ -17,7 +17,9 @@ import { stepEffects, stepResolve } from './effects.js';
 
 export const SIM_HZ = 15;               // 시뮬 주파수(계획서 §3 권장 10~20Hz)
 export const SIM_DT = 1 / SIM_HZ;       // 한 틱 = 1/15 경기초
-export const HALF_SECONDS = 45 * 60;    // 전·후반 각 2700 경기초
+export const HALF_SECONDS = 45 * 60;    // 정규 전·후반 각 2700 경기초(게이트·보정 기준)
+// 프로토 한 경기를 3~4분에 끝내려면 90 경기분을 압축만 해선 안 된다(25.7x → 초당 1.5줄, 못 읽음).
+// 시뮬 자체를 짧게 하고(halfSeconds) 표시 시계만 45:00 스케일로 보여준다.
 
 /**
  * @typedef {'PRE_KICKOFF'|'KICKOFF'|'IN_PLAY'|'HALFTIME'|'FULLTIME'} MatchPhase
@@ -100,6 +102,7 @@ export function createMatch(seed = 1, cfg = null, commentaryCfg = null, stanceCf
   /** @type {MatchState} */
   const state = {
     seed,
+    halfSeconds: (stanceCfg && stanceCfg.pace && stanceCfg.pace.halfSeconds) || HALF_SECONDS,
     cfg,
     commentaryCfg,
     stanceCfg,
@@ -223,8 +226,9 @@ export function tick(state) {
         if (state.commentaryCfg) stepCommentary(state, SIM_DT, state.commentaryCfg);  // 실시간 중계
       }
       state.clockSeconds += SIM_DT;
-      const half1End = state.half === 1 && state.clockSeconds >= HALF_SECONDS;
-      const half2End = state.half === 2 && state.clockSeconds >= 2 * HALF_SECONDS;
+      const H = state.halfSeconds || HALF_SECONDS;
+      const half1End = state.half === 1 && state.clockSeconds >= H;
+      const half2End = state.half === 2 && state.clockSeconds >= 2 * H;
       if (half1End) {
         state.phase = 'HALFTIME';
         logEvent(state, 'HALFTIME', { score: { ...state.score } });
@@ -236,6 +240,11 @@ export function tick(state) {
     }
 
     case 'HALFTIME':
+      // 전반이 끝나면 곧장 후반으로 넘기지 않는다 — 참모가 질의하고 선수가 제안하는 하프타임.
+      // 유저가 '후반 시작'을 누를 때까지 멈춘다. haltAtHalftime 은 뷰어만 켠다
+      // (헤드리스 시뮬은 while(phase!=='FULLTIME') 로 도므로 켜면 영원히 멈춘다).
+      if (state.haltAtHalftime && !state.resumeRequested) break;
+      state.resumeRequested = false;
       state.half = 2;
       flipDirections(state);          // 진영·좌우 앵커 반전 (§3/§11)
       resetToFormation(state);

@@ -92,7 +92,7 @@ console.log('\n7) 참모: 직접적인 정보 + 받아들이면 그대로 적용
   const s = mk(7);
   run(s, 20000);
   const adv = s.eventLog.filter((e) => e.type === 'ADVICE');
-  ok(adv.length >= 10, `참모가 계속 개입한다 (${adv.length}회) — 영구 dedupe 였을 땐 2회뿐이었다`);
+  ok(adv.length >= 12, `참모가 계속 개입한다 (${adv.length}회, 실시간 ~10초당 1회) — 영구 dedupe 였을 땐 2회뿐이었다`);
   ok(adv.every((e) => e.group && e.option), '모든 조언이 실행 가능한 스탠스를 제안');
   // 조언 받아들이기 → 그 스탠스가 그대로 들어간다
   let took = false;

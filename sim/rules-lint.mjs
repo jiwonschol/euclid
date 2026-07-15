@@ -7,7 +7,10 @@ import { createMatch, tick } from '../js/game/match.js';
 import { FIELD, penaltyBoxOf } from '../js/game/field.js';
 
 const cfg = JSON.parse(readFileSync(new URL('../data/engine.json', import.meta.url)));
-const stc = JSON.parse(readFileSync(new URL('../data/stance.json', import.meta.url)));
+const stcRaw = JSON.parse(readFileSync(new URL('../data/stance.json', import.meta.url)));
+// 반칙 빈도는 '정규 90분' 기준 보정이다. 프로토 플레이 길이(pace.halfSeconds)로 재면
+// 6.8/경기가 나와 게이트가 무의미해진다 → 여기선 정규 하프로 돌려 보정을 검증한다.
+const stc = { ...stcRaw, pace: { ...stcRaw.pace, halfSeconds: 2700 } };
 const comm = JSON.parse(readFileSync(new URL('../data/commentary.json', import.meta.url)));
 
 let pass = 0, fail = 0;
