@@ -39,7 +39,7 @@
   .shots { font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; }
   .shots .a { color: #8fb0ff; } .shots .b { color: #ff9d9d; } .shots small { font-size: 12px; color: #7d8a9c; font-weight: 500; }
 
-  .main { display: grid; grid-template-columns: 1.35fr 1fr; gap: 14px; align-items: stretch; overflow: hidden; }
+  .main { display: grid; grid-template-columns: 1fr 1.3fr; gap: 14px; align-items: stretch; }
   .feedwrap { background: #12161c; border: 1px solid #212a34; border-radius: 12px; padding: 4px; }
   .feedhead { font-size: 11px; color: #8090a2; letter-spacing: 0.5px; padding: 7px 10px 4px; text-transform: uppercase; }
   .feed { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 4px 12px 12px; scroll-behavior: smooth; font-size: 21px; line-height: 1.62; }
@@ -51,8 +51,9 @@
   .line.goal { color: #ffd54a; font-weight: 800; font-size: 15px; }
   .line.stat { color: #8ea2b8; background: rgba(120,150,190,0.06); border-radius: 6px; padding: 5px 8px; }
   .line.sys { color: #c8d2de; font-weight: 700; text-align: center; border-bottom: none; margin: 6px 0; }
-  /* 필드는 남는 높이에 맞춰 줄어든다(비율 유지) — 안 그러면 820×560 고정분이 손패를 폴드 밖으로 민다 */
-  canvas { width: 100%; height: auto; max-height: 100%; object-fit: contain; display: block; border-radius: 10px; background: #256; box-shadow: 0 6px 20px rgba(0,0,0,0.4); }
+  /* 경기장은 실제 축구장 비율(105:68)을 지키고 화면 높이로만 상한을 둔다.
+     이전 구현은 부모가 높이를 못 받아 483×31 픽셀(화면의 1.6%) 띠로 눌렸다 — 22명이 31px 안에 들어갔다. */
+  canvas { width: 100%; height: 100%; display: block; border-radius: 10px; background: #256; box-shadow: 0 6px 20px rgba(0,0,0,0.4); }
   .main > div:last-child { display: flex; flex-direction: column; min-height: 0; }
   .legend { font-size: 12px; color: #7d8a9c; margin-top: 8px; line-height: 1.7; }
 
@@ -101,7 +102,8 @@
   .advq { color: #6b7a8c; font-size: 14px; }
   .bu { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
         background: rgba(10,14,18,0.82); border-radius: 10px; color: #7f8fa3; font-size: 15px; letter-spacing: 1px; pointer-events: none; }
-  .pitchwrap { position: relative; min-height: 0; flex: 1 1 auto; display: flex; }
+  .pitchwrap { position: relative; aspect-ratio: 105 / 68; max-height: 58vh;
+               width: min(100%, calc(58vh * 105 / 68)); margin: 0 auto; flex: 0 0 auto; display: flex; }
   /* 지시 성공 — 이 게임의 재미는 '감독의 선택'이 통했다는 확인이다 */
   .succ { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
           gap: 6px; pointer-events: none; opacity: 0; transition: opacity .2s; }
@@ -122,7 +124,7 @@
   .htt { flex: 1; color: #dbe6f2; }
   .htb { font-size: 12px; padding: 5px 12px; background: #2563c9; border: 0; color: #fff; border-radius: 6px; cursor: pointer; white-space: nowrap; }
   .htgo { margin-top: 10px; align-self: center; font-size: 16px; font-weight: 700; padding: 9px 24px; background: #2f7d3a; border: 0; color: #fff; border-radius: 9px; cursor: pointer; }
-  .pitchwrap > canvas { max-height: 100%; align-self: flex-start; }
+  .pitchwrap > canvas { width: 100%; height: 100%; }
 </style>
 </head>
 <body>
@@ -368,7 +370,7 @@
     if (playing && state) { acc += dt * speed * baseRate(); let n = 0; while (acc >= SIM_DT && n < 6000) { tick(state); acc -= SIM_DT; n++; } }
     if (state) {
       const bu = state.seq && state.seq.mode === 'BUILDUP';
-      draw(view, state, { hidePlayers: bu });      // 빌드업: 경기장만 — 유저는 글로 읽고 반응한다
+      draw(view, state, {});                       // 22명은 항상 보인다 — 빈 경기장은 축구로 읽히지 않는다
       $('bu').style.display = bu ? '' : 'none';
       hud(); stats(); feed(); deck(); succ(); halftime();
     }
