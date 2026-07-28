@@ -1,0 +1,91 @@
+{
+  "round": "0",
+  "seed": 3,
+  "policy": "good",
+  "gitRev": "1f71494",
+  "node": "v26.4.0",
+  "dataHashes": {
+    "engine.json": "7eb3c1dd507e7287",
+    "commentary.json": "1d0c4b34c501ea15",
+    "stance.json": "be28fa12e04cd849"
+  },
+  "deterministic": true,
+  "missingShots": [],
+  "result": {
+    "score": {
+      "A": 2,
+      "B": 2
+    },
+    "ticks": 23406,
+    "feedLines": 137,
+    "tokenLeaks": 3
+  },
+  "shots": [
+    {
+      "id": "kickoff",
+      "requested": "킥오프 직후",
+      "capturedAtTick": 20,
+      "clock": 1.2
+    },
+    {
+      "id": "attacking-box",
+      "requested": "공이 상대 박스 안",
+      "capturedAtTick": 104,
+      "clock": 6.8
+    },
+    {
+      "id": "after-goal",
+      "requested": "득점 직후",
+      "capturedAtTick": 1053,
+      "clock": 70.1
+    },
+    {
+      "id": "buildup",
+      "requested": "빌드업 중(유저가 글을 읽는 구간)",
+      "capturedAtTick": 1803,
+      "clock": 120.1
+    },
+    {
+      "id": "highlight",
+      "requested": "하이라이트 중(분기점)",
+      "capturedAtTick": 3364,
+      "clock": 224.1
+    },
+    {
+      "id": "second-half",
+      "requested": "후반",
+      "capturedAtTick": 13505,
+      "clock": 900
+    }
+  ],
+  "files": [
+    {
+      "f": "pitch-after-goal.png",
+      "sha": "2ad3b49e4023379f"
+    },
+    {
+      "f": "pitch-attacking-box.png",
+      "sha": "d8725e9ce9b44d0f"
+    },
+    {
+      "f": "pitch-buildup.png",
+      "sha": "d136a599289d4043"
+    },
+    {
+      "f": "pitch-highlight.png",
+      "sha": "5c2ff0f4b79e5385"
+    },
+    {
+      "f": "pitch-kickoff.png",
+      "sha": "5e1608e745656202"
+    },
+    {
+      "f": "pitch-second-half.png",
+      "sha": "58cd09e898819f58"
+    },
+    {
+      "f": "report.md",
+      "sha": "e8eae960bd2e7fa6"
+    }
+  ]
+}

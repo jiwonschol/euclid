@@ -204,6 +204,15 @@
   const view = makeView($('pitch'));
   let cfg = null, com = null, stc = null, state = null, playing = true, speed = 1, acc = 0, last = performance.now(), seed = 1, feedId = 0;
 
+  // 캡처용 URL 파라미터 (goal-harness 연출대). ?seed=3&pauseAt=600&autoplay=0
+  // pauseAt 은 '경기초'. 그 지점까지 최고속으로 감고 멈춘 뒤 window.__capture.ready 를 세운다.
+  // 캡처 도구는 ready 와 함께 실린 clock 이 요청값과 맞는지 반드시 확인한다 — 안 그러면
+  // 로딩 중 화면이나 직전 상태를 이번 회차 그림으로 보고하게 된다.
+  const Q = new URLSearchParams(location.search);
+  const Q_SEED = Q.has('seed') ? parseInt(Q.get('seed'), 10) : null;
+  const Q_PAUSE = Q.has('pauseAt') ? parseFloat(Q.get('pauseAt')) : null;
+  window.__capture = { ready: false, clock: null, requested: Q_PAUSE, seed: Q_SEED };
+
   const fmt = (s) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
   // 시뮬 하프는 짧지만(프로토 3.5분) 시계는 45:00 하프로 보여준다 — 축구를 보고 있다는 감각.
   const shown = (t) => t * (HALF_SECONDS / (state?.halfSeconds || HALF_SECONDS));
@@ -381,7 +390,21 @@
   $('advb').onclick = () => { const r = acceptAdvice(state, stc); if (!r.ok) toast(r.reason); };
 
   Promise.all([fetch('./data/engine.json').then(r => r.json()), fetch('./data/commentary.json').then(r => r.json()), fetch('./data/stance.json').then(r => r.json())])
-    .then(([e, c, sc]) => { cfg = e; com = c; stc = sc; newGame(); requestAnimationFrame(frame); })
+    .then(([e, c, sc]) => {
+      cfg = e; com = c; stc = sc;
+      if (Q_SEED !== null) seed = Q_SEED;
+      newGame();
+      if (Q_PAUSE !== null) {                       // 결정론 캡처: 요청한 경기초까지 감고 멈춘다
+        let guardTicks = 0;
+        while (state.clockSeconds < Q_PAUSE && state.phase !== 'FULLTIME' && guardTicks++ < 300000) tick(state);
+        state.resumeRequested = true;               // 하프타임 정지에 걸려 못 넘어가는 것 방지
+        playing = false;
+        $('play').textContent = '▶ 재생'; $('play').classList.remove('on');
+        window.__capture = { ready: true, clock: state.clockSeconds, requested: Q_PAUSE, seed,
+                            reachedEnd: state.phase === 'FULLTIME', ticks: state.tickCount };
+      } else if (Q.get('autoplay') === '0') { playing = false; $('play').textContent = '▶ 재생'; $('play').classList.remove('on'); }
+      requestAnimationFrame(frame);
+    })
     .catch((err) => { document.body.insertAdjacentHTML('beforeend', `<p style="color:#f88">로드 실패: ${err}. tools/serve.py 로 실행하세요.</p>`); });
 </script>
 </body>

@@ -13,6 +13,9 @@
     "sim:rules": "node sim/rules-lint.mjs",
     "sim:stability": "node sim/stability.mjs",
     "start": "python3 tools/serve.py 8642",
-    "sim:stance": "node sim/stance-lint.mjs"
+    "sim:stance": "node sim/stance-lint.mjs",
+    "sim:realism": "node sim/realism-lint.mjs --matches 12 --delta-matches 40",
+    "loop:report": "node sim/report.mjs",
+    "loop:guard": "node .claude/loop/guard.mjs"
   }
 }
