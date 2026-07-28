@@ -165,8 +165,12 @@ function updatePossession(state, dt) {
   if (best && bd <= Math.max(radius, ctl.controlRadius)) {
     if (b.mode === 'LOOSE' || sp <= ctl.controlSpeedMax) {
       // 오프사이드: 공격팀 선수가 오프사이드 패스를 받으면(관여) 수비팀 프리킥
-      if (b._offside && best.teamId === b._offside.team && (b.mode === 'GROUND_PASS' || b.mode === 'AERIAL_PASS')) {
-        offsideRestart(state, b._offside); b._offside = null; return;
+      // 오프사이드 위치에 있던 '그 선수'가 실제로 관여했을 때만 반칙이다(Law 11).
+      if (b._offside && (b.mode === 'GROUND_PASS' || b.mode === 'AERIAL_PASS')
+          && best.teamId === b._offside.team && b._offside.ids[best.id]) {
+        const at = b._offside.ids[best.id];
+        offsideRestart(state, { team: b._offside.team, x: at.x, z: at.z });
+        b._offside = null; return;
       }
       const intercept = b.intendedTargetPlayerId && best.teamId !== b.lastTouchTeamId;
       gainControl(state, best, intercept ? 'INTERCEPT' : (b.mode === 'LOOSE' ? 'COLLECT' : null));
@@ -180,7 +184,7 @@ function leadPoint(mate) { return { x: mate.position.x + mate.velocity.x * 0.4, 
 
 // 오프사이드 위치 판정(마스터 §10 실용 핵심): 상대 진영 + 공보다 앞 + 세컨드-라스트 수비보다 앞.
 // margin: 판정 여유(m). 콜 판정은 0.3, AI 회피는 큰 margin(명백할 때만 회피 → 아슬아슬한 건 콜되어 텍스트 드라마).
-function isOffside(state, receiver, team, margin = 0.3) {
+export function isOffside(state, receiver, team, margin = 0.3) {
   const dir = state.attackDirection[team], oppDir = -dir;
   const recvOwn = dBallOwn(dir, receiver.position.x);
   if (recvOwn <= FIELD.halfLength) return false;                       // 자기 진영 → 온사이드
@@ -333,7 +337,20 @@ function decideAction(state, carrier, dir) {
     if (pick.aerial) launchCross(b, carrier.position, pick.lp, pick.mate.id, carrier.teamId, carrier.id, cfg.ball);
     else launchPass(b, carrier.position, pick.lp, pick.mate.id, carrier.teamId, carrier.id, cfg.ball);
     // 패스 순간 오프사이드 스냅샷(수신자가 실제로 받으면 콜)
-    b._offside = isOffside(state, pick.mate, carrier.teamId) ? { team: carrier.teamId, x: pick.mate.position.x, z: pick.mate.position.z } : null;
+    // 오프사이드 스냅샷(Law 11): 판정 시점은 '동료가 공을 찬 순간'이고, 대상은 팀이 아니라 **사람**이다.
+    // 그래서 의도한 수신자 한 명이 아니라 그 순간 오프사이드 위치에 있던 동료 전원을 기록한다.
+    // 예전에는 (a) 의도 수신자만 검사해 오프사이드 위치의 다른 선수가 달려와 받으면 놓쳤고,
+    // (b) 수신 시 팀만 대조해 완전히 온사이드인 동료가 받아도 오프사이드를 선언했다(오심).
+    b._offside = null;
+    const offIds = {};
+    let anyOff = false;
+    for (const m of Object.values(state.players)) {
+      if (m.teamId !== carrier.teamId || m.id === carrier.id || m.sentOff) continue;
+      if (!isOffside(state, m, carrier.teamId)) continue;
+      offIds[m.id] = { x: m.position.x, z: m.position.z };
+      anyOff = true;
+    }
+    if (anyOff) b._offside = { team: carrier.teamId, ids: offIds };
     carrier.hasBall = false;
     state._seqPasses = (state._seqPasses || 0) + 1;
     log(state, pick.aerial ? 'CROSS' : (pick.kind === 'through' ? 'THROUGH' : 'PASS'), { by: carrier.id, to: pick.mate.id, team: carrier.teamId });

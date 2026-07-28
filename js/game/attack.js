@@ -64,6 +64,9 @@ export function assignAttackTargets(state, team) {
   // 서포트 외 오프-볼 선수가 공에서 최소 이만큼 떨어진 곳을 목표로 잡는다(m).
   // 크게 잡을수록 뭉침은 줄지만 압박 접점이 줄어 소유가 길어진다(sim:seq 와 트레이드오프) → 튜너블.
   const OFFBALL_MIN_BALL_DIST = state.cfg?.shape?.offBallMinBallDist ?? 16;
+  // 러너가 오프사이드 라인에 1.2m 까지 붙어 서 있으면 라인이 조금만 움직여도 넘어간다
+  // (실측 오프사이드 10.3회/경기, 실축 4.0). 실제 공격수는 몇 미터 여유를 두고 타이밍을 잡는다.
+  const ONSIDE_MARGIN = state.cfg?.shape?.onsideMargin ?? 3.5;
   let lateCount = 0;
   const maxLate = 1 + (commit >= 1 ? Math.min(2, Math.round(commit)) : 0);
   const targets = {};
@@ -77,19 +80,19 @@ export function assignAttackTargets(state, team) {
       tx = carrier.position.x + dir * 6;                 // 캐리어 앞·옆 → 짧은 패스 삼각형
       tz = carrier.position.z + (supportSide[p.id] ?? side) * 14;   // 캐리어에서 10.8m→15.2m (실축 서포트 거리). 인원은 2명 그대로라 패스 각 2개는 유지된다
     } else if (p.role === 'FB' && wingSide !== 0 && side === wingSide) {
-      tx = onside(dir, ball.x + dir * 14, olX, 2);        // 측면 존 오버랩(풀백 전진)
+      tx = onside(dir, ball.x + dir * 14, olX, ONSIDE_MARGIN);   // 측면 존 오버랩(풀백 전진)
       tz = side * 26;
     } else if (p.role === 'W') {                          // 윙어: 폭 유지·측면 전개, 반대쪽 윙어는 박스 침투
-      tx = onside(dir, olX, olX, 1.2);
+      tx = onside(dir, olX, olX, ONSIDE_MARGIN);
       if (wingSide !== 0 && side === wingSide) tz = side * 27;          // 존 사이드: 넓게(크로스 올림)
       else if (wingSide !== 0) tz = wingSide * -10;                     // 반대쪽 윙어: 파포스트로 침투(크로스 타깃)
       else tz = side * 21;                                              // 중앙 공격: 폭 유지
     } else if (ax >= 0.62) {                              // 스트라이커: 중앙(또는 존 쪽) 라인 침투
-      tx = onside(dir, olX, olX, 1.2);
+      tx = onside(dir, olX, olX, ONSIDE_MARGIN);
       tz = wingSide === 0 ? side * 6 : wingSide * 9;
     } else if (finalThird && lateCount < maxLate) {      // 레이트런(박스 침투) — 전원 공격 시 인원↑
       lateCount++;
-      tx = onside(dir, goalX - dir * 13, olX, 1.5);
+      tx = onside(dir, goalX - dir * 13, olX, ONSIDE_MARGIN);
       tz = side * (lateCount % 2 ? 8 : -8);
     } else {                                             // 나머지 미드: 전진하되 자기 레인을 지킨다
       // 예전엔 tz = ball.z + side*12 로 z 를 공에 직접 묶었다. 기본(중앙) 전술에서 FB×2·DM·CM×2 가
