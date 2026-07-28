@@ -241,9 +241,21 @@ function decideAction(state, carrier, dir) {
   if (dGoal <= shotRange) {
     const dgk = Object.values(state.players).find((p) => p.teamId === defTeam && p.role === 'GK' && !p.sentOff);
     const gkZ = dgk ? dgk.position.z : 0;
-    const cornerZ = gkZ >= 0 ? -FIELD.goalHalfWidth : FIELD.goalHalfWidth;       // GK 반대쪽 먼 코너
-    const openness = clamp((Math.abs(cornerZ - gkZ) - 3.4) / 6, 0.04, 1);        // GK가 커버 못 하는 여유(가팔라야 막힌슛 안 쏨)
-    const u = A.wShot * shotMul * buildMul * (1 - dGoal / shotRange) * shotAngleQuality(carrier.position)
+    // 골문 중 GK 가 못 덮는 비율. 예전 정의는 "GK 가 한쪽 코너를 비웠는가"(|반대코너−gkZ|)라서
+    // 골키퍼를 골문 중앙에 제대로 세우면 값이 하한으로 떨어져 아무도 슛을 안 쐈다(실측: 4경기 슛 0개).
+    // 즉 슛이 나오던 유일한 이유가 GK 의 잘못된 위치였다. 실제 축구에서 키퍼가 덮는 폭을 정하는 것은
+    // 위치가 아니라 반응 시간이다 — 공이 날아오는 동안 다이빙으로 닿는 거리.
+    const flightT = dGoal / (cfg.ball.shotMax || 27);                             // 슛 비행 시간(초)
+    const reach = (A.gkReachBase ?? 0.6) + (A.gkReachGain ?? 5.2) * flightT;       // 그 시간에 닿는 반경(m)
+    const lo = Math.max(-FIELD.goalHalfWidth, gkZ - reach);
+    const hi = Math.min(FIELD.goalHalfWidth, gkZ + reach);
+    const covered = Math.max(0, hi - lo);
+    const openness = clamp(1 - covered / (FIELD.goalHalfWidth * 2), 0.08, 1);
+    // 거리 매력도: 예전엔 (1 - dGoal/shotRange) 라 골문 거리 0 에서 최대였다. 그래서 캐리어가 계속
+    // 몰고 들어가 슛 거리 중앙값이 4.8m(실제 축구 ~17m), 전환율 44%(실제 ~10%), xG/슛 0.75 였다.
+    // 실제 축구의 슛은 12m 부근에서 가장 매력적이고 25m 를 넘으면 급락한다.
+    const distFactor = clamp(1 - Math.abs(dGoal - (A.shotSweetSpot ?? 12)) / (A.shotFalloff ?? 16), 0.12, 1);
+    const u = A.wShot * shotMul * buildMul * distFactor * shotAngleQuality(carrier.position)
       * openness * (0.55 + 0.45 * clamp(pressure / 5, 0, 1)) + noise();
     opts.push({ kind: 'shot', u });
   }
@@ -293,7 +305,8 @@ function decideAction(state, carrier, dir) {
   if (pick.kind === 'shot') {
     const dg = dist2(carrier.position, goal);
     const fw = carrier.teamId === 'A' ? (state.subBoost?.A?.fw || 0) : 0;
-    const wide = (FIELD.goalHalfWidth * 0.6 + dg * 0.16) * Math.max(0.5, 1 - 0.12 * fw);   // fw 교체=슛 정확도↑
+    // 거리가 멀수록 크게 빗나간다 — 중거리 슛이 생긴 만큼 정확도 감쇠도 실제에 맞춘다(0.16 → 0.22).
+    const wide = (FIELD.goalHalfWidth * 0.6 + dg * 0.22) * Math.max(0.5, 1 - 0.12 * fw);   // fw 교체=슛 정확도↑
     const aimZ = (state.rng.float() - 0.5) * 2 * wide;
     const aimY = 0.25 + state.rng.float() * (0.5 + dg * 0.05);     // 가끔 크로스바 위로
     launchShot(b, carrier.position, { x: goal.x, z: aimZ, y: aimY }, carrier.teamId, carrier.id, cfg.ball);
