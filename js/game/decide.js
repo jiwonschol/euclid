@@ -50,6 +50,20 @@ function laneMinDist(state, from, to, defTeam) {
   return m;
 }
 
+/** 슛 레인에 가장 가까운 수비수(비 GK). 블록 굴절의 '마지막 터치'를 기록하는 데 쓴다. */
+function nearestDefenderInLane(state, from, to, defTeam) {
+  const dx = to.x - from.x, dz = to.z - from.z;
+  const L2 = dx * dx + dz * dz || 1e-6;
+  let best = null, m = Infinity;
+  for (const p of Object.values(state.players)) {
+    if (p.teamId !== defTeam || p.sentOff || p.role === 'GK') continue;
+    const t = clamp(((p.position.x - from.x) * dx + (p.position.z - from.z) * dz) / L2, 0, 1);
+    const d = Math.hypot(p.position.x - (from.x + t * dx), p.position.z - (from.z + t * dz));
+    if (d < m) { m = d; best = p; }
+  }
+  return best;
+}
+
 function log(state, type, data) {
   state.eventLog.push({ t: Math.round(state.clockSeconds * 100) / 100, half: state.half, type, ...data });
 }
@@ -108,16 +122,35 @@ function updatePossession(state, dt) {
         const df = defTeam === 'A' ? (state.subBoost?.A?.df || 0) : 0;
         if (gk && Math.abs(gk.position.z - crossZ) <= cfg.gk.diveReach && state.rng.chance(Math.min(0.98, cfg.gk.saveProb + 0.03 * df))) {
           if (state.rng.chance(cfg.gk.catchRatio)) { gainControl(state, gk, 'SAVE'); return; }  // 캐치
-          b.mode = 'LOOSE';                                                                      // 파리: 골문서 멀리 걷어냄
+          b.mode = 'LOOSE';                                                                      // 쳐냄
           // 공을 GK 좌표로 덮어쓰지 않는다(§18 "패스가 순간이동함" 금지 — 실측 1틱 9.53m 점프).
-          // 공은 현재 지점에 두고 높이만 접지, 속도만 걷어내는 방향으로 준다.
+          // 공은 현재 지점에 두고 높이만 접지, 속도만 준다.
           b.position = { x: b.position.x, y: 0, z: b.position.z };
-          b.velocity = { x: -Math.sign(b.velocity.x) * 9 + (state.rng.float() - 0.5) * 3, y: 0, z: (state.rng.float() - 0.5) * 5 };
+          if (state.rng.chance(cfg.gk.parryBehindProb ?? 0.45)) {
+            // 옆으로 쳐내 골라인 밖으로 → 코너. 예전엔 항상 안쪽(-sign(vx)*9)으로만 쳐내서
+            // 선방 38회·블록 70회에도 경기당 코너가 0.00 이었다(실제 축구 10.2).
+            const outZ = b.position.z >= 0 ? 1 : -1;
+            const dirOut = Math.sign(goalLineX - b.position.x);
+            b.velocity = { x: dirOut * 10, y: 0, z: outZ * 7 };
+            b._outBound = dirOut;                       // 나가는 중 — 아무도 쫓지 않는다
+          } else {
+            b.velocity = { x: -Math.sign(b.velocity.x) * 9 + (state.rng.float() - 0.5) * 3, y: 0, z: (state.rng.float() - 0.5) * 5 };
+          }
           b.lastTouchPlayerId = gk.id; b.lastTouchTeamId = gk.teamId; log(state, 'SAVE', { by: gk.id, parry: true });
           return;
         }
       }
     }
+  }
+
+  // 굴절돼 골라인 밖으로 나가는 중인 공은 아무도 쫓지 않는다 — 실제 축구가 그렇고,
+  // 이게 없으면 굴절 52회가 100% 주워져 경기당 코너가 0.00 이 된다(실측). 라인을 넘거나
+  // 사실상 멈추거나 더는 라인 쪽으로 가지 않으면 해제한다.
+  if (b._outBound !== undefined && b._outBound !== null) {
+    const towardLine = Math.sign(b.velocity.x) === b._outBound;
+    const stillIn = Math.abs(b.position.x) < FIELD.halfLength;
+    if (!stillIn || !towardLine || Math.hypot(b.velocity.x, b.velocity.z) < 1.2) b._outBound = null;
+    else return;                                        // 나가는 중 — 컨트롤·가로채기 판정 건너뜀
   }
 
   // 비소유(flight/loose): 공 근처 최근접 1인이 컨트롤/가로채기
@@ -268,7 +301,19 @@ function decideAction(state, carrier, dir) {
     // 슛 블록: 슈터 앞 레인에 수비수(비 GK)가 바짝 있으면 확률적으로 막힘(루즈볼)
     if (laneMinDist(state, carrier.position, { x: goal.x, z: aimZ }, defTeam) < cfg.control.blockRadius && state.rng.chance(cfg.control.blockProb)) {
       b.mode = 'LOOSE';
-      b.velocity = { x: -Math.sign(b.velocity.x) * 3 + (state.rng.float() - 0.5) * 5, y: 0, z: (state.rng.float() - 0.5) * 6 };
+      if (state.rng.chance(cfg.control.blockBehindProb ?? 0.3)) {
+        const outZ = b.position.z >= 0 ? 1 : -1;                 // 골라인 밖으로 굴절 → 코너
+        const dirOut = Math.sign(goal.x - b.position.x);
+        b.velocity = { x: dirOut * 11, y: 0, z: outZ * 6 };
+        b._outBound = dirOut;
+      } else {
+        b.velocity = { x: -Math.sign(b.velocity.x) * 3 + (state.rng.float() - 0.5) * 5, y: 0, z: (state.rng.float() - 0.5) * 6 };
+      }
+      // 굴절시킨 수비수를 마지막 터치로 기록한다. 안 하면 골라인을 넘어도 규칙상 골킥으로 분류돼
+      // 코너가 영원히 안 나온다(실측 원인).
+      const blocker = nearestDefenderInLane(state, carrier.position, { x: goal.x, z: aimZ }, defTeam);
+      b.lastTouchPlayerId = blocker ? blocker.id : null;
+      b.lastTouchTeamId = defTeam;
       log(state, 'BLOCK', { team: defTeam });
     }
   } else if (pick.kind === 'pass' || pick.kind === 'through') {

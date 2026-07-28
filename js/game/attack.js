@@ -3,7 +3,7 @@
 // 공격수는 실제 세컨드-라스트 수비(오프사이드 라인)를 절대 넘어 캠핑하지 않는다. zone=측면/중앙으로 방향 결정.
 
 import { dBallOwn } from './shape.js';
-import { FIELD, oppGoalX } from './field.js';
+import { FIELD, oppGoalX, anchorToWorld } from './field.js';
 import { resolvedFor } from './effects.js';
 
 const dist2 = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
@@ -61,6 +61,9 @@ export function assignAttackTargets(state, team) {
       supportSide[supportArr[1].id] = s1 === supportSide[supportArr[0].id] ? -s1 : s1;   // 겹치면 반대쪽으로
     }
   }
+  // 서포트 외 오프-볼 선수가 공에서 최소 이만큼 떨어진 곳을 목표로 잡는다(m).
+  // 크게 잡을수록 뭉침은 줄지만 압박 접점이 줄어 소유가 길어진다(sim:seq 와 트레이드오프) → 튜너블.
+  const OFFBALL_MIN_BALL_DIST = state.cfg?.shape?.offBallMinBallDist ?? 16;
   let lateCount = 0;
   const maxLate = 1 + (commit >= 1 ? Math.min(2, Math.round(commit)) : 0);
   const targets = {};
@@ -88,10 +91,27 @@ export function assignAttackTargets(state, team) {
       lateCount++;
       tx = onside(dir, goalX - dir * 13, olX, 1.5);
       tz = side * (lateCount % 2 ? 8 : -8);
-    } else {                                             // 나머지 미드: 볼 쪽 전진 지원
+    } else {                                             // 나머지 미드: 전진하되 자기 레인을 지킨다
+      // 예전엔 tz = ball.z + side*12 로 z 를 공에 직접 묶었다. 기본(중앙) 전술에서 FB×2·DM·CM×2 가
+      // 전부 이 분기에 떨어져 오프-볼 6~7명이 공 반경 10~14m 링에 목표를 잡았고, 그게 뭉침의 지배 원인이었다
+      // (반사실: 이 분기만 꺼도 공 10m 안 11명→9명, 폭 33m→37m). 이제 공은 살짝만 참조하고 레인이 주다.
       tx = onside(dir, ball.x + dir * 6, olX, 1.5);
-      tz = clamp(ball.z + side * 12, -30, 30);
+      const laneZ = anchorToWorld(p.homeAnchor, dir).z;
+      tz = clamp(ball.z * 0.25 + laneZ * 0.95, -31, 31);
     }
+
+    // 공 주위를 비운다 — 패스할 공간이 있어야 전개가 이어진다. 서포트 2명은 예외(짧은 패스 각 담당).
+    if (!support.has(p.id)) {
+      let dx = tx - ball.x, dz = tz - ball.z;
+      const d = Math.hypot(dx, dz);
+      if (d < OFFBALL_MIN_BALL_DIST) {
+        if (d < 0.01) { const a = anchorToWorld(p.homeAnchor, dir); dx = a.x - ball.x; dz = a.z - ball.z; }
+        const n = Math.hypot(dx, dz) || 1;
+        tx = ball.x + (dx / n) * OFFBALL_MIN_BALL_DIST;
+        tz = ball.z + (dz / n) * OFFBALL_MIN_BALL_DIST;
+      }
+    }
+
     targets[p.id] = {
       x: clamp(tx, -FIELD.halfLength + 3, FIELD.halfLength - 3),
       z: clamp(tz, -FIELD.halfWidth + 2, FIELD.halfWidth - 2),

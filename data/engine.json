@@ -21,11 +21,11 @@
   "shape": {
     "_comment": "축구 형상 모델(§2.3-B). 팀별 back/front = 자기 골문 거리(m). 필드 플레이어를 depthRank로 그 사이에 사상. cy=측면 중심(공 z를 yGain만큼 추종), width=진형 가로 폭계수.",
     "defend": {
-      "buffer": 18,
+      "buffer": 22,
       "backClampLo": 6,
       "backClampHi": 45,
-      "length": 28,
-      "width": 0.62,
+      "length": 34,
+      "width": 0.85,
       "yGain": 0.5
     },
     "attack": {
@@ -47,7 +47,7 @@
       "width": 0.85,
       "yGain": 0.4
     },
-    "defendFrontAhead": 8,
+    "defendFrontAhead": 12,
     "lineHeight": 9,
     "tactic": {
       "attackBack": 4,
@@ -58,7 +58,8 @@
     },
     "smoothTau": 2.5,
     "runThreshold": 8,
-    "runRamp": 4
+    "runRamp": 4,
+    "offBallMinBallDist": 16
   },
   "press": {
     "_comment": "수비 역할(§2.3). standoff=캐리어 골문쪽 접근거리, engageDist=이 존거리 밖이면 압박 안 함, coverBehind=커버가 압박자 뒤로 서는 거리, hysteresisSec=역할 재지정 지연.",
@@ -78,7 +79,8 @@
     "saveZone": 8,
     "diveReach": 4.7,
     "saveProb": 0.93,
-    "catchRatio": 0.9
+    "catchRatio": 0.9,
+    "parryBehindProb": 0.6
   },
   "idle": {
     "_comment": "유휴 미세 흔들림(§2.3). 목표에만 얹어 실제 속도는 캡 유지.",
@@ -111,7 +113,8 @@
     "interceptRadius": 1.4,
     "looseControlRadius": 2,
     "blockRadius": 1.4,
-    "blockProb": 0.6
+    "blockProb": 0.6,
+    "blockBehindProb": 0.75
   },
   "action": {
     "_comment": "utility 의사결정(마스터 §6). 값은 효용 가중. 매 decideEvery 초마다 캐리어가 행동 재평가. minCarry=최소 소유시간('죽죽' 방지).",
