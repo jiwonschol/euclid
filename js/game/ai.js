@@ -23,7 +23,7 @@ const dist2 = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 /** 오프-볼(형상 유지·공격 침투·GK): 목표까지 거리에 따라 서다/걷다/뛰다/전력질주. */
 function speedTier(d, P) {
   if (d < 2) return 0;
-  if (d < 5) return P.walk;
+  if (d < 7) return P.walk;
   if (d < 12) return P.jog;
   if (d < 25) return P.run;
   return P.sprint;
