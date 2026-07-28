@@ -75,7 +75,7 @@ export function assignAttackTargets(state, team) {
 
     if (support.has(p.id) && carrier) {
       tx = carrier.position.x + dir * 6;                 // 캐리어 앞·옆 → 짧은 패스 삼각형
-      tz = carrier.position.z + (supportSide[p.id] ?? side) * 9;
+      tz = carrier.position.z + (supportSide[p.id] ?? side) * 14;   // 캐리어에서 10.8m→15.2m (실축 서포트 거리). 인원은 2명 그대로라 패스 각 2개는 유지된다
     } else if (p.role === 'FB' && wingSide !== 0 && side === wingSide) {
       tx = onside(dir, ball.x + dir * 14, olX, 2);        // 측면 존 오버랩(풀백 전진)
       tz = side * 26;
@@ -109,6 +109,9 @@ export function assignAttackTargets(state, team) {
         const n = Math.hypot(dx, dz) || 1;
         tx = ball.x + (dx / n) * OFFBALL_MIN_BALL_DIST;
         tz = ball.z + (dz / n) * OFFBALL_MIN_BALL_DIST;
+        // 반경 방향으로 밀면 공과 상대 골문 사이에 있던 선수가 골문 쪽으로 밀려 오프사이드가 는다
+        // (실측: 배제 반경을 키울 때 오프사이드 +20%). 밀어낸 뒤 반드시 온사이드로 되당긴다.
+        tx = onside(dir, tx, olX, 1.5);
       }
     }
 
