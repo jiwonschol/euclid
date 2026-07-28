@@ -6,7 +6,7 @@
 
 import { seek, computeSeparation, hash01, clamp } from './movement.js';
 import {
-  teamShape, teamBackDist, anchorFor, easeShape, depthRanks, dBallOwn, distToWorldX,
+  teamShape, teamBackDist, stepBlockStates, anchorFor, easeShape, depthRanks, dBallOwn, distToWorldX,
 } from './shape.js';
 import { assignAttackTargets } from './attack.js';
 import { assignMarking } from './defend.js';
@@ -112,11 +112,13 @@ export function stepPositioning(state, dt) {
   // 팀 back 먼저(공격 front 오프사이드에 상대 back 필요) → 형상
   const dirA = state.attackDirection.A, dirB = state.attackDirection.B;
   const tacA = resolvedFor(state, 'A'), tacB = resolvedFor(state, 'B');
-  const backA = teamBackDist('A', dirA, ball.x, poss, cfg, tacA);
-  const backB = teamBackDist('B', dirB, ball.x, poss, cfg, tacB);
+  stepBlockStates(state);                       // 팀 단위 블록 모드(high/mid/low) — 공 x 의 순함수를 끊는다
+  const bmA = state.block.A.mode, bmB = state.block.B.mode;
+  const backA = teamBackDist('A', dirA, ball.x, poss, cfg, tacA, bmA);
+  const backB = teamBackDist('B', dirB, ball.x, poss, cfg, tacB, bmB);
   const shape = {
-    A: teamShape('A', dirA, ball.x, ball.z, poss, cfg, backB, tacA),
-    B: teamShape('B', dirB, ball.x, ball.z, poss, cfg, backA, tacB),
+    A: teamShape('A', dirA, ball.x, ball.z, poss, cfg, backB, tacA, bmA),
+    B: teamShape('B', dirB, ball.x, ball.z, poss, cfg, backA, tacB, bmB),
   };
   const back = { A: backA, B: backB };
 

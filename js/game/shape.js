@@ -35,11 +35,51 @@ export function cardBackShift(tac, S) {
   return lh + tb;
 }
 
+// ── 수비 블록 상태 (high / mid / low) ────────────────────────
+// 예전에는 backLine 이 clamp(공까지거리 − buffer) 로 공 x 의 기울기 1 순함수였다. 그래서 팀 전체가
+// 공에 강체처럼 묶여 평행이동했고(수비중심 x ↔ 공 x 상관 r=0.98, 실축 0.7~0.85), 게인·이징·속도캡·
+// 존 계단 등 튜닝을 전부 시도해도 0.96 아래로 안 내려갔다 — 단조 함수인 한 구조적으로 불가능하다.
+// 실제 축구의 라인은 팀이 '지금 어떤 블록을 쓰는가'라는 자체 상태를 갖고, 그 상태는 공 위치와
+// 다른 시간 척도로 바뀐다. 같은 공 위치에서 여러 라인 값이 나올 수 있어야 한다.
+const BLOCK_BASE = { high: 40, mid: 27, low: 14 };   // 모드별 기준 backLine(자기 골문 거리 m)
+
+/** 매 틱 팀별 블록 모드를 갱신한다. 최소 유지 시간이 있어 공 위치에 즉시 반응하지 않는다. */
+export function stepBlockStates(state) {
+  const S = state.cfg.shape;
+  const dwell = S.blockMinDwellSec ?? 7;
+  if (!state.block) state.block = { A: { mode: 'mid', since: 0 }, B: { mode: 'mid', since: 0 } };
+  for (const team of ['A', 'B']) {
+    const b = state.block[team];
+    if (state.clockSeconds - b.since < dwell) continue;          // 아직 유지 구간
+    const dir = state.attackDirection[team];
+    const d = dBallOwn(dir, state.ball.position.x);              // 자기 골문에서 공까지(m)
+    const tac = state.tactics?.[team] || {};
+    const hasBall = state.possessionTeamId === team;
+    // 트리거를 공 위치로 잡으면 모드가 공 x 의 계단 함수가 되어 결국 단조다(실측: 그래도 r 0.95).
+    // 실제 축구의 블록은 '공이 어디 있나'보다 '지금 누가 공을 갖고 얼마나 됐나'로 정해진다.
+    const sinceTurnover = state.clockSeconds - (state._possChangedAt ?? -99);
+    let want;
+    if (hasBall) want = 'high';                                  // 우리 공 → 밀어올린다
+    else if (sinceTurnover < (S.counterPressSec ?? 6)) want = 'high';  // 방금 잃음 → 즉시 되뺏기
+    else if (d < 22) want = 'low';                               // 골문 코앞에서만 위치가 개입한다
+    else want = sinceTurnover > (S.settleSec ?? 14) ? 'low' : 'mid';   // 오래 내주면 내려앉는다
+    if (tac.press === 'high' && want === 'mid') want = 'high';    // 스탠스 반영
+    if (tac.lineHeight === 'low' && want === 'high') want = 'mid';
+    if (want !== b.mode) { b.mode = want; b.since = state.clockSeconds; }
+  }
+}
+
 /** 팀 backLine(자기 골문 거리 m). 오프사이드 참조로 분리 — 공격 front가 상대 back을 읽는다. tac=팀 전술 상태. */
-export function teamBackDist(team, dir, ballX, possTeam, cfg, tac) {
+export function teamBackDist(team, dir, ballX, possTeam, cfg, tac, blockMode) {
   const S = cfg.shape;
   const C = S[roleOf(team, possTeam)];
   const d = dBallOwn(dir, ballX);
+  if (blockMode) {
+    // 블록 기준선 + 공 위치 부분 추종(기울기 1 이 아니라 gain). 이 gain 이 상관계수의 상한을 정한다.
+    const gain = S.blockBallGain ?? 0.4;
+    const base = BLOCK_BASE[blockMode] ?? BLOCK_BASE.mid;
+    return clamp(base + gain * (d - 50), C.backClampLo, C.backClampHi) + cardBackShift(tac, S);
+  }
   return clamp(d - C.buffer, C.backClampLo, C.backClampHi) + cardBackShift(tac, S);
 }
 
@@ -63,17 +103,21 @@ export function depthRanks(players) {
  * 팀 라인/폭/중심 원시 목표(미스무딩). back/front=자기 골문 거리(m), cy=측면 중심 z(m), width=폭계수.
  * @param {number} oppBackDist 상대 팀 backLine 거리(공격 front 오프사이드 계산용)
  */
-export function teamShape(team, dir, ballX, ballZ, possTeam, cfg, oppBackDist, tac) {
+export function teamShape(team, dir, ballX, ballZ, possTeam, cfg, oppBackDist, tac, blockMode) {
   const S = cfg.shape, T = S.tactic || {};
   const role = roleOf(team, possTeam);
   const d = dBallOwn(dir, ballX);
-  const back = teamBackDist(team, dir, ballX, possTeam, cfg, tac);
+  const back = teamBackDist(team, dir, ballX, possTeam, cfg, tac, blockMode);
   const wMod = (tac && tac.tactic === 'attack') ? (T.attackWidth || 0) : 0;       // 공격 시 폭 확대
   const lenMod = (tac && tac.tactic === 'park') ? -(T.parkLength || 0) : 0;       // 잠그기 시 세로 압축
 
   let front, width, yGain;
   if (role === 'defend') {
-    front = Math.min(back + S.defend.length + lenMod, d + S.defendFrontAhead);
+    // 예전엔 front 를 d + defendFrontAhead 로 캡했다 — back 을 블록 상태로 끊어도 이 캡이 기울기 1 이라
+    // 팀 무게중심이 여전히 공 x 에 강체로 붙었다(r 0.97). 실제 축구의 최전방(스트라이커)은 수비 시에도
+    // 공까지 따라 내려오지 않고 역습 기점으로 남는다. 블록 상태가 있으면 front = back + length 로 둔다.
+    front = blockMode ? back + S.defend.length + lenMod
+      : Math.min(back + S.defend.length + lenMod, d + S.defendFrontAhead);
     width = S.defend.width + wMod; yGain = S.defend.yGain;
   } else if (role === 'attack') {
     // front = 상대 backLine 앞 offsideGap(오프사이드 라인), 최소 back+minLength 보장

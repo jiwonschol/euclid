@@ -59,7 +59,11 @@
     "smoothTau": 2.5,
     "runThreshold": 8,
     "runRamp": 4,
-    "offBallMinBallDist": 16
+    "offBallMinBallDist": 16,
+    "blockMinDwellSec": 7,
+    "blockBallGain": 0.3,
+    "counterPressSec": 6,
+    "settleSec": 14
   },
   "press": {
     "_comment": "수비 역할(§2.3). standoff=캐리어 골문쪽 접근거리, engageDist=이 존거리 밖이면 압박 안 함, coverBehind=커버가 압박자 뒤로 서는 거리, hysteresisSec=역할 재지정 지연.",
