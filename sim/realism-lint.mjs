@@ -46,9 +46,21 @@ function runRegulation(seed) {
   const s = createMatch(seed, cfg, com);
   const gkDist = [], crowd = [], widthZ = [], depthX = [];
   const ballXs = [], defCxs = [];
-  let ticks = 0;
+  const speeds = [], passSpeeds = [];
+  let ticks = 0, sprintTicks = 0, speedSamples = 0, walkSamples = 0;
   while (s.phase !== 'FULLTIME') {
     tick(s); ticks++;
+    // 움직임은 매 틱 본다(샘플링하면 스프린트 같은 짧은 사건을 놓친다)
+    if (s.phase === 'IN_PLAY') {
+      for (const p of Object.values(s.players)) {
+        if (p.sentOff || p.role === 'GK' || !p.velocity) continue;
+        const v = Math.hypot(p.velocity.x, p.velocity.z);
+        speedSamples++; if (v < 1.5) walkSamples++; if (v > 7.5) sprintTicks++;
+        if (speeds.length < 400000) speeds.push(v);
+      }
+      const bv = Math.hypot(s.ball.velocity.x, s.ball.velocity.z);
+      if (s.ball.mode !== 'CONTROLLED' && bv > 8 && passSpeeds.length < 200000) passSpeeds.push(bv);
+    }
     if (ticks % SAMPLE_EVERY || s.phase !== 'IN_PLAY') continue;
     const b = s.ball.position;
     const alive = Object.values(s.players).filter((p) => !p.sentOff);
@@ -75,7 +87,8 @@ function runRegulation(seed) {
   }
   const ev = {};
   for (const e of s.eventLog) ev[e.type] = (ev[e.type] || 0) + 1;
-  return { state: s, gkDist, crowd, widthZ, depthX, corr: pearson(ballXs, defCxs), ev };
+  return { state: s, gkDist, crowd, widthZ, depthX, corr: pearson(ballXs, defCxs), ev,
+    speeds, passSpeeds, sprintTicks, speedSamples, walkSamples, matchMinutes: s.clockSeconds / 60 };
 }
 
 /** 손패 있는 실제 플레이 조건(stanceCfg 포함)으로 돌린다. policy: 'none' | 'good' */
@@ -113,8 +126,23 @@ function metricSpace(runs) {
     { id: 'S3 진형이 공을 따라감', got: `r=${corr.toFixed(2)}`, ok: corr >= T.shapeFollowMin && corr <= T.shapeFollowMax, want: `${T.shapeFollowMin}~${T.shapeFollowMax}` },
     { id: 'S4 폭·라인 간격', got: `폭 ${width.toFixed(0)}m · 깊이 ${depth.toFixed(0)}m`, ok: width >= T.widthMin && depth >= T.depthMin && depth <= T.depthMax, want: `폭 ≥${T.widthMin} · 깊이 ${T.depthMin}~${T.depthMax}` },
   ];
+
+  // ── 움직임 (M1 에 편입) ─────────────────────────────────
+  // 전원이 같은 속도로 계속 종종걸음하면 진형이 통째로 미끄러진다 — 눈금에 속도가 없어 못 잡던 결함.
+  const M = REF.motion;
+  const allSpeeds = runs.flatMap((r) => r.speeds);
+  const avg = mean(allSpeeds), p95s = pctl(allSpeeds, 0.95);
+  const walkShare = runs.reduce((a, r) => a + r.walkSamples, 0) / Math.max(1, runs.reduce((a, r) => a + r.speedSamples, 0));
+  const sprintPerMin = runs.reduce((a, r) => a + r.sprintTicks, 0) / 15 / Math.max(1, runs.reduce((a, r) => a + r.matchMinutes, 0));
+  const passP50 = pctl(runs.flatMap((r) => r.passSpeeds), 0.5);
+  checks.push(
+    { id: 'S5 평균 이동속도', got: `${avg.toFixed(2)} m/s · p95 ${p95s.toFixed(2)}`, ok: avg >= M.meanSpeedMin && avg <= M.meanSpeedMax && p95s >= M.p95SpeedMin && p95s <= M.p95SpeedMax, want: `평균 ${M.meanSpeedMin}~${M.meanSpeedMax} · p95 ${M.p95SpeedMin}~${M.p95SpeedMax}` },
+    { id: 'S6 속도 다양성', got: `걷기/정지 ${(walkShare * 100).toFixed(0)}% · 스프린트 ${sprintPerMin.toFixed(1)}회/분`, ok: walkShare >= M.walkShareMin && sprintPerMin >= M.sprintPerMinMin, want: `걷기 ≥${M.walkShareMin * 100}% · 스프린트 ≥${M.sprintPerMinMin}/분` },
+    { id: 'S7 패스 속도', got: `중앙값 ${passP50.toFixed(1)} m/s`, ok: passP50 >= M.passSpeedMin && passP50 <= M.passSpeedMax, want: `${M.passSpeedMin}~${M.passSpeedMax} m/s` },
+  );
+
   return { checks, score: checks.filter((c) => c.ok).length / checks.length,
-    raw: { gkP95, gkMax, crowdP95, corr, width, depth } };
+    raw: { gkP95, gkMax, crowdP95, corr, width, depth, avgSpeed: avg, p95Speed: p95s, walkShare, sprintPerMin, passP50 } };
 }
 
 // ── M2 통계 (정규 90분) ──────────────────────────────────────

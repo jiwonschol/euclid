@@ -22,6 +22,20 @@
     "depthMin": 30,
     "depthMax": 45
   },
+
+  "motion": {
+    "_comment": "실제 축구 선수의 움직임 분포. 90분 평균 이동속도는 약 2 m/s(≈10~11km)이고 대부분의 시간은 걷거나 서 있다. 전원이 같은 속도로 계속 종종걸음하면 진형이 살아 움직이는 대신 통째로 미끄러진다(2026-07-29 실측: 중앙값이 jog 상수 3.24 에 정확히 붙어 있었고 스프린트는 0회).",
+    "meanSpeedMin": 1.8,
+    "meanSpeedMax": 2.8,
+    "p95SpeedMin": 4.5,
+    "p95SpeedMax": 7.5,
+    "walkShareMin": 0.25,
+    "walkSpeedUnder": 1.5,
+    "sprintOver": 7.5,
+    "sprintPerMinMin": 0.5,
+    "passSpeedMin": 14,
+    "passSpeedMax": 26
+  },
   "feed": {
     "_comment": "중계 텍스트. 토큰 누출은 0 이 아니면 M3 전체가 0(치명). 밀도는 실플레이 분당.",
     "repeatPctMax": 3,

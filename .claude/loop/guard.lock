@@ -1,8 +1,8 @@
 {
-  "sim/realism-lint.mjs": "a3ddf1be8802f5ab0f26df45ac260b001c14752cf376f074952d9e37565ae646",
+  "sim/realism-lint.mjs": "dc6f80c5d83d72c068054acc92bcae75666d58be84acb3b833b2fb141579d7e7",
   "sim/report.mjs": "9df7382af41279c95e3d474d8ed91fa911bde8533a7b5be4ee7328d3d5308004",
   "sim/pitchshot.mjs": "836fb7e775efb1049535ac38f03d88f92f0bf11dd6d04d5b06ab822da1724f2d",
-  "docs/reference/match_stats.json": "c2d37202a607560b43a7238fc8f18ba89ef589b76e2d810e51252ca9ab8f9daa",
+  "docs/reference/match_stats.json": "ccf1df2d92a1a6d5acc89b9e80799505fd8305583907edc221d9d088a7adb92c",
   "docs/reference/README.md": "dcce0a57e7ff4d5b04a150f92a2a627792c8eab6009f4f53ede7bf9f172ae151",
   "docs/reference/target-pitch.png": null,
   ".claude/loop/judge.md": "4f1e190d650c9a73bb0e80f8209c39a8dd6d07975448c2ce8337c27841b28241",
