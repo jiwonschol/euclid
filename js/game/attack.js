@@ -5,6 +5,7 @@
 import { dBallOwn } from './shape.js';
 import { FIELD, oppGoalX, anchorToWorld } from './field.js';
 import { resolvedFor } from './effects.js';
+import { assignByPolicy } from './offball.js';
 
 const dist2 = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
@@ -67,78 +68,20 @@ export function assignAttackTargets(state, team) {
   }
   // 서포트 외 오프-볼 선수가 공에서 최소 이만큼 떨어진 곳을 목표로 잡는다(m).
   // 크게 잡을수록 뭉침은 줄지만 압박 접점이 줄어 소유가 길어진다(sim:seq 와 트레이드오프) → 튜너블.
-  const OFFBALL_MIN_BALL_DIST = state.cfg?.shape?.offBallMinBallDist ?? 16;
   // 러너가 오프사이드 라인에 1.2m 까지 붙어 서 있으면 라인이 조금만 움직여도 넘어간다
   // (실측 오프사이드 10.3회/경기, 실축 4.0). 실제 공격수는 몇 미터 여유를 두고 타이밍을 잡는다.
-  const ONSIDE_MARGIN = state.cfg?.shape?.onsideMargin ?? 3.5;
   // 오프사이드 라인에 붙을 수 있는 인원 상한. 예전엔 윙어 2 + 스트라이커 + 레이트런이 모두 라인을
   // 목표로 잡아, 수비가 내려앉으면 6명이 동시에 박스 앞에 붙어 스크럼이 됐다(실측 박스 안 p95 7명,
   // 라인 ±4m 에 p95 6명. 실축은 각각 4~6명·1~3명). 나머지는 공 기준 깊이를 지킨다.
-  const MAX_PINNED = state.cfg?.shape?.maxPinnedRunners ?? 2;
-  let pinned = 0;
   // 라인에 안 붙는 선수는 공보다 **뒤**에 선다 — 세컨드볼을 잡는 위치이고, 공 뒤는 정의상 온사이드다.
   // 앞(ball.x + dir*10)에 두면 온사이드 클램프에 걸려 결국 라인에 다시 붙어 오프사이드가 는다(실측 11.17회).
-  const holdDepth = (p) => ({
-    x: ball.x - dir * 3,
-    z: clamp(anchorToWorld(p.homeAnchor, dir).z * 1.05 + ball.z * 0.15, -31, 31),
-  });
-  let lateCount = 0;
-  const maxLate = 1 + (commit >= 1 ? Math.min(2, Math.round(commit)) : 0);
-  const targets = {};
 
-  for (const p of players) {
-    if (balance.has(p.id)) continue;
-    const ax = p.homeAnchor.ax, side = p.homeAnchor.az < 0.5 ? -1 : 1;
-    let tx, tz;
-
-    if (support.has(p.id) && carrier) {
-      tx = carrier.position.x + dir * 6;                 // 캐리어 앞·옆 → 짧은 패스 삼각형
-      tz = carrier.position.z + (supportSide[p.id] ?? side) * 14;   // 캐리어에서 10.8m→15.2m (실축 서포트 거리). 인원은 2명 그대로라 패스 각 2개는 유지된다
-    } else if (p.role === 'FB' && wingSide !== 0 && side === wingSide) {
-      tx = onside(dir, ball.x + dir * 14, olX, ONSIDE_MARGIN);   // 측면 존 오버랩(풀백 전진)
-      tz = side * 26;
-    } else if (p.role === 'W') {                          // 윙어: 폭 유지·측면 전개, 반대쪽 윙어는 박스 침투
-      if (pinned < MAX_PINNED) { pinned++; tx = onside(dir, olX, olX, ONSIDE_MARGIN); }
-      else { tx = holdDepth(p).x; }
-      if (wingSide !== 0 && side === wingSide) tz = side * 27;          // 존 사이드: 넓게(크로스 올림)
-      else if (wingSide !== 0) tz = wingSide * -10;                     // 반대쪽 윙어: 파포스트로 침투(크로스 타깃)
-      else tz = side * 21;                                              // 중앙 공격: 폭 유지
-    } else if (ax >= 0.62) {                              // 스트라이커: 중앙(또는 존 쪽) 라인 침투
-      if (pinned < MAX_PINNED) { pinned++; tx = onside(dir, olX, olX, ONSIDE_MARGIN); }
-      else { tx = holdDepth(p).x; }
-      tz = wingSide === 0 ? side * 6 : wingSide * 9;
-    } else if (finalThird && lateCount < maxLate) {      // 레이트런(박스 침투) — 전원 공격 시 인원↑
-      lateCount++;
-      tx = onside(dir, goalX - dir * 13, olX, ONSIDE_MARGIN);
-      tz = side * (lateCount % 2 ? 8 : -8);
-    } else {                                             // 나머지 미드: 전진하되 자기 레인을 지킨다
-      // 예전엔 tz = ball.z + side*12 로 z 를 공에 직접 묶었다. 기본(중앙) 전술에서 FB×2·DM·CM×2 가
-      // 전부 이 분기에 떨어져 오프-볼 6~7명이 공 반경 10~14m 링에 목표를 잡았고, 그게 뭉침의 지배 원인이었다
-      // (반사실: 이 분기만 꺼도 공 10m 안 11명→9명, 폭 33m→37m). 이제 공은 살짝만 참조하고 레인이 주다.
-      tx = onside(dir, ball.x + dir * 6, olX, 1.5);
-      const laneZ = anchorToWorld(p.homeAnchor, dir).z;
-      tz = clamp(ball.z * 0.25 + laneZ * 0.95, -31, 31);
-    }
-
-    // 공 주위를 비운다 — 패스할 공간이 있어야 전개가 이어진다. 서포트 2명은 예외(짧은 패스 각 담당).
-    if (!support.has(p.id)) {
-      let dx = tx - ball.x, dz = tz - ball.z;
-      const d = Math.hypot(dx, dz);
-      if (d < OFFBALL_MIN_BALL_DIST) {
-        if (d < 0.01) { const a = anchorToWorld(p.homeAnchor, dir); dx = a.x - ball.x; dz = a.z - ball.z; }
-        const n = Math.hypot(dx, dz) || 1;
-        tx = ball.x + (dx / n) * OFFBALL_MIN_BALL_DIST;
-        tz = ball.z + (dz / n) * OFFBALL_MIN_BALL_DIST;
-        // 반경 방향으로 밀면 공과 상대 골문 사이에 있던 선수가 골문 쪽으로 밀려 오프사이드가 는다
-        // (실측: 배제 반경을 키울 때 오프사이드 +20%). 밀어낸 뒤 반드시 온사이드로 되당긴다.
-        tx = onside(dir, tx, olX, 1.5);
-      }
-    }
-
-    targets[p.id] = {
-      x: clamp(tx, -FIELD.halfLength + 3, FIELD.halfLength - 3),
-      z: clamp(tz, -FIELD.halfWidth + 2, FIELD.halfWidth - 2),
-    };
-  }
+  // ── 가치 기반 배정 (docs/first_principle.md) ────────────────────────────
+  // 예전에는 여기서 역할별 좌표 공식(윙어 tz=side*27, 스트라이커 tz=side*6 …)으로 목표를 찍었다.
+  // 그건 축구를 밖에서 본 모양을 흉내 낸 것이라 "왜 저기 서는가"에 답이 없었다.
+  // 이제 각 지점의 득점 기대값으로 고르고, 폭·간격·라인은 그 결과로 창발한다.
+  // 팀별 정책망(자기대국) → 없으면 단일 정책
+  const NET = state.policy?.[team] || state.policy || null;
+  const targets = assignByPolicy(state, team, players, balance, olX, state.cfg, NET);
   return targets;
 }

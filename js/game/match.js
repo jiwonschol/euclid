@@ -84,7 +84,7 @@ function makePlayer(teamId, spec, shirt, attackDir) {
  * @param {any} [stanceCfg]  data/stance.json. 주면 감독 스탠스 카드·빌드업/하이라이트·참모·상대 AI 활성.
  * @returns {MatchState}
  */
-export function createMatch(seed = 1, cfg = null, commentaryCfg = null, stanceCfg = null) {
+export function createMatch(seed = 1, cfg = null, commentaryCfg = null, stanceCfg = null, policy = null) {
   const rng = createRng(seed);
   const attackDir = { A: /** @type {1} */ (1), B: /** @type {-1} */ (-1) };
 
@@ -104,6 +104,7 @@ export function createMatch(seed = 1, cfg = null, commentaryCfg = null, stanceCf
     seed,
     halfSeconds: (stanceCfg && stanceCfg.pace && stanceCfg.pace.halfSeconds) || HALF_SECONDS,
     cfg,
+    policy,                                  // 오프-볼 정책 계수(자기대국이 찾은 것)
     commentaryCfg,
     stanceCfg,
     phase: 'PRE_KICKOFF',

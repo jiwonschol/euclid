@@ -17,6 +17,7 @@
     "sim:realism": "node sim/realism-lint.mjs --matches 12 --delta-matches 40",
     "loop:report": "node sim/report.mjs",
     "loop:guard": "node .claude/loop/guard.mjs",
-    "sim:offside": "node sim/offside-lint.mjs"
+    "sim:offside": "node sim/offside-lint.mjs",
+    "selfplay": "node sim/selfplay.mjs"
   }
 }
