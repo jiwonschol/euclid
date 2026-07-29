@@ -29,13 +29,15 @@ function gauss(r) { const u = Math.max(1e-9, r()), v = r(); return Math.sqrt(-2 
 
 /** 한 경기: teamA 정책 wA, teamB 정책 wB. 축구가 아니게 무너졌는지도 함께 본다. */
 function play(seed, wA, wB) {
-  const s = createMatch(seed, cfg, com, null, { A: { arch: ARCH, weights: wA }, B: { arch: ARCH, weights: wB } });
+  const mk = (v) => ({ arch: ARCH, weights: v.off, carrier: { arch: CARCH, weights: v.car } });
+  const s = createMatch(seed, cfg, com, null, { A: mk(wA), B: mk(wB) });
   s.halfSeconds = HALF;
   while (s.phase !== 'FULLTIME') tick(s);
   const ev = {};
   for (const e of s.eventLog) ev[e.type] = (ev[e.type] || 0) + 1;
   const possA = s.stats ? s.stats.possTicks.A / Math.max(1, s.stats.possTicks.A + s.stats.possTicks.B) : 0.5;
-  return { gd: s.score.A - s.score.B, goals: s.score.A + s.score.B,
+  const xg = s.stats ? s.stats.xg : { A: 0, B: 0 };
+  return { gd: s.score.A - s.score.B, xgd: xg.A - xg.B, goals: s.score.A + s.score.B,
     shots: ev.SHOT || 0, offside: ev.OFFSIDE || 0, passes: ev.PASS || 0, possA };
 }
 
@@ -46,9 +48,9 @@ function degenerate(rs) {
   const shots = m('shots') / scale, goals = m('goals') / scale;
   const passes = m('passes') / scale, off = m('offside') / scale;
   const poss = m('possA');
-  if (shots < 6 || shots > 70) return `슛 ${shots.toFixed(0)}`;
+  if (shots > 70) return `슛 ${shots.toFixed(0)}`;
   if (goals > 25) return `골 ${goals.toFixed(0)}`;
-  if (passes < 250) return `패스 ${passes.toFixed(0)}`;
+  if (passes < 120) return `패스 ${passes.toFixed(0)}`;
   if (off > 30) return `오프사이드 ${off.toFixed(0)}`;
   if (poss < 0.2 || poss > 0.8) return `점유 ${(poss * 100).toFixed(0)}%`;
   return null;
@@ -60,8 +62,8 @@ function duel(wCand, wChamp) {
   let gd = 0;
   for (let i = 0; i < MATCHES; i++) {
     const seed = 1000 + i;
-    if (i % 2 === 0) { const r = play(seed, wCand, wChamp); rs.push(r); gd += r.gd; }
-    else { const r = play(seed, wChamp, wCand); rs.push(r); gd -= r.gd; }
+    if (i % 2 === 0) { const r = play(seed, wCand, wChamp); rs.push(r); gd += r.gd + 0.25 * r.xgd; }
+    else { const r = play(seed, wChamp, wCand); rs.push(r); gd -= r.gd + 0.25 * r.xgd; }
   }
   return { gd: gd / MATCHES, bad: degenerate(rs) };
 }
@@ -69,12 +71,13 @@ function duel(wCand, wChamp) {
 // ── 실행 ─────────────────────────────────────────────────────
 const pol = JSON.parse(readFileSync(POLICY_PATH, 'utf8'));
 const ARCH = pol.arch || null;
-let champ = pol.weights.slice();
+const CARCH = pol.carrier?.arch || null;
+let champ = { off: pol.weights.slice(), car: (pol.carrier?.weights || []).slice() };
 let gen = pol.generation || 0;
 const r = rng(987654321);
 
 console.log(`자기대국 시작 — 세대 ${GENS} · 개체 ${POP} · 경기 ${MATCHES}/개체 · 하프 ${HALF}초 · σ ${SIGMA}`);
-console.log(`정책: ${ARCH ? ARCH.join('→') + ' 신경망 · 파라미터 ' + champ.length + '개' : '선형'}`);
+console.log(`정책: 오프볼 ${ARCH.join('→')}(${champ.off.length}) + 캐리어 ${CARCH.join('→')}(${champ.car.length}) 파라미터`);
 console.log(`관측: ${pol.features.join(', ')}`);
 console.log(`세대 ${gen} 에서 시작\n`);
 
@@ -84,7 +87,7 @@ console.log(`기준선 자기대국 득실차 ${base.gd.toFixed(2)} (0 근처여
 for (let g = 1; g <= GENS; g++) {
   let bestW = null, bestGd = 0, tried = 0, rejected = 0;
   for (let k = 0; k < POP; k++) {
-    const cand = champ.map((x) => x + gauss(r) * SIGMA);
+    const cand = { off: champ.off.map((x) => x + gauss(r) * SIGMA), car: champ.car.map((x) => x + gauss(r) * SIGMA) };
     const res = duel(cand, champ);
     tried++;
     if (res.bad) { rejected++; continue; }              // 축구가 아니면 이겨도 탈락
@@ -93,13 +96,15 @@ for (let g = 1; g <= GENS; g++) {
   gen++;
   if (bestW) {
     champ = bestW;
-    writeFileSync(POLICY_PATH, JSON.stringify({ ...pol, generation: gen, weights: champ.map((x) => +x.toFixed(4)) }, null, 2) + '\n');
+    writeFileSync(POLICY_PATH, JSON.stringify({ ...pol, generation: gen,
+      weights: champ.off.map((x) => +x.toFixed(4)),
+      carrier: { arch: CARCH, weights: champ.car.map((x) => +x.toFixed(4)) } }, null, 2) + '\n');
     console.log(`세대 ${gen}: 채택 (득실차 +${bestGd.toFixed(2)}, 시도 ${tried}, 제약탈락 ${rejected})`);
   } else {
     console.log(`세대 ${gen}: 유지 (개선 없음, 시도 ${tried}, 제약탈락 ${rejected})`);
   }
   try {
-    appendFileSync(LOG_PATH, JSON.stringify({ gen, adopted: !!bestW, gd: +bestGd.toFixed(3), rejected, weights: champ.map((x) => +x.toFixed(4)) }) + '\n');
+    appendFileSync(LOG_PATH, JSON.stringify({ gen, adopted: !!bestW, gd: +bestGd.toFixed(3), rejected, weights: champ.off.length + champ.car.length }) + '\n');
   } catch { /* 로그 실패는 주행을 막지 않는다 */ }
 }
 

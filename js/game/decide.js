@@ -8,6 +8,8 @@ import { FIELD, oppGoalX, anchorToWorld, penaltyBoxOf } from './field.js';
 import { dBallOwn } from './shape.js';
 import { resolvedFor, consumeNextAction } from './effects.js';
 import { threatMul } from './stance.js';
+import { carrierScore } from './carrier.js';
+import { offsideLineX } from './attack.js';
 
 const other = (t) => (t === 'A' ? 'B' : 'A');
 const dist2 = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
@@ -313,6 +315,13 @@ function decideAction(state, carrier, dir) {
     consumeNextAction(state, carrier.teamId);
   }
 
+  // 효용을 신경망으로 대체한다(docs/first_principle.md). 옵션 구성은 그대로 두고 '무엇이 좋은가'만 넘긴다.
+  // 예전 곱셈식 효용은 내가 이해한 축구를 인코딩한 것이었고, 빌드업 할당량이 골보다 우선하는 결과를 낳았다.
+  const cnet = state.policy?.[carrier.teamId]?.carrier || state.policy?.carrier || null;
+  if (cnet) {
+    const cctx = { carrier, dir, defTeam, cfg, pressure, olX: offsideLineX(state, carrier.teamId) };
+    for (const o of opts) { const v = carrierScore(state, o, cctx, cnet); if (v !== null) o.u = v + noise() * 0.15; }
+  }
   opts.sort((x, y) => y.u - x.u);
   const pick = opts[0];
 
