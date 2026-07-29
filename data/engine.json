@@ -64,7 +64,7 @@
     "blockBallGain": 0.3,
     "counterPressSec": 6,
     "settleSec": 14,
-    "onsideMargin": 3.5,
+    "onsideMargin": 6.5,
     "restDefence": 3,
     "maxPinnedRunners": 2
   },
