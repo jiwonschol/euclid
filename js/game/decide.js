@@ -255,11 +255,19 @@ function decideAction(state, carrier, dir) {
     const hi = Math.min(FIELD.goalHalfWidth, gkZ + reach);
     const covered = Math.max(0, hi - lo);
     const openness = clamp(1 - covered / (FIELD.goalHalfWidth * 2), 0.08, 1);
+    // 축구의 목적은 골이다. 빌드업 할당량이 '좋은 찬스'를 이겨서는 안 된다.
+    // 예전엔 목표 패스 수를 채우기 전 슛 효용에 buildSuppress(0.12)를 곱해서, 아무도 없는 골문 앞에
+    // 서 있어도 "아직 2번밖에 안 돌렸다"면 옆으로 패스했다(디자이너: "목적성이 없다").
+    // 찬스 품질이 좋으면 억제를 풀고, 나쁠 때만 빌드업을 강제한다.
     // 거리 매력도: 예전엔 (1 - dGoal/shotRange) 라 골문 거리 0 에서 최대였다. 그래서 캐리어가 계속
     // 몰고 들어가 슛 거리 중앙값이 4.8m(실제 축구 ~17m), 전환율 44%(실제 ~10%), xG/슛 0.75 였다.
     // 실제 축구의 슛은 12m 부근에서 가장 매력적이고 25m 를 넘으면 급락한다.
     const distFactor = clamp(1 - Math.abs(dGoal - (A.shotSweetSpot ?? 12)) / (A.shotFalloff ?? 16), 0.12, 1);
-    const u = A.wShot * shotMul * buildMul * distFactor * shotAngleQuality(carrier.position)
+    const angleQ = shotAngleQuality(carrier.position);
+    // 찬스 품질 = 거리 × 골문 열림 × 각도. 좋으면 빌드업 억제를 푼다(할당량보다 골이 우선).
+    const chance = distFactor * openness * angleQ;
+    const shotBuild = Math.max(buildMul, clamp((chance - (A.chanceFloor ?? 0.10)) / (A.chanceSpan ?? 0.22), 0, 1));
+    const u = A.wShot * shotMul * shotBuild * distFactor * angleQ
       * openness * (0.55 + 0.45 * clamp(pressure / 5, 0, 1)) + noise();
     opts.push({ kind: 'shot', u });
   }

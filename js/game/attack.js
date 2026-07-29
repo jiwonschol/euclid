@@ -44,7 +44,11 @@ export function assignAttackTargets(state, team) {
     (p) => p.teamId === team && p.role !== 'GK' && !p.sentOff && p.id !== carrierId);
 
   // 밸런스: 가장 후방 2명은 역습 대비로 남긴다(§5) → 공격 목표 안 줌(shape 유지)
-  const balance = new Set([...players].sort((a, b) => a.homeAnchor.ax - b.homeAnchor.ax).slice(0, 2).map((p) => p.id));
+  // 역습 대비(rest-defence)로 뒤에 남기는 인원. 2명이면 공격 시 자기 진영에 팀의 14% 밖에 안 남아
+  // (실축 ~25%) 골키퍼 앞 40m 가 텅 빈다. 실제 팀은 백4 + 홀딩 미드를 남긴다.
+  const restDefence = state.cfg?.shape?.restDefence ?? 3;
+  const balance = new Set([...players].sort((a, b) => a.homeAnchor.ax - b.homeAnchor.ax)
+    .slice(0, finalThird ? restDefence + 1 : restDefence).map((p) => p.id));
   // 서포트: 캐리어 최근접 2명(밸런스 제외) → 콤비네이션 각
   const supportArr = carrier
     ? players.filter((p) => !balance.has(p.id)).sort((a, b) => dist2(a.position, carrier.position) - dist2(b.position, carrier.position)).slice(0, 2)
@@ -67,6 +71,17 @@ export function assignAttackTargets(state, team) {
   // 러너가 오프사이드 라인에 1.2m 까지 붙어 서 있으면 라인이 조금만 움직여도 넘어간다
   // (실측 오프사이드 10.3회/경기, 실축 4.0). 실제 공격수는 몇 미터 여유를 두고 타이밍을 잡는다.
   const ONSIDE_MARGIN = state.cfg?.shape?.onsideMargin ?? 3.5;
+  // 오프사이드 라인에 붙을 수 있는 인원 상한. 예전엔 윙어 2 + 스트라이커 + 레이트런이 모두 라인을
+  // 목표로 잡아, 수비가 내려앉으면 6명이 동시에 박스 앞에 붙어 스크럼이 됐다(실측 박스 안 p95 7명,
+  // 라인 ±4m 에 p95 6명. 실축은 각각 4~6명·1~3명). 나머지는 공 기준 깊이를 지킨다.
+  const MAX_PINNED = state.cfg?.shape?.maxPinnedRunners ?? 2;
+  let pinned = 0;
+  // 라인에 안 붙는 선수는 공보다 **뒤**에 선다 — 세컨드볼을 잡는 위치이고, 공 뒤는 정의상 온사이드다.
+  // 앞(ball.x + dir*10)에 두면 온사이드 클램프에 걸려 결국 라인에 다시 붙어 오프사이드가 는다(실측 11.17회).
+  const holdDepth = (p) => ({
+    x: ball.x - dir * 3,
+    z: clamp(anchorToWorld(p.homeAnchor, dir).z * 1.05 + ball.z * 0.15, -31, 31),
+  });
   let lateCount = 0;
   const maxLate = 1 + (commit >= 1 ? Math.min(2, Math.round(commit)) : 0);
   const targets = {};
@@ -83,12 +98,14 @@ export function assignAttackTargets(state, team) {
       tx = onside(dir, ball.x + dir * 14, olX, ONSIDE_MARGIN);   // 측면 존 오버랩(풀백 전진)
       tz = side * 26;
     } else if (p.role === 'W') {                          // 윙어: 폭 유지·측면 전개, 반대쪽 윙어는 박스 침투
-      tx = onside(dir, olX, olX, ONSIDE_MARGIN);
+      if (pinned < MAX_PINNED) { pinned++; tx = onside(dir, olX, olX, ONSIDE_MARGIN); }
+      else { tx = holdDepth(p).x; }
       if (wingSide !== 0 && side === wingSide) tz = side * 27;          // 존 사이드: 넓게(크로스 올림)
       else if (wingSide !== 0) tz = wingSide * -10;                     // 반대쪽 윙어: 파포스트로 침투(크로스 타깃)
       else tz = side * 21;                                              // 중앙 공격: 폭 유지
     } else if (ax >= 0.62) {                              // 스트라이커: 중앙(또는 존 쪽) 라인 침투
-      tx = onside(dir, olX, olX, ONSIDE_MARGIN);
+      if (pinned < MAX_PINNED) { pinned++; tx = onside(dir, olX, olX, ONSIDE_MARGIN); }
+      else { tx = holdDepth(p).x; }
       tz = wingSide === 0 ? side * 6 : wingSide * 9;
     } else if (finalThird && lateCount < maxLate) {      // 레이트런(박스 침투) — 전원 공격 시 인원↑
       lateCount++;

@@ -14,7 +14,7 @@
 import { readFileSync } from 'node:fs';
 import { createMatch, tick } from '../js/game/match.js';
 import { selectStance, acceptAdvice, playSub } from '../js/game/stance.js';
-import { FIELD } from '../js/game/field.js';
+import { FIELD, penaltyBoxOf } from '../js/game/field.js';
 
 const L = (p) => JSON.parse(readFileSync(new URL('../data/' + p, import.meta.url)));
 const cfg = L('engine.json'), com = L('commentary.json'), stc = L('stance.json');
@@ -44,7 +44,8 @@ const score = (v, good, bad) => Math.max(0, Math.min(1, (bad - v) / (bad - good)
 /** 정규 90분(stanceCfg 없음)으로 돌리며 공간·통계 표본을 모은다. */
 function runRegulation(seed) {
   const s = createMatch(seed, cfg, com);
-  const gkDist = [], crowd = [], widthZ = [], depthX = [];
+  const gkDist = [], crowd = [], widthZ = [], depthX = [], boxCount = [];
+  const thirds = { own: 0, mid: 0, opp: 0 };
   const ballXs = [], defCxs = [];
   const speeds = [], passSpeeds = [];
   let ticks = 0, sprintTicks = 0, speedSamples = 0, walkSamples = 0;
@@ -76,6 +77,18 @@ function runRegulation(seed) {
     const def = s.possessionTeamId === 'A' ? 'B' : 'A';
     const dfs = alive.filter((p) => p.teamId === def && p.role !== 'GK');
     if (dfs.length >= 8) { ballXs.push(b.x); defCxs.push(mean(dfs.map((p) => p.position.x))); }
+    // S8/S9 공격 구조 — 상대 박스 안 인원과 3분할 분포.
+    // S2(공 10m 안)만으로는 '박스 안 스크럼'을 못 잡는다. 25m 에 걸쳐 8명이 몰려 있어도
+    // 10m 반경에는 5명뿐이라 통과했다(실측 스냅샷에서 확인). 눈이 보는 것을 따로 재야 한다.
+    if (s.possessionTeamId) {
+      const att = s.possessionTeamId, adir = s.attackDirection[att];
+      const mates = alive.filter((p) => p.teamId === att && p.role !== 'GK');
+      boxCount.push(mates.filter((p) => penaltyBoxOf(p.position.x, p.position.z, adir) === 'opp').length);
+      for (const p of mates) {
+        const dd = adir * p.position.x + FIELD.halfLength;
+        if (dd < 35) thirds.own++; else if (dd < 70) thirds.mid++; else thirds.opp++;
+      }
+    }
     // S4 폭/깊이 — 팀별 z 스팬, x 스팬
     for (const t of ['A', 'B']) {
       const f = alive.filter((p) => p.teamId === t && p.role !== 'GK');
@@ -87,7 +100,7 @@ function runRegulation(seed) {
   }
   const ev = {};
   for (const e of s.eventLog) ev[e.type] = (ev[e.type] || 0) + 1;
-  return { state: s, gkDist, crowd, widthZ, depthX, corr: pearson(ballXs, defCxs), ev,
+  return { state: s, gkDist, crowd, widthZ, depthX, boxCount, thirds, corr: pearson(ballXs, defCxs), ev,
     speeds, passSpeeds, sprintTicks, speedSamples, walkSamples, matchMinutes: s.clockSeconds / 60 };
 }
 
@@ -135,14 +148,21 @@ function metricSpace(runs) {
   const walkShare = runs.reduce((a, r) => a + r.walkSamples, 0) / Math.max(1, runs.reduce((a, r) => a + r.speedSamples, 0));
   const sprintPerMin = runs.reduce((a, r) => a + r.sprintTicks, 0) / 15 / Math.max(1, runs.reduce((a, r) => a + r.matchMinutes, 0));
   const passP50 = pctl(runs.flatMap((r) => r.passSpeeds), 0.5);
+  const A = REF.attackStructure;
+  const boxP95 = pctl(runs.flatMap((r) => r.boxCount), 0.95);
+  const th = runs.reduce((a, r) => ({ own: a.own + r.thirds.own, mid: a.mid + r.thirds.mid, opp: a.opp + r.thirds.opp }), { own: 0, mid: 0, opp: 0 });
+  const thTot = th.own + th.mid + th.opp || 1;
+  const ownPct = th.own / thTot, oppPct = th.opp / thTot;
   checks.push(
+    { id: 'S8 상대 박스 안 인원', got: `p95 ${boxP95}명`, ok: boxP95 <= A.boxP95Max, want: `≤${A.boxP95Max}명` },
+    { id: 'S9 3분할 분포', got: `자기 ${(ownPct * 100).toFixed(0)}% · 중원 ${((1 - ownPct - oppPct) * 100).toFixed(0)}% · 상대 ${(oppPct * 100).toFixed(0)}%`, ok: ownPct >= A.ownThirdMin && oppPct <= A.oppThirdMax, want: `자기 ≥${A.ownThirdMin * 100}% · 상대 ≤${A.oppThirdMax * 100}%` },
     { id: 'S5 평균 이동속도', got: `${avg.toFixed(2)} m/s · p95 ${p95s.toFixed(2)}`, ok: avg >= M.meanSpeedMin && avg <= M.meanSpeedMax && p95s >= M.p95SpeedMin && p95s <= M.p95SpeedMax, want: `평균 ${M.meanSpeedMin}~${M.meanSpeedMax} · p95 ${M.p95SpeedMin}~${M.p95SpeedMax}` },
     { id: 'S6 속도 다양성', got: `걷기/정지 ${(walkShare * 100).toFixed(0)}% · 스프린트 ${sprintPerMin.toFixed(1)}회/분`, ok: walkShare >= M.walkShareMin && sprintPerMin >= M.sprintPerMinMin, want: `걷기 ≥${M.walkShareMin * 100}% · 스프린트 ≥${M.sprintPerMinMin}/분` },
     { id: 'S7 패스 속도', got: `중앙값 ${passP50.toFixed(1)} m/s`, ok: passP50 >= M.passSpeedMin && passP50 <= M.passSpeedMax, want: `${M.passSpeedMin}~${M.passSpeedMax} m/s` },
   );
 
   return { checks, score: checks.filter((c) => c.ok).length / checks.length,
-    raw: { gkP95, gkMax, crowdP95, corr, width, depth, avgSpeed: avg, p95Speed: p95s, walkShare, sprintPerMin, passP50 } };
+    raw: { gkP95, gkMax, crowdP95, corr, width, depth, boxP95, ownPct, oppPct, avgSpeed: avg, p95Speed: p95s, walkShare, sprintPerMin, passP50 } };
 }
 
 // ── M2 통계 (정규 90분) ──────────────────────────────────────
