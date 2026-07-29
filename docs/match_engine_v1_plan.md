@@ -1,5 +1,7 @@
 # 연속 경기 엔진 계획 (match engine v1)
 
+> **이 문서보다 위에 [first_principle.md](first_principle.md) 가 있다.** 충돌 시 그쪽이 이긴다.
+>
 > **정본(SoT).** 이 문서는 마스터 계획서(`captain_tsubasa_card_manager_claude_code_prompt.md`)를
 > euclid 실제 스택(바닐라 JS, 무빌드)에 적용한 구현 계약이다. 마스터 계획서가 "무엇을",
 > 이 문서가 "이 저장소에서 어떻게"를 정한다. 충돌 시 임의 결정 금지 — 디자이너에게 질문.

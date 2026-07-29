@@ -3,6 +3,7 @@
 **축구라는 전술 보드게임판을 보며, 감독(유저)이 컴퓨터의 수에 카드로 대응하는 게임.**
 경기 장면은 물리 재현이 아니라 *대응이 읽히는 하이라이트*이고, 진짜 경기는 **실시간 중계(글)**를 근거로 한 유저의 상상에서 벌어진다. 바둑알 판은 그 실현·보조다.
 
+> **제1원칙(모든 문서보다 먼저): [docs/first_principle.md](docs/first_principle.md)** — 축구 엔진은 진형을 그리는 게 아니라 '골'이라는 목적에서 행동을 유도한다. 진형은 입력이 아니라 결과다.
 > 정본 설계: [docs/match_engine_v1_plan.md](docs/match_engine_v1_plan.md) (§0.1 게임 정체성 필독)
 > 마스터 계획서: `docs/captain_tsubasa_card_manager_claude_code_prompt.md`
 
