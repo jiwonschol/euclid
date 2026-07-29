@@ -1,0 +1,11 @@
+{
+  "sim/realism-lint.mjs": "446baca8e55c53adb388cbcfe927f5fdcda45454f5b143a5f8e5bd29792bca8e",
+  "sim/report.mjs": "9df7382af41279c95e3d474d8ed91fa911bde8533a7b5be4ee7328d3d5308004",
+  "sim/pitchshot.mjs": "836fb7e775efb1049535ac38f03d88f92f0bf11dd6d04d5b06ab822da1724f2d",
+  "docs/reference/match_stats.json": "633a781246da14b2e56f18be631c40a7451635d660ebcca6188f6dcc39e1c3f2",
+  "docs/reference/README.md": "dcce0a57e7ff4d5b04a150f92a2a627792c8eab6009f4f53ede7bf9f172ae151",
+  "docs/reference/target-pitch.png": null,
+  ".claude/loop/judge.md": "4f1e190d650c9a73bb0e80f8209c39a8dd6d07975448c2ce8337c27841b28241",
+  ".claude/loop/match-realism.md": "0a20b4bbb470b8ccea5f2d3f4d7935821ed26edef4b98355c2abeaf45e6addac",
+  ".claude/loop/guard.mjs": "444acc130b0e69bf3e9b35a96be57eef74906c225fae7dee343867c38973a971"
+}

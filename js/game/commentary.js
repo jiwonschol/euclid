@@ -1,0 +1,218 @@
+// 실시간 중계·시스템 메시지 엔진 (계획서 §0.1: 텍스트가 코어).
+// 경기 상태를 읽어 자주·다양하게 한국어 중계를 state.feed 에 쌓고, 판단 근거 스탯을 state.stats 에 누적한다.
+// rng 절대 소비 금지(결정론) → 판정 불변. 템플릿은 data/commentary.json, 선택은 키별 카운터 순환(다양성).
+
+import { dBallOwn } from './shape.js';
+
+function ensure(state) {
+  if (state.feed) return;
+  state.feed = [];
+  state.stats = { possTicks: { A: 0, B: 0 }, shots: { A: 0, B: 0 }, onTarget: { A: 0, B: 0 },
+    xg: { A: 0, B: 0 }, corners: { A: 0, B: 0 }, momentum: 0 };
+  state._comm = { lastIdx: 0, lastBeat: -99, lastStat: -99, counters: {}, lastFlow: '', spellPoss: null, spellStart: 0, prevPoss: null };
+}
+
+function pick(state, key, arr) {
+  const c = state._comm.counters;
+  c[key] = (c[key] || 0) + 1;
+  return arr[(c[key] - 1) % arr.length];
+}
+// 한글 받침 여부(마지막 음절에 종성이 있나)
+function hasBatchim(word) {
+  const s = String(word); if (!s) return false;
+  const c = s.charCodeAt(s.length - 1);
+  if (c < 0xAC00 || c > 0xD7A3) return false;
+  return (c - 0xAC00) % 28 !== 0;
+}
+// {T}/{O} 치환 + 조사 마커(#가 #는 #를 #와). 마커는 직전 치환어의 받침으로 이/가·은/는·을/를·와/과 선택.
+// 받침에 따라 갈리는 조사만 골라 쓴다. 그 외(의·에·도·만…)는 마커를 지우고 글자만 남긴다 —
+// 예전에는 지원 목록에 없는 마커가 그대로 화면에 나갔다("수원#의 찬스!").
+const JOSA = { '가': ['가', '이'], '이': ['가', '이'], '는': ['는', '은'], '은': ['는', '은'],
+  '를': ['를', '을'], '을': ['를', '을'], '와': ['와', '과'], '과': ['와', '과'],
+  '로': ['로', '으로'], '으로': ['로', '으로'] };
+function fill(tmpl, v) {
+  let last = '';
+  return tmpl.replace(/\{(\w+)\}|#([가-힣]+)/g, (m, key, j) => {
+    if (key !== undefined) { last = v[key] !== undefined ? String(v[key]) : ''; return last; }
+    const pair = JOSA[j];
+    if (!pair) return j;                     // 갈리지 않는 조사 — 마커만 떼고 그대로
+    return pair[hasBatchim(last) ? 1 : 0];
+  });
+}
+/** 지금이 '말할 가치가 있는 순간'인가 = 하이라이트(랠리) 중인가. 잡음 이벤트 게이트. */
+function hot(state) { return !state.seq || state.seq.mode === 'HIGHLIGHT'; }
+
+function push(state, text, kind) {
+  state._comm.seq = (state._comm.seq || 0) + 1;
+  state.feed.push({ id: state._comm.seq, t: Math.round(state.clockSeconds), half: state.half, text, kind });
+  if (state.feed.length > 240) state.feed.shift();
+}
+/**
+ * 기대득점(xG) 근사: 골문까지 거리와 보이는 각도만으로 산출한다(요즘 축구 분석의 표준 지표).
+ * 능력치가 없는 프로토라 슈터 보정은 없다 — 위치의 질만 본다.
+ */
+function xgOf(state, team) {
+  const dir = state.attackDirection[team];
+  const b = state.ball.position;
+  const gx = dir * 52.5, gz = 0;
+  const d = Math.hypot(gx - b.x, gz - b.z);
+  // 골문(7.32m)을 슈터 지점에서 바라본 시야각 — 각이 좁을수록 급감
+  const a = Math.atan2(3.66 - b.z, Math.abs(gx - b.x)) - Math.atan2(-3.66 - b.z, Math.abs(gx - b.x));
+  const ang = Math.abs(a);
+  const xg = 1 / (1 + Math.exp(0.17 * d - 1.6 * ang - 0.9));
+  return Math.max(0.01, Math.min(0.9, xg));
+}
+
+function nearestOppDist(state, team, pos) {
+  let d = Infinity;
+  for (const p of Object.values(state.players)) {
+    if (p.teamId === team || p.role === 'GK' || p.sentOff) continue;
+    const dd = Math.hypot(p.position.x - pos.x, p.position.z - pos.z);
+    if (dd < d) d = dd;
+  }
+  return d;
+}
+
+/** 매 IN_PLAY 틱 호출. C = data/commentary.json */
+export function stepCommentary(state, dt, C) {
+  ensure(state);
+  const st = state.stats, cm = state._comm, poss = state.possessionTeamId;
+
+  // ── 스탯 누적 ──
+  if (poss) st.possTicks[poss]++;
+  if (poss) {
+    const dir = state.attackDirection[poss];
+    const terr = (dBallOwn(dir, state.ball.position.x) - 52.5) / 52.5;         // -1(수비)..+1(공격)
+    st.momentum += (poss === 'A' ? 1 : -1) * (0.5 + Math.max(0, terr)) * dt;
+  }
+  st.momentum = Math.max(-60, Math.min(60, st.momentum * (1 - 0.02 * dt)));
+
+  // ── 점유 전환(역습 감지) ──
+  if (poss && poss !== cm.spellPoss) {
+    cm.prevPoss = cm.spellPoss; cm.spellPoss = poss; cm.spellStart = state.clockSeconds;
+  }
+
+  // ── 이벤트 중계 ──
+  for (; cm.lastIdx < state.eventLog.length; cm.lastIdx++) emitEvent(state, C, state.eventLog[cm.lastIdx]);
+
+  // ── 플로우 비트 ──
+  if (poss && state.clockSeconds - cm.lastBeat >= C.beatSec) {
+    cm.lastBeat = state.clockSeconds;
+    emitFlow(state, C);
+  }
+  // ── 스탯 콜아웃 ──
+  if (state.clockSeconds - cm.lastStat >= (C.statSec || 16)) {
+    cm.lastStat = state.clockSeconds;
+    emitStat(state, C);
+  }
+}
+
+function emitEvent(state, C, e) {
+  const nm = C.teams;
+  const T = (t) => nm[t] || t, O = (t) => nm[t === 'A' ? 'B' : 'A'];
+  const st = state.stats, E = C.event;
+  switch (e.type) {
+    case 'SHOT': {
+      st.shots[e.team]++;
+      st.xg[e.team] += xgOf(state, e.team);        // 기대득점: 거리·각도로 산출해 누적
+      push(state, fill(pick(state, 'shot', E.shot), { T: T(e.team), O: O(e.team) }), 'play');
+      break;
+    }
+    case 'SAVE': { const gk = e.by[0]; st.onTarget[gk === 'A' ? 'B' : 'A']++; push(state, fill(pick(state, 'save', E.save), { T: T(gk) }), 'save'); break; }
+    case 'GOAL': st.onTarget[e.team]++; push(state, fill(pick(state, 'goal', E.goal), { T: T(e.team), SA: e.score.A, SB: e.score.B }), 'goal'); break;
+    // 잡음 이벤트(태클 403·인터셉트 136/경기)는 '하이라이트 중'에만 말한다.
+    // 전부 말하면 경기당 3444줄이 되어 유저가 읽을 수 없다 — 강박적 1초 드론의 정체.
+    case 'TACKLE': if (hot(state)) push(state, fill(pick(state, 'tackle', E.tackle), { T: T(e.team) }), 'play'); break;
+    case 'INTERCEPT': if (hot(state)) push(state, fill(pick(state, 'intercept', E.intercept), { T: T(e.team) }), 'play'); break;
+    case 'BLOCK': push(state, fill(pick(state, 'block', E.block), { T: T(e.team) }), 'play'); break;
+    case 'CROSS': if (hot(state)) push(state, fill(pick(state, 'cross', E.cross), { T: T(e.team) }), 'play'); break;
+    case 'THROUGH': { if (!hot(state)) break; const c = state._comm; c.thru = (c.thru || 0) + 1; if (c.thru % 2 === 0) push(state, fill(pick(state, 'through', E.through), { T: T(e.team) }), 'play'); break; }
+    case 'HALFTIME': push(state, `— 전반 종료. ${T('A')} ${e.score.A} : ${e.score.B} ${T('B')} —`, 'sys'); break;
+    case 'SECOND_HALF': push(state, `— 후반 시작 —`, 'sys'); break;
+    case 'FULLTIME': push(state, `— 경기 종료! 최종 ${T('A')} ${e.score.A} : ${e.score.B} ${T('B')} —`, 'sys'); break;
+    // 감독 스탠스 카드 — 유저가 낸 카드가 '들어갔다'는 걸 반드시 글로 확인시킨다
+    case 'STANCE_PENDING': push(state, fill(C.stance.pending, { GROUP: e.group, NAME: e.name, SEC: e.sec }), 'directive'); break;
+    case 'STANCE_AUDIBLE': push(state, fill(C.stance.audible, { NAME: e.name, FROM: e.from }), 'directive'); break;
+    case 'STANCE_ARRIVED': push(state, fill(C.stance.arrived, { GROUP: e.group, NAME: e.name }), 'directive'); break;
+    case 'OPP_STANCE': push(state, fill(C.stance.opp, { O: T('B'), NAME: e.name }), 'signal'); break;
+    case 'ADVICE': push(state, `🎙️ 참모 — ${e.text}`, 'signal'); break;
+    case 'ADVICE_TAKEN': push(state, `🎙️ 참모의 조언을 받아들입니다.`, 'directive'); break;
+    case 'SUB': push(state, `🔁 교체 — ${e.name}.`, 'directive'); break;
+    case 'SUB_REPORT': push(state, `🔁 ${e.text}`, 'directive'); break;
+    case 'DIRECTIVE_SUCCESS': push(state, `🎯 지시 성공 — ${e.text}`, 'goal'); break;
+    case 'HIGHLIGHT_START': push(state, fill(pick(state, 'hl', C.highlight.start), { T: T(e.team) }), 'goal'); break;
+    case 'OFFSIDE': push(state, fill(pick(state, 'offside', C.offside), { T: T(e.team) }), 'play'); break;
+    // §11 반칙 — 텍스트가 코어다: 반칙·경고·퇴장은 반드시 중계에 실린다. e.team=반칙한 팀
+    case 'FOUL': {
+      if (!e.card && !e.pk && !hot(state) && e.sev < 0.6) break;   // 평범한 중원 반칙은 침묵
+      const hard = e.sev >= 0.6 && C.foul_hard;
+      const tpl = hard ? pick(state, 'foul_hard', C.foul_hard) : pick(state, 'foul', C.foul);
+      if (tpl) push(state, fill(tpl, { O: T(e.team), T: O(e.team) }), e.pk ? 'goal' : 'play');
+      break;
+    }
+    case 'CARD': {
+      const c = C.card; if (!c) break;
+      const tpl = e.card === 'red' ? c.red : (e.second ? c.second : c.yellow);
+      if (tpl) push(state, fill(tpl, { O: T(e.team) }), 'save');
+      break;
+    }
+    case 'SENT_OFF': if (C.sent_off) push(state, fill(C.sent_off, { O: T(e.team) }), 'save'); break;
+    case 'RESTART': {                       // 스로인·골킥은 일상 → 침묵. 코너/프리킥/PK 만 말한다.
+      const big = e.kind === 'corner' || e.kind === 'penalty' || e.kind === 'freekick';
+      if (e.kind === 'corner') st.corners[e.team]++;
+      const r = C.restart && C.restart[e.kind];
+      if (r && (big || hot(state))) push(state, fill(r, { T: T(e.team) }), e.kind === 'corner' || e.kind === 'penalty' ? 'save' : 'play');
+      break;
+    }
+    default: break;
+  }
+}
+
+function emitFlow(state, C) {
+  const nm = C.teams, poss = state.possessionTeamId;
+  const T = nm[poss], O = nm[poss === 'A' ? 'B' : 'A'];
+  const dir = state.attackDirection[poss];
+  const d = dBallOwn(dir, state.ball.position.x);                  // 0..105
+  const carrier = state.ball.carrierId ? state.players[state.ball.carrierId] : null;
+  const pressed = carrier && nearestOppDist(state, poss, carrier.position) < 2.4;
+  const spell = state.clockSeconds - state._comm.spellStart;
+  const z = state.ball.position.z;
+
+  let key;
+  if (spell < 2.5 && state._comm.prevPoss && state._comm.prevPoss !== poss && d > 45) key = 'counter';  // 막 뺏어 전진
+  else if (d < 35) key = pressed ? 'buildup_pressed' : 'buildup_deep';
+  else if (d < 68) key = 'midfield';
+  else key = spell > 8 ? 'sustained' : 'attack_third';
+  if (key === 'attack_third' && Math.abs(z) > 20) key = z < 0 ? 'wing_left' : 'wing_right';
+
+  // 드론 방지(강화): 흐름 중계는 '상황이 실제로 바뀔 때'만. 같은 상황이 이어지면 침묵한다.
+  // 예전엔 같은 상황도 3비트마다 떠들어 경기당 flow 만 수백 줄이었다. 최소 간격도 강제.
+  const cm = state._comm;
+  const gap = state.clockSeconds - (cm.lastFlowAt || -999);
+  if (key === cm.lastFlow) return;                       // 상황 그대로 → 할 말 없음
+  if (gap < (C.flowMinGapSec || 0)) return;              // 너무 잦은 전환도 억제
+  cm.lastFlow = key; cm.lastFlowAt = state.clockSeconds;
+  push(state, fill(pick(state, 'flow_' + key, C.flow[key] || C.flow.midfield), { T, O }), 'flow');
+
+  // 빌드업(바둑알 꺼짐) 구간엔 '유저가 반응할 근거'를 준다 — 상대가 어디로 오는지.
+  // 이 힌트를 읽고 수비 방향 카드를 고르는 게 이 게임의 문법이다.
+  if (state.seq && state.seq.mode === 'BUILDUP' && C.hint) {
+    const hk = poss === 'A'
+      ? (state.seq.threat === 'wing' ? 'we_wing' : 'we_central')
+      : (state.seq.threat === 'wing' ? 'opp_wing' : 'opp_central');
+    if (hk !== cm.lastHint) {
+      cm.lastHint = hk;
+      push(state, fill(pick(state, 'hint_' + hk, C.hint[hk]), { T, O }), 'signal');
+    }
+  }
+}
+
+function emitStat(state, C) {
+  const nm = C.teams, st = state.stats;
+  const tot = st.possTicks.A + st.possTicks.B || 1;
+  const pa = Math.round(100 * st.possTicks.A / tot);
+  const lead = st.momentum > 8 ? nm.A : st.momentum < -8 ? nm.B : '균형';
+  push(state, fill(pick(state, 'stat', C.stat), {
+    NA: nm.A, NB: nm.B, PA: pa, PB: 100 - pa, STA: st.onTarget.A, STB: st.onTarget.B, LEAD: lead,
+  }), 'stat');
+}

@@ -1,0 +1,66 @@
+{
+  "_comment": "표적(평가 레퍼런스)의 수치 정본. 실제 1군 리그 한 경기(90분) 양팀 합계 평균. goal-harness 루프는 이 파일을 수정할 수 없다 — .claude/loop/guard.mjs 가 해시로 고정한다. 사람 읽는 판은 match_stats.md.",
+  "match90": {
+    "_comment": "정규 90분(stanceCfg 없이 createMatch) 기준. 양팀 합계.",
+    "goals": 2.7,
+    "shots": 24,
+    "onTarget": 8.4,
+    "xgPerShot": 0.1,
+    "fouls": 21.5,
+    "corners": 10.2,
+    "offsides": 4,
+    "passes": 880
+  },
+  "space": {
+    "_comment": "판이 축구로 읽히는가 — target-pitch.png 에서 눈으로 확인되는 성질을 수치로 옮긴 것.",
+    "gkDistP95Max": 18,
+    "gkDistMax": 30,
+    "crowdP95Max": 6,
+    "shapeFollowMin": 0.55,
+    "shapeFollowMax": 0.92,
+    "widthMin": 30,
+    "depthMin": 30,
+    "depthMax": 45
+  },
+  "motion": {
+    "_comment": "실제 축구 선수의 움직임 분포. 90분 평균 이동속도는 약 2 m/s(≈10~11km)이고 대부분의 시간은 걷거나 서 있다. 전원이 같은 속도로 계속 종종걸음하면 진형이 살아 움직이는 대신 통째로 미끄러진다(2026-07-29 실측: 중앙값이 jog 상수 3.24 에 정확히 붙어 있었고 스프린트는 0회).",
+    "meanSpeedMin": 1.8,
+    "meanSpeedMax": 2.8,
+    "p95SpeedMin": 4.5,
+    "p95SpeedMax": 7.5,
+    "walkShareMin": 0.25,
+    "walkSpeedUnder": 1.5,
+    "sprintOver": 7.5,
+    "sprintPerMinMin": 0.5,
+    "passSpeedMin": 14,
+    "passSpeedMax": 26
+  },
+  "feed": {
+    "_comment": "중계 텍스트. 토큰 누출은 0 이 아니면 M3 전체가 0(치명). 밀도는 실플레이 분당.",
+    "repeatPctMax": 3,
+    "distinctMin": 0.55,
+    "perMinMin": 8,
+    "perMinMax": 20
+  },
+  "game": {
+    "_comment": "게임으로서의 형태. deltaPts = 좋은 카드 정책의 경기당 승점 − 무개입 승점. 0 이면 카드는 장식이고, 너무 크면 카드가 전부라 축구가 아니라 슬롯머신이다 — 그래서 밴드다.",
+    "realMinMin": 9,
+    "realMinMax": 11,
+    "branchPer10Min": 8,
+    "branchPer10Max": 20,
+    "deltaPtsMin": 0.3,
+    "deltaPtsMax": 1.5,
+    "deltaGdMin": 0.3,
+    "deltaGdMax": 2
+  },
+  "thresholds": {
+    "devSumGood": 1.2,
+    "devSumBad": 4
+  },
+  "attackStructure": {
+    "_comment": "공격 구조. S2(공 10m 안)만으로는 박스 안 스크럼을 못 잡는다 — 25m 에 걸쳐 8명이 몰려도 10m 반경엔 5명뿐이라 통과한다(2026-07-29 스냅샷에서 눈으로 확인). 실제 축구는 크로스 순간에도 박스 안 4~6명이고, 공격 중에도 팀의 1/4 은 자기 진영에 남아 역습에 대비한다.",
+    "boxP95Max": 6,
+    "ownThirdMin": 0.2,
+    "oppThirdMax": 0.36
+  }
+}

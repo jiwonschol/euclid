@@ -1,0 +1,200 @@
+{
+  "_comment": "연속 경기 엔진 튜너블 (docs/match_engine_v1_plan.md). 값은 실축 m·m/s. 구 config.json motion 블록에서 계승했으나 좌표가 미터-네이티브라 meterScale 없음. 디자이너는 이 파일만 만지면 움직임이 바뀐다.",
+  "player": {
+    "_comment": "선수 운동학(§2.1-B). sprint 실축 8~9.5 m/s. 가속은 힘-속도 관계로 성분 분해(정지 accelBase, 제동 brake>가속, 측면 lateralAccel). jog=재정렬 트로트, run=추격.",
+    "sprint": 8.3,
+    "run": 6.5,
+    "jog": 3.2,
+    "walk": 1.5,
+    "accelBase": 4.5,
+    "brake": 6.5,
+    "lateralAccel": 4.5,
+    "reactionMin": 0.15,
+    "reactionMax": 0.35,
+    "arrivalRadius": 1.2
+  },
+  "separation": {
+    "_comment": "겹침 분리(§2.7). 두 선수가 dist(m) 미만이면 목표점에 상호 반발 보정. 실이동은 운동학 캡이 지배 → 부드럽게 벌어짐. 평형거리 ≈ dist×s/(1+s).",
+    "dist": 1.6,
+    "strength": 12
+  },
+  "shape": {
+    "_comment": "축구 형상 모델(§2.3-B). 팀별 back/front = 자기 골문 거리(m). 필드 플레이어를 depthRank로 그 사이에 사상. cy=측면 중심(공 z를 yGain만큼 추종), width=진형 가로 폭계수.",
+    "defend": {
+      "buffer": 22,
+      "backClampLo": 6,
+      "backClampHi": 45,
+      "length": 34,
+      "width": 0.85,
+      "yGain": 0.5
+    },
+    "attack": {
+      "buffer": 24,
+      "backClampLo": 14,
+      "backClampHi": 48,
+      "minLength": 26,
+      "offsideGap": 1.5,
+      "width": 0.95,
+      "widthFinalThird": 1.12,
+      "finalThirdDist": 60,
+      "yGain": 0.25
+    },
+    "neutral": {
+      "buffer": 20,
+      "backClampLo": 10,
+      "backClampHi": 40,
+      "length": 30,
+      "width": 0.85,
+      "yGain": 0.4
+    },
+    "defendFrontAhead": 12,
+    "lineHeight": 9,
+    "tactic": {
+      "attackBack": 4,
+      "attackWidth": 0.08,
+      "counterBack": 5,
+      "parkBack": 8,
+      "parkLength": 5
+    },
+    "smoothTau": 2.5,
+    "runThreshold": 8,
+    "runRamp": 4,
+    "offBallMinBallDist": 20,
+    "blockMinDwellSec": 7,
+    "blockBallGain": 0.3,
+    "counterPressSec": 6,
+    "settleSec": 14,
+    "onsideMargin": 6.5,
+    "restDefence": 3,
+    "maxPinnedRunners": 2
+  },
+  "press": {
+    "_comment": "수비 역할(§2.3). standoff=캐리어 골문쪽 접근거리, engageDist=이 존거리 밖이면 압박 안 함, coverBehind=커버가 압박자 뒤로 서는 거리, hysteresisSec=역할 재지정 지연.",
+    "standoff": 2.2,
+    "engageDist": 20,
+    "coverBehind": 11,
+    "hysteresisSec": 1
+  },
+  "gk": {
+    "_comment": "골키퍼(§2.3-B). restDist=평시 골문 앞 거리, advance=박스 안 공 진입 시 전진, boxX=자기 박스 판정, trackClampY=공 z 추종 한계. 공격 GK 스위퍼: back×sweeperRatio 전진(≤sweeperMaxX).",
+    "restDist": 5,
+    "advance": 4,
+    "boxX": 16,
+    "trackClampY": 4,
+    "sweeperRatio": 0.3,
+    "sweeperMaxX": 18,
+    "saveZone": 8,
+    "diveReach": 4.7,
+    "saveProb": 0.93,
+    "catchRatio": 0.9,
+    "parryBehindProb": 0.6
+  },
+  "idle": {
+    "_comment": "유휴 미세 흔들림(§2.3). 목표에만 얹어 실제 속도는 캡 유지.",
+    "driftRadius": 0.4,
+    "freq": 0.6
+  },
+  "ball": {
+    "_comment": "공 물리(§2.4·마스터 §7). 속도 m/s, distRef=그 최대속도 도달 거리(m). 지상은 friction 감속, 공중은 gravity 포물선. settleSpeed 미만이면 정지, restitution=착지 반발.",
+    "carryAhead": 1.1,
+    "passMin": 16,
+    "passMax": 22,
+    "passDistRef": 45,
+    "loftMin": 14,
+    "loftMax": 18,
+    "loftDistRef": 40,
+    "loftHeight": 2.2,
+    "shotMin": 24,
+    "shotMax": 31,
+    "shotDistRef": 28,
+    "friction": 5.5,
+    "settleSpeed": 1,
+    "gravity": 9.8,
+    "restitution": 0.35,
+    "collectSpeed": 7
+  },
+  "control": {
+    "_comment": "볼 컨트롤·인터셉트·슛블록(마스터 §7). controlRadius=이 거리 안이면 컨트롤 시도, controlSpeedMax=이보다 빠른 공은 즉시 소유 불가, interceptRadius=패스 레인 가로채기, blockRadius/blockProb=슈터 앞 레인 수비수 슛 블록.",
+    "controlRadius": 1.5,
+    "controlSpeedMax": 14,
+    "interceptRadius": 1.4,
+    "looseControlRadius": 2,
+    "blockRadius": 1.4,
+    "blockProb": 0.6,
+    "blockBehindProb": 0.75
+  },
+  "action": {
+    "_comment": "utility 의사결정(마스터 §6). 값은 효용 가중. 매 decideEvery 초마다 캐리어가 행동 재평가. minCarry=최소 소유시간('죽죽' 방지).",
+    "decideEvery": 0.55,
+    "minCarry": 0.85,
+    "shotMaxDist": 26,
+    "passMaxDist": 40,
+    "throughMaxDist": 35,
+    "wDribble": 1.05,
+    "wPass": 1.2,
+    "wShot": 1,
+    "wForward": 0.7,
+    "turnoverBase": 0.42,
+    "buildSuppress": 0.12,
+    "culmBoost": 1.25,
+    "noise": 0.12,
+    "shotSweetSpot": 12,
+    "shotFalloff": 16,
+    "gkReachBase": 0.6,
+    "gkReachGain": 5.2,
+    "chanceFloor": 0.1,
+    "chanceSpan": 0.22
+  },
+  "foul": {
+    "_comment": "태클 resolver(마스터 §11). 태클 접촉 시 방향(등 뒤 진입)·강도(태클러 속도)로 판정: 합법 / careless=직접 프리킥 / reckless=옐로 / excessive=레드. 반칙 팀 자기 박스 안이면 PK. wallDist=상대 이격(9.15m), pkClearBack=PK 시 나머지가 마크 뒤로 물러나는 거리. boxCaution=자기 박스 안 반칙 확률 배수(수비수는 박스에서 극도로 조심한다 — 반칙=PK). 접촉의 59%가 박스 근처에 몰리므로 이 항이 없으면 PK 48회/경기가 된다. 계수는 실측 튜닝치: 반칙 ~22 · 옐로 ~3-4 · PK ~0.3/경기.",
+    "baseProb": 0.078,
+    "boxCaution": 0.007,
+    "behindBonus": 0.18,
+    "speedRef": 6,
+    "recklessAt": 0.82,
+    "excessiveAt": 0.975,
+    "wallDist": 9.15,
+    "pkClearBack": 10
+  },
+  "attributes": {
+    "_comment": "역할별 능력치 평균(디자이너 2026-07-29). 공격수는 빠르고 가볍다, 수비수는 크고 느리다, 미드필더는 중간. pace=최고속 배율, strength=경합·태클, height=공중볼. 선수마다 셔츠번호 기반 결정론 지터가 붙어 같은 역할끼리도 다르다. 1팀 공격수 대 2팀 수비수의 실제 능력차가 생겨 관찰 변수가 는다.",
+    "jitter": 0.06,
+    "byRole": {
+      "GK": {
+        "pace": 0.88,
+        "strength": 1.05,
+        "height": 1.1
+      },
+      "CB": {
+        "pace": 0.9,
+        "strength": 1.15,
+        "height": 1.15
+      },
+      "FB": {
+        "pace": 1.02,
+        "strength": 0.98,
+        "height": 0.95
+      },
+      "DM": {
+        "pace": 0.95,
+        "strength": 1.08,
+        "height": 1.05
+      },
+      "CM": {
+        "pace": 1.0,
+        "strength": 1.0,
+        "height": 1.0
+      },
+      "W": {
+        "pace": 1.1,
+        "strength": 0.9,
+        "height": 0.92
+      },
+      "ST": {
+        "pace": 1.07,
+        "strength": 0.97,
+        "height": 1.02
+      }
+    }
+  }
+}

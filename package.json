@@ -6,6 +6,18 @@
   "scripts": {
     "sim": "node sim/headless.mjs 1000",
     "sim:motion": "node sim/motion-lint.mjs",
-    "start": "python3 tools/serve.py 8642"
+    "sim:match": "node sim/match-smoke.mjs",
+    "sim:pos": "node sim/positioning-lint.mjs",
+    "sim:play": "node sim/play-lint.mjs",
+    "sim:seq": "node sim/seq-dist.mjs 30",
+    "sim:rules": "node sim/rules-lint.mjs",
+    "sim:stability": "node sim/stability.mjs",
+    "start": "python3 tools/serve.py 8642",
+    "sim:stance": "node sim/stance-lint.mjs",
+    "sim:realism": "node sim/realism-lint.mjs --matches 12 --delta-matches 40",
+    "loop:report": "node sim/report.mjs",
+    "loop:guard": "node .claude/loop/guard.mjs",
+    "sim:offside": "node sim/offside-lint.mjs",
+    "selfplay": "node sim/selfplay.mjs"
   }
 }
