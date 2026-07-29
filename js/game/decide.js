@@ -97,7 +97,9 @@ function updatePossession(state, dt) {
     const mf = carrier.teamId === 'A' ? (state.subBoost?.A?.mf || 0) : 0;
     // 읽고 대응: 수비팀의 '수비 방향' 스탠스가 상대의 실제 공격 방향과 맞으면 탈취 확률↑, 반대로 읽었으면↓
     const tm = state.stanceCfg ? threatMul(state, other(carrier.teamId), state.stanceCfg) : 1;
-    if (opp && opp.d <= ctl.controlRadius && state.rng.chance(cfg.action.turnoverBase * tm * dt * (1 - 0.18 * mf))) {  // mf 교체=볼 지키기↑
+        // 경합은 힘 대결이다 — 수비수가 공격수보다 강하면 더 자주 뺏는다(역할별 능력치).
+    const duel = (opp?.p.attributes?.strength ?? 1) / (carrier.attributes?.strength ?? 1);
+    if (opp && opp.d <= ctl.controlRadius && state.rng.chance(cfg.action.turnoverBase * tm * duel * dt * (1 - 0.18 * mf))) {  // mf 교체=볼 지키기↑
       // 태클 접촉 → resolver(§11): 합법이면 아래 루즈볼, 반칙이면 프리킥/PK(+경고/퇴장)
       const res = cfg.foul ? resolveTackle(state, opp.p, carrier, cfg.foul) : { foul: false };
       if (res.foul) { foulRestart(state, opp.p, carrier, res); return; }
@@ -389,7 +391,7 @@ function carrierAct(state, dt) {
 
   const tgt = carrier.role === 'GK' ? { x: carrier.position.x, z: carrier.position.z }
     : (carrier._dribbleTarget || { x: oppGoalX(dir), z: carrier.position.z });
-  seek(carrier, tgt, P.run, P, dt, P.arrivalRadius);
+  seek(carrier, tgt, P.run * (carrier.attributes?.pace ?? 1), P, dt, P.arrivalRadius);
   const v = carrier.velocity, s = Math.hypot(v.x, v.z);
   const fx = s > 0.3 ? v.x / s : dir, fz = s > 0.3 ? v.z / s : 0;
   b.position = {

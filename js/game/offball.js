@@ -51,7 +51,7 @@ export function assignByPolicy(state, team, players, restDefence, olX, cfg, net)
     const anchor = anchorToWorld(p.homeAnchor, dir);
     const mates = players.filter((m) => m.id !== p.id).map((m) => ({ position: m.position }))
       .concat(claimed.map((c) => ({ position: c })));
-    const ctx = { ball, olX, teammates: mates, cfg };
+    const ctx = { ball, olX, teammates: mates, cfg, self: p };
     let best = null, bv = -Infinity;
     for (const c of candidates(p, ball, dir, anchor)) {
       const v = scoreAt(state, c, team, ctx, net);

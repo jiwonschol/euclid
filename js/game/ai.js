@@ -21,16 +21,16 @@ const dist2 = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 // (속도 히스토그램이 3.0~3.5 와 6.0~6.5 두 스파이크뿐, 7.0 이상 0.0%). 실제 축구 선수는 90분 평균
 // 약 2 m/s 로 움직이고 대부분의 시간을 걷거나 서 있다가 가끔 전력질주한다.
 /** 오프-볼(형상 유지·공격 침투·GK): 목표까지 거리에 따라 서다/걷다/뛰다/전력질주. */
-function speedTier(d, P) {
+function speedTier(d, P, pace = 1) {
   if (d < 2) return 0;
-  if (d < 7) return P.walk;
-  if (d < 12) return P.jog;
-  if (d < 25) return P.run;
-  return P.sprint;
+  if (d < 7) return P.walk * pace;
+  if (d < 12) return P.jog * pace;
+  if (d < 25) return P.run * pace;
+  return P.sprint * pace;
 }
 /** 수비 의무(압박·커버·마킹·수신·루즈볼 추격): 걷지 않는다. 여기까지 느리게 하면 태클이 354→139 로
  *  무너지고 파울·오프사이드 통계가 함께 깨진다(측정). 의무 분기는 run 이 하한이다. */
-function dutySpeed(d, P) { return d > 14 ? P.sprint : P.run; }
+function dutySpeed(d, P, pace = 1) { return (d > 14 ? P.sprint : P.run) * pace; }
 
 // ── 수비 역할 배정: first defender(압박1인) + cover(1인) ──────
 function assignDefenders(state, defTeam, carrier, cfg) {
@@ -148,7 +148,7 @@ export function stepPositioning(state, dt) {
     if ((p.id === recvId && state.ball.intendedTargetPoint) || p.id === chaserId) {
       const o = sep[p.id];
       const t = p.id === recvId ? state.ball.intendedTargetPoint : state.ball.position;
-      seek(p, { x: t.x + o.x, z: t.z + o.z }, dutySpeed(dist2(p.position, t), P), P, dt, P.arrivalRadius);
+      seek(p, { x: t.x + o.x, z: t.z + o.z }, dutySpeed(dist2(p.position, t), P, p.attributes?.pace ?? 1), P, dt, P.arrivalRadius);
       continue;
     }
 
@@ -156,24 +156,24 @@ export function stepPositioning(state, dt) {
 
     if (p.role === 'GK') {
       target = gkTargetPos(p, dir, ball.x, ball.z, back[p.teamId], poss, cfg);
-      spd = speedTier(dist2(p.position, target), P);      // GK 가 90분 10.7km 를 뛰던 것(실축 4~6)
+      spd = speedTier(dist2(p.position, target), P, p.attributes?.pace ?? 1);   // GK 가 90분 10.7km 를 뛰던 것(실축 4~6)
     } else if (p.id === ps.presserId && carrier) {
       // first defender: 캐리어의 자기 골문 쪽 standoff 지점까지
       const toGoal = { x: -dir, z: 0 };
       target = { x: carrier.position.x + toGoal.x * cfg.press.standoff, z: carrier.position.z };
-      spd = dutySpeed(dist2(p.position, target), P);
+      spd = dutySpeed(dist2(p.position, target), P, p.attributes?.pace ?? 1);
     } else if (p.id === ps.coverId && carrier) {
       // cover: 압박자 뒤·안쪽 커버 지점
       target = { x: carrier.position.x - dir * cfg.press.coverBehind, z: carrier.position.z * 0.5 };
-      spd = dutySpeed(dist2(p.position, target), P);
+      spd = dutySpeed(dist2(p.position, target), P, p.attributes?.pace ?? 1);
     } else if (attackTargets[p.id]) {
       // 소유팀 공격 오프-볼 움직임(러너/서포트/오버랩/레이트런) — 형상보다 우선
       target = attackTargets[p.id];
-      spd = speedTier(dist2(p.position, target), P);      // 멀면 스프린트, 다 왔으면 걷는다
+      spd = speedTier(dist2(p.position, target), P, p.attributes?.pace ?? 1);   // 멀면 스프린트, 다 왔으면 걷는다
     } else if (marks[p.id]) {
       // 수비 마킹: 위협을 골side로 밀착 추적
       target = marks[p.id];
-      spd = dutySpeed(dist2(p.position, target), P);
+      spd = dutySpeed(dist2(p.position, target), P, p.attributes?.pace ?? 1);
     } else {
       // 블록: 형상 앵커(이징) + 유휴 흔들림. 앵커까지 ≤runThreshold면 jog, 넘으면 run 램프
       if (!p._tau) p._tau = S.smoothTau * (0.7 + 0.6 * hash01(p.id + 't'));
@@ -184,7 +184,7 @@ export function stepPositioning(state, dt) {
       const nx = Math.sin(state.clockSeconds * cfg.idle.freq + ph) * cfg.idle.driftRadius;
       const nz = Math.cos(state.clockSeconds * cfg.idle.freq * 0.8 + ph * 1.7) * cfg.idle.driftRadius;
       target = { x: anchor.x + nx, z: anchor.z + nz };
-      spd = speedTier(dist2(p.position, anchor), P);
+      spd = speedTier(dist2(p.position, anchor), P, p.attributes?.pace ?? 1);
     }
 
     const off = sep[p.id];

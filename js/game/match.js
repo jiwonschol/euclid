@@ -62,9 +62,25 @@ export const HALF_SECONDS = 45 * 60;    // 정규 전·후반 각 2700 경기초
  */
 
 /** @param {'A'|'B'} teamId @param {any} spec @param {number} shirt @param {1|-1} attackDir @returns {PlayerState} */
-function makePlayer(teamId, spec, shirt, attackDir) {
+/** 역할 평균 + 셔츠번호 기반 결정론 지터. 같은 역할끼리도 조금씩 다르다. */
+function attributesFor(role, teamId, shirt, cfg) {
+  const A = cfg?.attributes;
+  if (!A) return { pace: 1, strength: 1, height: 1 };
+  const base = A.byRole[role] || { pace: 1, strength: 1, height: 1 };
+  let h = 2166136261;
+  for (const ch of `${teamId}${shirt}${role}`) h = Math.imul(h ^ ch.charCodeAt(0), 16777619);
+  const j = (n) => (((h = Math.imul(h ^ n, 16777619)) >>> 0) / 4294967296 - 0.5) * 2 * (A.jitter ?? 0.06);
+  return {
+    pace: +(base.pace * (1 + j(1))).toFixed(3),
+    strength: +(base.strength * (1 + j(2))).toFixed(3),
+    height: +(base.height * (1 + j(3))).toFixed(3),
+  };
+}
+
+function makePlayer(teamId, spec, shirt, attackDir, cfg) {
   const p = anchorToWorld(spec, attackDir);
   return {
+    attributes: attributesFor(spec.role, teamId, shirt, cfg),
     id: `${teamId}${shirt}`,
     teamId, shirtNumber: shirt, role: spec.role,
     position: { x: p.x, z: p.z },
@@ -92,7 +108,7 @@ export function createMatch(seed = 1, cfg = null, commentaryCfg = null, stanceCf
   const players = {};
   for (const teamId of /** @type {const} */ (['A', 'B'])) {
     FORMATION_433.forEach((spec, i) => {
-      const p = makePlayer(teamId, spec, i + 1, attackDir[teamId]);
+      const p = makePlayer(teamId, spec, i + 1, attackDir[teamId], cfg);
       players[p.id] = p;
     });
   }

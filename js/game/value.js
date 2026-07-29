@@ -86,6 +86,7 @@ export const FEATURES = [
   'onsideRoom',     // 오프사이드 라인까지 여유
   'width',          // 측면으로 벌어진 정도
   'behindBall',     // 공보다 뒤인가(수비 안정)
+  'selfPace',       // 이 선수가 빠른가(역할별 능력치)
   'bias',
 ];
 
@@ -94,7 +95,7 @@ export const FEATURES = [
  * 오프사이드 위치면 null 을 돌려준다(규칙이므로 하드 제약).
  */
 export function featuresAt(state, pos, team, ctx) {
-  const { ball, olX, teammates, cfg } = ctx;
+  const { ball, olX, teammates, cfg, self } = ctx;
   const dir = state.attackDirection[team];
   const defTeam = team === 'A' ? 'B' : 'A';
 
@@ -124,6 +125,7 @@ export function featuresAt(state, pos, team, ctx) {
     olX === undefined ? 1 : clamp(Math.abs(olX - pos.x) / 25, 0, 1),
     clamp(Math.abs(pos.z) / FIELD.halfWidth, 0, 1),
     dir * (pos.x - ball.x) < 0 ? 1 : 0,
+    clamp(((self?.attributes?.pace ?? 1) - 0.85) / 0.35, 0, 1),
     1,
   ];
 }
