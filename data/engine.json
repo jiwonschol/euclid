@@ -87,7 +87,10 @@
     "diveReach": 4.7,
     "saveProb": 0.93,
     "catchRatio": 0.9,
-    "parryBehindProb": 0.6
+    "parryBehindProb": 0.6,
+    "maxAdvance": 12,
+    "reachHeight": 2.4,
+    "reactRef": 0.45
   },
   "idle": {
     "_comment": "유휴 미세 흔들림(§2.3). 목표에만 얹어 실제 속도는 캡 유지.",
@@ -121,7 +124,9 @@
     "looseControlRadius": 2,
     "blockRadius": 1.4,
     "blockProb": 0.6,
-    "blockBehindProb": 0.75
+    "blockBehindProb": 0.75,
+    "tackleWinBall": 0.55,
+    "tackleRetakeDelay": 0.8
   },
   "action": {
     "_comment": "utility 의사결정(마스터 §6). 값은 효용 가중. 매 decideEvery 초마다 캐리어가 행동 재평가. minCarry=최소 소유시간('죽죽' 방지).",
@@ -143,7 +148,8 @@
     "gkReachBase": 0.6,
     "gkReachGain": 5.2,
     "chanceFloor": 0.1,
-    "chanceSpan": 0.22
+    "chanceSpan": 0.22,
+    "carrySpeedMul": 0.86
   },
   "foul": {
     "_comment": "태클 resolver(마스터 §11). 태클 접촉 시 방향(등 뒤 진입)·강도(태클러 속도)로 판정: 합법 / careless=직접 프리킥 / reckless=옐로 / excessive=레드. 반칙 팀 자기 박스 안이면 PK. wallDist=상대 이격(9.15m), pkClearBack=PK 시 나머지가 마크 뒤로 물러나는 거리. boxCaution=자기 박스 안 반칙 확률 배수(수비수는 박스에서 극도로 조심한다 — 반칙=PK). 접촉의 59%가 박스 근처에 몰리므로 이 항이 없으면 PK 48회/경기가 된다. 계수는 실측 튜닝치: 반칙 ~22 · 옐로 ~3-4 · PK ~0.3/경기.",
@@ -181,9 +187,9 @@
         "height": 1.05
       },
       "CM": {
-        "pace": 1.0,
-        "strength": 1.0,
-        "height": 1.0
+        "pace": 1,
+        "strength": 1,
+        "height": 1
       },
       "W": {
         "pace": 1.1,

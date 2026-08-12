@@ -17,6 +17,10 @@ import { stepPositioning } from '../js/game/ai.js';
 
 const cfg = JSON.parse(readFileSync(new URL('../data/engine.json', import.meta.url)));
 const SPRINT = cfg.player.sprint;
+// 속도 캡은 선수마다 다르다 — 커밋 584f472 가 역할별 pace 배율을 넣었다(윙어 1.1 + 지터 6% → 최대 1.166).
+// 전역 상수 SPRINT 로 단언하면 빠른 선수가 전력질주하는 순간 반드시 깨진다(실제로 max 9.20 으로 깨졌다).
+// 그래서 '자기 캡 대비 초과율'을 본다 — 전역 상수보다 **강한** 단언이다(느린 선수의 초과도 잡는다).
+const capRatio = (p) => speed(p) / (SPRINT * (p.attributes?.pace ?? 1));
 
 let failed = 0;
 const ok = (c, m) => { console.log(`${c ? '  ✓' : '  ✗ FAIL:'} ${m}`); if (!c) failed++; };
@@ -37,7 +41,7 @@ function settle(seed, poss, ballX, ballZ, ticks = 150) {
   let maxSpd = 0;
   for (let i = 0; i < ticks; i++) {
     stepPositioning(s, SIM_DT);
-    for (const p of Object.values(s.players)) maxSpd = Math.max(maxSpd, speed(p));
+    for (const p of Object.values(s.players)) maxSpd = Math.max(maxSpd, capRatio(p));
   }
   return { s, carrier, maxSpd };
 }
@@ -70,7 +74,7 @@ section('1) A 공격 (공 x=+25)');
   ok(press.length <= 2, `적극 압박 ≤2 (실제 ${press.length})`);
   ok(press.every((id) => s.players[id].teamId === 'B'), '압박·커버는 수비팀(B)');
   ok(minPairDist(s) >= 1.0, `최소 쌍거리 ≥1.0m (실제 ${minPairDist(s).toFixed(2)})`);
-  ok(maxSpd <= SPRINT * 1.02, `속도 캡 준수 (max ${maxSpd.toFixed(2)} ≤ ${SPRINT})`);
+  ok(maxSpd <= 1.02, `속도 캡 준수 (자기 캡 대비 최대 ${(maxSpd * 100).toFixed(0)}% ≤ 102%)`);
 }
 
 // ── 시나리오 2: B 공격 (대칭, 공 x=−25) ──
@@ -109,7 +113,7 @@ section('4) cfg 풀경기 안정성 (NaN·속도·재현성·턴오버)');
       for (const p of Object.values(s.players)) {
         const v = speed(p);
         if (!Number.isFinite(p.position.x) || !Number.isFinite(p.position.z) || !Number.isFinite(v)) nan = true;
-        maxSpd = Math.max(maxSpd, v);
+        maxSpd = Math.max(maxSpd, capRatio(p));
       }
     }
     return { s, maxSpd, nan };
@@ -117,7 +121,7 @@ section('4) cfg 풀경기 안정성 (NaN·속도·재현성·턴오버)');
   const a = runFull(77);
   ok(!a.nan, 'NaN 없음(전 틱)');
   ok(a.s.phase === 'FULLTIME', 'FULLTIME 도달');
-  ok(a.maxSpd <= SPRINT * 1.02, `풀경기 속도 캡 준수 (max ${a.maxSpd.toFixed(2)})`);
+  ok(a.maxSpd <= 1.02, `풀경기 속도 캡 준수 (자기 캡 대비 최대 ${(a.maxSpd * 100).toFixed(0)}%)`);
   ok(Math.abs(a.s.clockSeconds - 2 * HALF_SECONDS) < 1, `시계 ≈5400 (${a.s.clockSeconds.toFixed(1)})`);
   const plays = a.s.eventLog.filter((e) => e.type === 'PASS' || e.type === 'SHOT').length;
   ok(plays > 20, `경기 이벤트 발생 (패스·슛 ${plays}건)`);

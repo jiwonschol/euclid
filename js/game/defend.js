@@ -9,7 +9,8 @@ import { resolvedFor } from './effects.js';
 const dist2 = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 
 /**
- * @returns {Record<string,{x:number,z:number}>} 수비수 id → 마크 목표(위협의 골side)
+ * @returns {{marks: Record<string,{x:number,z:number}>, markedThreats: Set<string>}}
+ *   marks: 수비수 id → 마크 목표(위협의 골side) · markedThreats: 마크가 붙은 위협 id(defball 중복 커버 방지)
  */
 export function assignMarking(state, defTeam, presserId, coverId) {
   const dir = state.attackDirection[defTeam];         // 수비팀 공격 방향(자기 골문=반대)
@@ -33,6 +34,7 @@ export function assignMarking(state, defTeam, presserId, coverId) {
 
   const marks = {};
   const used = new Set();
+  const markedThreats = new Set();
   const maxMarks = Math.min(threats.length, 3, Math.max(0, free.length - 3));   // 위험한 3명까지·최소 3명 라인 유지
   for (let i = 0; i < maxMarks; i++) {
     const t = threats[i];
@@ -40,9 +42,10 @@ export function assignMarking(state, defTeam, presserId, coverId) {
     for (const d of free) { if (used.has(d.id)) continue; const dd = dist2(d.position, t.position); if (dd < bd) { bd = dd; best = d; } }
     if (!best) break;
     used.add(best.id);
+    markedThreats.add(t.id);
     const gx = ownGoalX - t.position.x, gz = 0 - t.position.z, gl = Math.hypot(gx, gz) || 1;
     const md = t.id === manId ? 1.6 : 2.2;                                                       // 지정 마크는 더 밀착
     marks[best.id] = { x: t.position.x + (gx / gl) * md, z: t.position.z + (gz / gl) * md };     // 골side 커버(밀착 과다·겹침 방지)
   }
-  return marks;
+  return { marks, markedThreats };
 }

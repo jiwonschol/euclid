@@ -23,6 +23,12 @@ const REF = L('../docs/reference/match_stats.json');
 const argv = process.argv.slice(2);
 const arg = (k, d) => { const i = argv.indexOf(k); return i >= 0 ? argv[i + 1] : d; };
 const JSON_OUT = argv.includes('--json');
+
+// 학습된 정책을 물고 잰다. 이게 없으면 value.js 의 `if (!net) return 0` 때문에 오프-볼 후보가
+// 전부 0점이 되고 decide.js 는 예전 곱셈식 효용으로 돌아간다 — 즉 자기대국이 **학습시키는 엔진과
+// 눈금이 채점하는 엔진이 서로 달라진다**(2026-08-12 실측으로 확인. 이전 결과는 전부 정책 꺼진 값).
+// `--no-policy` 는 그 옛 상태와 비교할 때만 쓴다.
+const POLICY = argv.includes('--no-policy') ? null : L('policy.json');
 const N_MATCH = parseInt(arg('--matches', '12'), 10);      // 통계·공간 표본
 const N_DELTA = parseInt(arg('--delta-matches', '40'), 10); // 개입 델타 표본(정책당)
 const SAMPLE_EVERY = 15;                                    // 공간 지표 샘플링(1초마다)
@@ -43,7 +49,7 @@ const score = (v, good, bad) => Math.max(0, Math.min(1, (bad - v) / (bad - good)
 // ── 경기 실행 ────────────────────────────────────────────────
 /** 정규 90분(stanceCfg 없음)으로 돌리며 공간·통계 표본을 모은다. */
 function runRegulation(seed) {
-  const s = createMatch(seed, cfg, com);
+  const s = createMatch(seed, cfg, com, null, POLICY);
   const gkDist = [], crowd = [], widthZ = [], depthX = [], boxCount = [];
   const thirds = { own: 0, mid: 0, opp: 0 };
   const ballXs = [], defCxs = [];
@@ -106,7 +112,7 @@ function runRegulation(seed) {
 
 /** 손패 있는 실제 플레이 조건(stanceCfg 포함)으로 돌린다. policy: 'none' | 'good' */
 function runPlayable(seed, policy) {
-  const s = createMatch(seed, cfg, com, stc);
+  const s = createMatch(seed, cfg, com, stc, POLICY);
   const PICK = [['press', 'high'], ['mentality', 'attack'], ['line', 'up'], ['attack_zone', 'wing']];
   let i = 0, subs = 0;
   while (s.phase !== 'FULLTIME') {
