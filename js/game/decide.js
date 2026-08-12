@@ -10,6 +10,7 @@ import { resolvedFor, consumeNextAction } from './effects.js';
 import { threatMul } from './stance.js';
 import { carrierScore } from './carrier.js';
 import { offsideLineX } from './attack.js';
+import { resolveShot as gkResolveShot, isEngaging as gkIsEngaging } from './gk.js';
 
 const other = (t) => (t === 'A' ? 'B' : 'A');
 const dist2 = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
@@ -105,16 +106,29 @@ function updatePossession(state, dt) {
       // 태클 접촉 → resolver(§11): 합법이면 아래 루즈볼, 반칙이면 프리킥/PK(+경고/퇴장)
       const res = cfg.foul ? resolveTackle(state, opp.p, carrier, cfg.foul) : { foul: false };
       if (res.foul) { foulRestart(state, opp.p, carrier, res); return; }
-      b.mode = 'LOOSE'; b.carrierId = null; b.ownerId = null; carrier.hasBall = false;
-      b.velocity = { x: (state.rng.float() - 0.5) * 5, y: 0, z: (state.rng.float() - 0.5) * 5 };
-      b.lastTouchPlayerId = opp.p.id; b.lastTouchTeamId = opp.p.teamId;
+      // 태클이 성공하면 공은 **캐리어에게서 떨어져 나간다**. 예전에는 발밑에 랜덤 ±2.5m/s 로
+      // 떨궈서 같은 선수가 그대로 다시 주웠다 — 경기당 태클 471회에 소유 전환은 227회뿐이었고,
+      // 한 소유가 패스 0.42회로 80m 를 전진했다(= 혼자 몰고 가서 슛). 태클이 규칙으로서 작동하지 않은 것.
       log(state, 'TACKLE', { by: opp.p.id, team: opp.p.teamId });
+      carrier.hasBall = false;
+      carrier._noRetakeUntil = state.clockSeconds + (ctl.tackleRetakeDelay ?? 0.8);   // 넘어진 쪽은 곧바로 못 줍는다
+      if (state.rng.chance(ctl.tackleWinBall ?? 0.55)) {
+        gainControl(state, opp.p, null);            // 깔끔하게 따냄 — 태클러가 소유
+        b.lastTouchPlayerId = opp.p.id; b.lastTouchTeamId = opp.p.teamId;
+        return;
+      }
+      // 아니면 루즈볼 — 단 캐리어 반대쪽(태클러를 지나가는 방향)으로 튄다
+      b.mode = 'LOOSE'; b.carrierId = null; b.ownerId = null;
+      const ax = opp.p.position.x - carrier.position.x, az = opp.p.position.z - carrier.position.z;
+      const al = Math.hypot(ax, az) || 1e-6;
+      const kick = 6 + state.rng.float() * 4;
+      b.velocity = { x: (ax / al) * kick, y: 0, z: (az / al) * kick };
+      b.lastTouchPlayerId = opp.p.id; b.lastTouchTeamId = opp.p.teamId;
     }
     return;
   }
 
-  // 슛 선방(정식 GK 모델은 Stage 5): 공이 골문 입구 saveZone 안에 들면 1회 판정.
-  // 골라인 교차 z를 예측 → 온타겟이고 GK z가 다이빙 범위(diveReach) 안이면 saveProb로 캐치/파리.
+  // 슛 선방: 공이 골문 입구 saveZone 안에 들면 1회 판정. 판정 본체는 gk.js(§9).
   if (b.mode === 'SHOT' && b.lastTouchTeamId && !b._shotChecked) {
     const goalLineX = Math.sign(b.velocity.x) * FIELD.halfLength;
     if (Math.abs(goalLineX - b.position.x) <= cfg.gk.saveZone && Math.abs(b.velocity.x) > 1) {
@@ -123,9 +137,11 @@ function updatePossession(state, dt) {
       if (Math.abs(crossZ) <= FIELD.goalHalfWidth + 0.3) {          // 온타겟일 때만 GK 관여
         const defTeam = other(b.lastTouchTeamId);
         const gk = Object.values(state.players).find((p) => p.teamId === defTeam && p.role === 'GK' && !p.sentOff);
-        const df = defTeam === 'A' ? (state.subBoost?.A?.df || 0) : 0;
-        if (gk && Math.abs(gk.position.z - crossZ) <= cfg.gk.diveReach && state.rng.chance(Math.min(0.98, cfg.gk.saveProb + 0.03 * df))) {
-          if (state.rng.chance(cfg.gk.catchRatio)) { gainControl(state, gk, 'SAVE'); return; }  // 캐치
+        // 판정은 gk.js 가 소유한다(§9 전용 의사결정). GK 가 서 있는 평면에서 재기 때문에
+        // '나가서 각을 좁힌 것'이 실제로 선방에 반영되고, 머리 위로 넘어가는 칩은 못 막는다.
+        const res = gk ? gkResolveShot(state, gk, cfg) : null;
+        if (res) {
+          if (res === 'catch') { gainControl(state, gk, 'SAVE'); return; }                        // 캐치
           b.mode = 'LOOSE';                                                                      // 쳐냄
           // 공을 GK 좌표로 덮어쓰지 않는다(§18 "패스가 순간이동함" 금지 — 실측 1틱 9.53m 점프).
           // 공은 현재 지점에 두고 높이만 접지, 속도만 준다.
@@ -163,6 +179,8 @@ function updatePossession(state, dt) {
   let best = null, bd = Infinity;
   for (const p of Object.values(state.players)) {
     if (p.sentOff) continue;
+    // 방금 태클당한 선수는 잠깐 못 줍는다 — 이게 없으면 '태클 → 즉시 회수'로 규칙이 무의미해진다
+    if (p._noRetakeUntil && state.clockSeconds < p._noRetakeUntil) continue;
     const d = dist2(p.position, b.position);
     if (d < bd) { bd = d; best = p; }
   }
@@ -400,7 +418,11 @@ function carrierAct(state, dt) {
 
   const tgt = carrier.role === 'GK' ? { x: carrier.position.x, z: carrier.position.z }
     : (carrier._dribbleTarget || { x: oppGoalX(dir), z: carrier.position.z });
-  seek(carrier, tgt, P.run * (carrier.attributes?.pace ?? 1), P, dt, P.arrivalRadius);
+  // 공을 몰면 느리다. 사람이 공 없이 뛰는 속도로 드리블할 수는 없다(환경 물리이지 전술이 아니다).
+  // 이게 없으면 추격 수비수(근접 시 P.run)와 캐리어가 같은 속도라 영영 못 따라잡고,
+  // 실제로 한 소유가 패스 0.42회로 80m 를 전진했다.
+  const carryMul = carrier.role === 'GK' ? 1 : (A.carrySpeedMul ?? 0.86);
+  seek(carrier, tgt, P.run * (carrier.attributes?.pace ?? 1) * carryMul, P, dt, P.arrivalRadius);
   const v = carrier.velocity, s = Math.hypot(v.x, v.z);
   const fx = s > 0.3 ? v.x / s : dir, fz = s > 0.3 ? v.z / s : 0;
   b.position = {

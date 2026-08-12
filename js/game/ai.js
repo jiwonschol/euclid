@@ -10,6 +10,8 @@ import {
 } from './shape.js';
 import { assignAttackTargets } from './attack.js';
 import { assignMarking } from './defend.js';
+import { assignDefenceByPolicy } from './defball.js';
+import { gkTarget } from './gk.js';
 import { resolvedFor } from './effects.js';
 
 const other = (t) => (t === 'A' ? 'B' : 'A');
@@ -138,7 +140,21 @@ export function stepPositioning(state, dt) {
   // 소유팀 오프-볼 공격 움직임(러너·서포트·오버랩·레이트런). 오프사이드 라인에 러너를 묶는다.
   const attackTargets = poss ? assignAttackTargets(state, poss) : {};
   // 수비팀 마킹(침투 러너를 골side로 밀착 — 박스 보호)
-  const marks = defTeam ? assignMarking(state, defTeam, ps.presserId, ps.coverId) : {};
+  const marking = defTeam ? assignMarking(state, defTeam, ps.presserId, ps.coverId) : { marks: {}, markedThreats: new Set() };
+  const marks = marking.marks;
+  // 수비팀 비(압박·커버·마크) 오프-볼 — 실점 위험에서 유도(defball.js). 정책 없으면 빈 객체 → 형상 폴백.
+  let defTargets = {};
+  if (defTeam) {
+    const dnet = state.policy?.[defTeam]?.def || state.policy?.def || null;
+    if (dnet) {
+      const dd = state.attackDirection[defTeam];
+      const freeDef = Object.values(players).filter((p) =>
+        p.teamId === defTeam && p.role !== 'GK' && !p.sentOff
+        && p.id !== ps.presserId && p.id !== ps.coverId && !marks[p.id] && p.id !== carrierId);
+      const anchorOf = (p) => anchorFor(p, shape[defTeam], dd, rank[p.id]);
+      defTargets = assignDefenceByPolicy(state, defTeam, freeDef, anchorOf, cfg, dnet, marking.markedThreats);
+    }
+  }
 
   for (const p of Object.values(players)) {
     if (p.sentOff || p.id === carrierId) continue;   // 캐리어는 decide.stepPlay 가 이동
@@ -155,7 +171,10 @@ export function stepPositioning(state, dt) {
     let target, spd;
 
     if (p.role === 'GK') {
-      target = gkTargetPos(p, dir, ball.x, ball.z, back[p.teamId], poss, cfg);
+      // 전용 모듈이 정한다(§9: role==='GK' 분기로 처리하지 마라). 위치는 각도 기하, 전진량은 학습된 값.
+      target = poss === p.teamId
+        ? gkTargetPos(p, dir, ball.x, ball.z, back[p.teamId], poss, cfg)   // 우리 공격 중엔 스위퍼
+        : gkTarget(state, p);
       spd = speedTier(dist2(p.position, target), P, p.attributes?.pace ?? 1);   // GK 가 90분 10.7km 를 뛰던 것(실축 4~6)
     } else if (p.id === ps.presserId && carrier) {
       // first defender: 캐리어의 자기 골문 쪽 standoff 지점까지
@@ -174,6 +193,10 @@ export function stepPositioning(state, dt) {
       // 수비 마킹: 위협을 골side로 밀착 추적
       target = marks[p.id];
       spd = dutySpeed(dist2(p.position, target), P, p.attributes?.pace ?? 1);
+    } else if (defTargets[p.id]) {
+      // 수비 오프-볼 정책(defball.js) — 실점 위험 관측의 최대값. 형상 앵커는 관측 하나로 강등됐다.
+      target = defTargets[p.id];
+      spd = speedTier(dist2(p.position, target), P, p.attributes?.pace ?? 1);
     } else {
       // 블록: 형상 앵커(이징) + 유휴 흔들림. 앵커까지 ≤runThreshold면 jog, 넘으면 run 램프
       if (!p._tau) p._tau = S.smoothTau * (0.7 + 0.6 * hash01(p.id + 't'));

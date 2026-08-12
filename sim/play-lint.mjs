@@ -25,7 +25,8 @@ function runFull(seed) {
     for (const p of Object.values(s.players)) {
       const v = Math.hypot(p.velocity.x, p.velocity.z);
       if (!Number.isFinite(p.position.x) || !Number.isFinite(p.position.z) || !Number.isFinite(v)) stat.nan = true;
-      stat.maxP = Math.max(stat.maxP, v);
+      // 선수마다 캡이 다르다(역할별 pace, 커밋 584f472) — 전역 상수 대신 자기 캡 대비 비율로 본다.
+      stat.maxP = Math.max(stat.maxP, v / (SPRINT * (p.attributes?.pace ?? 1)));
     }
     const b = s.ball;
     if (!Number.isFinite(b.position.x) || !Number.isFinite(b.position.z)) stat.nan = true;
@@ -40,7 +41,7 @@ const { s, stat } = runFull(5);
 ok(!stat.nan, 'NaN 없음(전 틱, 공 포함)');
 ok(s.phase === 'FULLTIME', 'FULLTIME 도달');
 ok(Math.abs(s.clockSeconds - 2 * HALF_SECONDS) < 1, `시계 ≈5400 (${s.clockSeconds.toFixed(1)})`);
-ok(stat.maxP <= SPRINT * 1.02, `선수 속도 캡 (max ${stat.maxP.toFixed(2)} ≤ ${SPRINT})`);
+ok(stat.maxP <= 1.02, `선수 속도 캡 (자기 캡 대비 최대 ${(stat.maxP * 100).toFixed(0)}% ≤ 102%)`);
 ok(stat.maxB <= SHOTMAX * 1.25, `공 속도 물리적(순간이동 없음, max ${stat.maxB.toFixed(1)} ≤ ${(SHOTMAX * 1.25).toFixed(0)})`);
 ok(!stat.oob, '공이 경계 밖에 머물지 않음(아웃 즉시 재개)');
 ok(stat.poss.has('A') && stat.poss.has('B'), '양 팀 모두 점유함');
