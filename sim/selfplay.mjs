@@ -1,11 +1,25 @@
-// 자기대국 — 오프-볼 정책 계수를 승패로 찾는다 (docs/first_principle.md)
+// 자기대국 — 정책 계수를 승패로 찾는다 (docs/first_principle.md)
 //
-//   node sim/selfplay.mjs [--gens 20] [--pop 8] [--matches 6] [--half 300] [--sigma 0.15]
+//   node sim/selfplay.mjs [--gens 20] [--pop 8] [--matches 6] [--half 300] [--sigma 0.15] [--lr 0.6]
 //
-// 내가 계수를 고르지 않는다. 현 챔피언을 가우시안으로 흔든 도전자들을 만들고, 같은 엔진 안에서
-// 챔피언과 직접 붙여 **골 득실차**로 채택한다. 축구다움 눈금은 목표가 아니라 **제약**이다 —
-// 퇴화 전략(양 팀이 똑같이 망가져 승률 신호가 사라지는 것)을 걸러내는 필터로만 쓴다.
-// 바둑에는 없는 문제이고, 규칙·제약이 충분히 완전해야 최적화가 축구로 수렴한다.
+// 내가 계수를 고르지 않는다. 현 챔피언을 가우시안으로 흔들어 같은 엔진 안에서 챔피언과 직접 붙이고,
+// **골 득실차**로 방향을 잡는다. 축구다움 눈금은 목표가 아니라 **제약**이다 — 퇴화 전략(양 팀이
+// 똑같이 망가져 승률 신호가 사라지는 것)을 걸러내는 필터로만 쓴다. 바둑에는 없는 문제이고,
+// 규칙·제약이 충분히 완전해야 최적화가 축구로 수렴한다.
+//
+// ── 탐색 방식(2026-08-26 개편) ─────────────────────────────────
+// 예전에는 (1,λ) — 도전자 8명 중 이긴 한 명을 통째로 채택했다. 정책이 5종 551 파라미터로 늘면서
+// 이 방식은 한계가 뚜렷해졌다: 한 세대가 쓰는 48경기가 **한 표본**으로 축약되고(나머지 7명의
+// 정보는 버려진다), 득실차 잡음이 커서 진짜 개선과 운을 못 가른다. 실제로 지난 세션 12세대에
+// 수비망 121계수가 거의 안 움직였다.
+//
+// 지금은 **대칭 표본 + 순위 가중 갱신**(OpenAI-ES 계열)이다:
+//   ① 방향 ε 를 λ/2 개 뽑아 +ε 와 −ε 를 **둘 다** 치른다(대칭쌍 = 잡음 절반).
+//   ② 득실차를 순위로 바꿔 중앙을 0 으로 맞춘다(이상치 한 경기가 방향을 못 흔든다).
+//   ③ θ ← θ + lr·(1/λ)·Σ uᵢεᵢ — **모든 표본이 방향에 기여한다.**
+// 경기 수는 그대로인데 한 세대가 쓰는 정보량이 λ배가 된다.
+// 경기가 성립하지 않은 표본(degenerate)은 버리지 않고 **최하위 순위**를 준다 — 그래야
+// '퇴화 쪽으로 가지 마라'가 방향에 실린다(예전엔 그냥 버려서 아무 신호도 안 됐다).
 //
 // 결정론: 모든 경기 시드와 섭동 난수가 고정이라 같은 명령이 같은 결과를 낸다.
 
@@ -22,7 +36,7 @@ const LOG_PATH = ROOT + '.claude/loop/selfplay.log.jsonl';
 const argv = process.argv.slice(2);
 const arg = (k, d) => { const i = argv.indexOf(k); return i >= 0 ? +argv[i + 1] : d; };
 const GENS = arg('--gens', 10), POP = arg('--pop', 8), MATCHES = arg('--matches', 6);
-const HALF = arg('--half', 300), SIGMA = arg('--sigma', 0.15);
+const HALF = arg('--half', 300), SIGMA = arg('--sigma', 0.15), LR = arg('--lr', 0.6);
 
 // 결정론 난수(섭동용) — Math.random 금지
 function rng(seed) { let s = seed >>> 0; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
@@ -32,7 +46,8 @@ function gauss(r) { const u = Math.max(1e-9, r()), v = r(); return Math.sqrt(-2 
 function play(seed, wA, wB) {
   const mk = (v) => ({ arch: ARCH, weights: v.off, carrier: { arch: CARCH, weights: v.car },
     gk: GARCH ? { arch: GARCH, weights: v.gk } : undefined,
-    def: DARCH ? { arch: DARCH, weights: v.def } : undefined });
+    def: DARCH ? { arch: DARCH, weights: v.def } : undefined,
+    duel: UARCH ? { arch: UARCH, weights: v.duel } : undefined });
   const s = createMatch(seed, cfg, com, null, { A: mk(wA), B: mk(wB) });
   s.halfSeconds = HALF;
 
@@ -117,44 +132,78 @@ const ARCH = pol.arch || null;
 const CARCH = pol.carrier?.arch || null;
 const GARCH = pol.gk?.arch || null;                      // GK 전용 정책(§9) — 돌진/자세 유지도 자기대국이 찾는다
 const DARCH = pol.def?.arch || null;                     // 수비 오프-볼 정책(defball.js) — 박스를 지킬지도 자기대국이 찾는다
-let champ = { off: pol.weights.slice(), car: (pol.carrier?.weights || []).slice(), gk: (pol.gk?.weights || []).slice(), def: (pol.def?.weights || []).slice() };
+const UARCH = pol.duel?.arch || null;                    // 1대1 경합 정책(duel.js) — 언제 달려들지도 자기대국이 찾는다
+let champ = { off: pol.weights.slice(), car: (pol.carrier?.weights || []).slice(), gk: (pol.gk?.weights || []).slice(), def: (pol.def?.weights || []).slice(), duel: (pol.duel?.weights || []).slice() };
 let gen = pol.generation || 0;
 const r = rng(987654321);
 
 console.log(`자기대국 시작 — 세대 ${GENS} · 개체 ${POP} · 경기 ${MATCHES}/개체 · 하프 ${HALF}초 · σ ${SIGMA}`);
 console.log(`정책: 오프볼 ${ARCH.join('→')}(${champ.off.length}) + 캐리어 ${CARCH.join('→')}(${champ.car.length})`
   + (GARCH ? ` + GK ${GARCH.join('→')}(${champ.gk.length})` : '')
-  + (DARCH ? ` + 수비 ${DARCH.join('→')}(${champ.def.length})` : '') + ' 파라미터');
+  + (DARCH ? ` + 수비 ${DARCH.join('→')}(${champ.def.length})` : '')
+  + (UARCH ? ` + 경합 ${UARCH.join('→')}(${champ.duel.length})` : '') + ' 파라미터');
 console.log(`관측: ${pol.features.join(', ')}`);
 console.log(`세대 ${gen} 에서 시작\n`);
 
 const base = duel(champ, champ);
 console.log(`기준선 자기대국 득실차 ${base.gd.toFixed(2)} (0 근처여야 정상)${base.bad ? ` · 제약 위반: ${base.bad}` : ''}\n`);
 
+// 정책 5종을 한 벡터로 펴고 되돌리는 어댑터 — 갱신식을 모듈 수와 무관하게 쓴다.
+const MODULES = ['off', 'car', 'gk', 'def', 'duel'];
+const flatten = (w) => MODULES.flatMap((k) => w[k]);
+function unflatten(v) {
+  const out = {}; let i = 0;
+  for (const k of MODULES) { const n = champ[k].length; out[k] = v.slice(i, i + n); i += n; }
+  return out;
+}
+/** 중앙 0 · 합 0 인 순위 가중치. 잘한 표본은 +, 못한 표본은 −. */
+function centeredRanks(vals) {
+  const idx = vals.map((v, i) => [v, i]).sort((a, b) => a[0] - b[0]);
+  const u = new Array(vals.length);
+  for (let r = 0; r < idx.length; r++) u[idx[r][1]] = r / (idx.length - 1) - 0.5;
+  return u;
+}
+
+const DIRS = Math.max(1, Math.floor(POP / 2));
 for (let g = 1; g <= GENS; g++) {
-  let bestW = null, bestGd = 0, tried = 0, rejected = 0;
-  for (let k = 0; k < POP; k++) {
-    const cand = { off: champ.off.map((x) => x + gauss(r) * SIGMA), car: champ.car.map((x) => x + gauss(r) * SIGMA),
-      gk: champ.gk.map((x) => x + gauss(r) * SIGMA), def: champ.def.map((x) => x + gauss(r) * SIGMA) };
-    const res = duel(cand, champ);
-    tried++;
-    if (res.bad) { rejected++; continue; }              // 축구가 아니면 이겨도 탈락
-    if (res.gd > bestGd) { bestGd = res.gd; bestW = cand; }
+  const theta = flatten(champ);
+  const eps = [], fits = [], viable = [];
+  for (let k = 0; k < DIRS; k++) {
+    const e = theta.map(() => gauss(r));
+    eps.push(e);
+    for (const sgn of [1, -1]) {
+      const cand = unflatten(theta.map((x, i) => x + sgn * e[i] * SIGMA));
+      const res = duel(cand, champ);
+      fits.push(res.bad ? -Infinity : res.gd);        // 퇴화는 버리지 않고 최하위로
+      viable.push(!res.bad);
+    }
   }
+  // -Infinity 는 정렬에서 자동으로 최하위가 된다
+  const u = centeredRanks(fits);
+  const step = new Array(theta.length).fill(0);
+  for (let k = 0; k < DIRS; k++) {
+    const wPlus = u[2 * k], wMinus = u[2 * k + 1];
+    const e = eps[k];
+    for (let i = 0; i < theta.length; i++) step[i] += (wPlus - wMinus) * e[i];
+  }
+  const scale = LR / (2 * DIRS);
+  const next = theta.map((x, i) => x + scale * step[i] * SIGMA);
+  champ = unflatten(next);
   gen++;
-  if (bestW) {
-    champ = bestW;
-    writeFileSync(POLICY_PATH, JSON.stringify({ ...pol, generation: gen,
-      weights: champ.off.map((x) => +x.toFixed(4)),
-      carrier: { arch: CARCH, weights: champ.car.map((x) => +x.toFixed(4)) },
-      ...(GARCH ? { gk: { arch: GARCH, weights: champ.gk.map((x) => +x.toFixed(4)) } } : {}),
-      ...(DARCH ? { def: { arch: DARCH, weights: champ.def.map((x) => +x.toFixed(4)) } } : {}) }, null, 2) + '\n');
-    console.log(`세대 ${gen}: 채택 (득실차 +${bestGd.toFixed(2)}, 시도 ${tried}, 제약탈락 ${rejected})`);
-  } else {
-    console.log(`세대 ${gen}: 유지 (개선 없음, 시도 ${tried}, 제약탈락 ${rejected})`);
-  }
+
+  const rejected = viable.filter((v) => !v).length;
+  const bestGd = Math.max(...fits.filter(Number.isFinite), 0);
+  const stepNorm = Math.hypot(...step.map((x) => x * scale * SIGMA));
+  writeFileSync(POLICY_PATH, JSON.stringify({ ...pol, generation: gen,
+    weights: champ.off.map((x) => +x.toFixed(4)),
+    carrier: { arch: CARCH, weights: champ.car.map((x) => +x.toFixed(4)) },
+    ...(GARCH ? { gk: { arch: GARCH, weights: champ.gk.map((x) => +x.toFixed(4)) } } : {}),
+    ...(DARCH ? { def: { arch: DARCH, weights: champ.def.map((x) => +x.toFixed(4)) } } : {}),
+    ...(UARCH ? { duel: { arch: UARCH, features: pol.duel.features, weights: champ.duel.map((x) => +x.toFixed(4)) } } : {}) }, null, 2) + '\n');
+  console.log(`세대 ${gen}: 갱신 (최고 득실차 +${bestGd.toFixed(2)}, 표본 ${fits.length}, 퇴화 ${rejected}, 걸음 ${stepNorm.toFixed(3)})`);
   try {
-    appendFileSync(LOG_PATH, JSON.stringify({ gen, adopted: !!bestW, gd: +bestGd.toFixed(3), rejected, weights: champ.off.length + champ.car.length }) + '\n');
+    appendFileSync(LOG_PATH, JSON.stringify({ gen, adopted: true, gd: +bestGd.toFixed(3), rejected,
+      step: +stepNorm.toFixed(4), weights: theta.length }) + '\n') ;
   } catch { /* 로그 실패는 주행을 막지 않는다 */ }
 }
 

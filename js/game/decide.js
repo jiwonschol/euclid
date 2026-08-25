@@ -11,6 +11,7 @@ import { threatMul } from './stance.js';
 import { carrierScore } from './carrier.js';
 import { offsideLineX } from './attack.js';
 import { resolveShot as gkResolveShot, isEngaging as gkIsEngaging } from './gk.js';
+import { duelCommitProb, markBeaten } from './duel.js';
 
 const other = (t) => (t === 'A' ? 'B' : 'A');
 const dist2 = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
@@ -102,7 +103,21 @@ function updatePossession(state, dt) {
     const tm = state.stanceCfg ? threatMul(state, other(carrier.teamId), state.stanceCfg) : 1;
         // 경합은 힘 대결이다 — 수비수가 공격수보다 강하면 더 자주 뺏는다(역할별 능력치).
     const duel = (opp?.p.attributes?.strength ?? 1) / (carrier.attributes?.strength ?? 1);
-    if (opp && opp.d <= ctl.controlRadius && state.rng.chance(cfg.action.turnoverBase * tm * duel * dt * (1 - 0.18 * mf))) {  // mf 교체=볼 지키기↑
+    // 달려들지 말지는 수비수가 정한다(duel.js). 정책이 없으면 예전 주사위로 폴백.
+    //
+    // 예전에는 이 판정이 `controlRadius 1.5m` 안에서만 일어났는데 첫 수비수의 압박 목표는
+    // `press.standoff 2.2m` 였다 — 규칙이 첫 수비수를 태클이 절대 안 일어나는 자리에 세워둔 것이다.
+    // 닿는 거리(tackleReach)와 공을 잡는 거리(controlRadius)는 애초에 다른 물리량이다.
+    const dnet = opp ? (state.policy?.[opp.p.teamId]?.duel || null) : null;
+    const reach = dnet ? (cfg.duel?.reach ?? 2.4) : ctl.controlRadius;
+    let engages = false;
+    if (opp && opp.d <= reach) {
+      const pc = duelCommitProb(state, opp.p, carrier, cfg, dnet, dt);
+      engages = pc === null
+        ? state.rng.chance(cfg.action.turnoverBase * tm * duel * dt * (1 - 0.18 * mf))
+        : state.rng.chance(pc * tm * (1 - 0.18 * mf));
+    }
+    if (engages) {  // mf 교체=볼 지키기↑
       // 태클 접촉 → resolver(§11): 합법이면 아래 루즈볼, 반칙이면 프리킥/PK(+경고/퇴장)
       const res = cfg.foul ? resolveTackle(state, opp.p, carrier, cfg.foul) : { foul: false };
       if (res.foul) { foulRestart(state, opp.p, carrier, res); return; }
@@ -110,14 +125,24 @@ function updatePossession(state, dt) {
       // 떨궈서 같은 선수가 그대로 다시 주웠다 — 경기당 태클 471회에 소유 전환은 227회뿐이었고,
       // 한 소유가 패스 0.42회로 80m 를 전진했다(= 혼자 몰고 가서 슛). 태클이 규칙으로서 작동하지 않은 것.
       log(state, 'TACKLE', { by: opp.p.id, team: opp.p.teamId });
-      carrier.hasBall = false;
-      carrier._noRetakeUntil = state.clockSeconds + (ctl.tackleRetakeDelay ?? 0.8);   // 넘어진 쪽은 곧바로 못 줍는다
-      if (state.rng.chance(ctl.tackleWinBall ?? 0.55)) {
+      carrier.hasBall = false;   // 회수 금지(_noRetakeUntil)는 실제로 공을 잃은 갈래에서만 건다
+      // 힘 우위가 성공률에 실린다(예전엔 시도 확률에만 실려 있었다).
+      if (state.rng.chance(clamp((ctl.tackleWinBall ?? 0.55) * duel, 0.05, 0.95))) {
+        carrier._noRetakeUntil = state.clockSeconds + (ctl.tackleRetakeDelay ?? 0.8);   // 뺏긴 쪽은 곧바로 못 줍는다
         gainControl(state, opp.p, null);            // 깔끔하게 따냄 — 태클러가 소유
         b.lastTouchPlayerId = opp.p.id; b.lastTouchTeamId = opp.p.teamId;
         return;
       }
-      // 아니면 루즈볼 — 단 캐리어 반대쪽(태클러를 지나가는 방향)으로 튄다
+      // 실패 — 태클러는 **제쳐진다**. 그 장면에서 잠깐 사라지는 것이 달려들기의 값이고,
+      // 이 대가가 없으면 매 틱 달려드는 것이 언제나 이득이라 이건 다시 주사위가 된다.
+      markBeaten(state, opp.p, cfg);
+      if (!state.rng.chance(ctl.tackleLooseProb ?? 0.4)) {
+        carrier.hasBall = true;                     // 헛발질 — 캐리어가 그대로 몰고 나간다
+        log(state, 'BEATEN', { by: carrier.id, team: carrier.teamId, past: opp.p.id });
+        return;
+      }
+      // 굴절 — 루즈볼. 캐리어 반대쪽(태클러를 지나가는 방향)으로 튄다
+      carrier._noRetakeUntil = state.clockSeconds + (ctl.tackleRetakeDelay ?? 0.8);
       b.mode = 'LOOSE'; b.carrierId = null; b.ownerId = null;
       const ax = opp.p.position.x - carrier.position.x, az = opp.p.position.z - carrier.position.z;
       const al = Math.hypot(ax, az) || 1e-6;
@@ -402,6 +427,57 @@ function decideAction(state, carrier, dir) {
   }
 }
 
+/**
+ * 몸으로 막는다(환경 물리) — 앞을 막고 선 상대의 몸을 통과해 지나갈 수 없다.
+ *
+ * 이 엔진의 선수는 점(point)이었다. 그래서 캐리어와 수비수의 유일한 상호작용이
+ * `controlRadius 1.5m` 안의 확률적 태클뿐이었고, 2m 앞을 막고 선 수비수는 아무 일도 하지 않았다.
+ * 실측(2026-08-26): 슈터가 공을 잡고 **중앙값 11.7초 · 49.9m 를 혼자 몰고** 들어가 골 에어리어에서
+ * 쐈다 — 경기당 슛 208 중 199(96%)가 0-6m. 그동안 캐리어 앞(골문 쪽)에는 수비수가 중앙값 5명
+ * **있었다**. 수비가 없어서가 아니라 몸이 없어서였다.
+ *
+ * 그러니 정책은 옳고 환경이 틀렸다 — 자기대국이 '혼자 몰고 가 골문 앞에서 슛'을 찾은 건 그게
+ * 실제로 지배 전략이기 때문이다. 여기에 '슛 상한' 필터를 다시 넣는 건 규칙의 구멍을 필터로
+ * 가리는 짓이다(docs/first_principle.md). 고칠 곳은 규칙이다.
+ *
+ * 이건 진형이 아니라 물리다: 누구에게도 '어디 서라'고 말하지 않는다. 앞을 막고 선 몸에만 값을 준다.
+ * '골side 를 잡는 것'이 그제야 이득이 되고, 수비 정책망(defball.js)이 그걸 찾을 수 있다.
+ *
+ * rng 미소비(결정론 불변식).
+ * @returns {{target:{x:number,z:number}, speedMul:number}}
+ */
+function obstruction(state, carrier, tgt) {
+  const O = state.cfg.obstruct;
+  if (!O || carrier.role === 'GK') return { target: tgt, speedMul: 1 };
+  const dx = tgt.x - carrier.position.x, dz = tgt.z - carrier.position.z;
+  const L = Math.hypot(dx, dz);
+  if (L < 1e-6) return { target: tgt, speedMul: 1 };
+  const ux = dx / L, uz = dz / L;                       // 진행 방향
+  const px = -uz, pz = ux;                              // 그 수직
+  let block = 0, side = 0;
+  for (const q of Object.values(state.players)) {
+    if (q.teamId === carrier.teamId || q.sentOff) continue;
+    const rx = q.position.x - carrier.position.x, rz = q.position.z - carrier.position.z;
+    const fwd = rx * ux + rz * uz;                      // 전방 성분 — 뒤에 선 몸은 길을 막지 않는다
+    if (fwd <= 0 || fwd > O.radius) continue;
+    const lat = rx * px + rz * pz;                      // 측면 성분(부호 = 막은 쪽)
+    const a = Math.abs(lat);
+    if (a >= O.laneHalf) continue;
+    // 정면일수록 크다. 거리는 '닿는 거리(radius−fade)까지는 온전히 막고, 거기서 radius 까지 옅어진다'.
+    // 예전엔 fwd 에 선형 감쇠라 바로 앞 1m 의 몸도 가중치 0.3 밖에 안 나와 통과당했다.
+    const w = (1 - a / O.laneHalf) * clamp((O.radius - fwd) / Math.max(0.1, O.fade ?? 1.5), 0, 1);
+    block += w;
+    side -= Math.sign(lat || 1) * w;                    // 막힌 반대쪽으로 돌아간다
+  }
+  if (block <= 0) return { target: tgt, speedMul: 1 };
+  const b = Math.min(1, block);
+  const sn = side / block;                              // -1..1
+  return {
+    target: { x: tgt.x + px * sn * O.veer * b, z: tgt.z + pz * sn * O.veer * b },
+    speedMul: 1 - (O.slow ?? 0.7) * b,
+  };
+}
+
 function carrierAct(state, dt) {
   const cfg = state.cfg, P = cfg.player, A = cfg.action, b = state.ball;
   const carrier = state.players[b.carrierId];
@@ -422,7 +498,9 @@ function carrierAct(state, dt) {
   // 이게 없으면 추격 수비수(근접 시 P.run)와 캐리어가 같은 속도라 영영 못 따라잡고,
   // 실제로 한 소유가 패스 0.42회로 80m 를 전진했다.
   const carryMul = carrier.role === 'GK' ? 1 : (A.carrySpeedMul ?? 0.86);
-  seek(carrier, tgt, P.run * (carrier.attributes?.pace ?? 1) * carryMul, P, dt, P.arrivalRadius);
+  // 앞을 막고 선 몸은 통과 못 한다 — 느려지고, 돌아가야 한다.
+  const ob = obstruction(state, carrier, tgt);
+  seek(carrier, ob.target, P.run * (carrier.attributes?.pace ?? 1) * carryMul * ob.speedMul, P, dt, P.arrivalRadius);
   const v = carrier.velocity, s = Math.hypot(v.x, v.z);
   const fx = s > 0.3 ? v.x / s : dir, fz = s > 0.3 ? v.z / s : 0;
   b.position = {

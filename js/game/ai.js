@@ -5,6 +5,7 @@
 // rng 소비 금지(결정론). matchState 는 이 두 함수가 소유(위치·공·점유 갱신).
 
 import { seek, computeSeparation, hash01, clamp } from './movement.js';
+import { isBeaten } from './duel.js';
 import {
   teamShape, teamBackDist, stepBlockStates, anchorFor, easeShape, depthRanks, dBallOwn, distToWorldX,
 } from './shape.js';
@@ -45,6 +46,7 @@ function assignDefenders(state, defTeam, carrier, cfg) {
   let best = null, bd = Infinity;
   for (const p of Object.values(state.players)) {
     if (p.teamId !== defTeam || p.role === 'GK' || p.sentOff) continue;
+    if (isBeaten(state, p)) continue;              // 달려들었다 제쳐진 수비수는 이 장면에서 빠진다(duel.js)
     const d = dist2(p.position, carrier.position);
     if (d < bd) { bd = d; best = p; }
   }
@@ -54,7 +56,7 @@ function assignDefenders(state, defTeam, carrier, cfg) {
 
   // 히스테리시스: 현재 압박자가 유효하고 지정 후 hysteresisSec 미만이면 유지
   const curValid = ps.presserId && state.players[ps.presserId] && !state.players[ps.presserId].sentOff
-    && state.players[ps.presserId].teamId === defTeam;
+    && state.players[ps.presserId].teamId === defTeam && !isBeaten(state, state.players[ps.presserId]);
   if (!(curValid && state.clockSeconds - ps.since < P.hysteresisSec)) {
     if (desired !== ps.presserId) { ps.presserId = desired; ps.since = state.clockSeconds; }
   }
@@ -70,6 +72,7 @@ function assignDefenders(state, defTeam, carrier, cfg) {
     let cbest = null, cbd = Infinity;
     for (const p of Object.values(state.players)) {
       if (p.teamId !== defTeam || p.role === 'GK' || p.sentOff || p.id === ps.presserId) continue;
+      if (isBeaten(state, p)) continue;            // 제쳐진 수비수는 커버도 못 선다
       const d = dist2(p.position, coverPt);
       if (d < cbd) { cbd = d; cbest = p; }
     }
@@ -156,6 +159,7 @@ export function stepPositioning(state, dt) {
     }
   }
 
+  const beatenMul = cfg.duel?.beatenSpeedMul ?? 0.55;
   for (const p of Object.values(players)) {
     if (p.sentOff || p.id === carrierId) continue;   // 캐리어는 decide.stepPlay 가 이동
     const dir = state.attackDirection[p.teamId];
@@ -211,6 +215,8 @@ export function stepPositioning(state, dt) {
     }
 
     const off = sep[p.id];
+    // 달려들었다 제쳐진 수비수는 잠깐 느리다 — 실패한 태클의 대가(duel.js)
+    if (isBeaten(state, p)) spd *= beatenMul;
     seek(p, { x: target.x + off.x, z: target.z + off.z }, spd, P, dt, P.arrivalRadius);
   }
 }
