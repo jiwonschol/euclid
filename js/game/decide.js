@@ -318,7 +318,7 @@ function decideAction(state, carrier, dir) {
     const shotBuild = Math.max(buildMul, clamp((chance - (A.chanceFloor ?? 0.10)) / (A.chanceSpan ?? 0.22), 0, 1));
     const u = A.wShot * shotMul * shotBuild * distFactor * angleQ
       * openness * (0.55 + 0.45 * clamp(pressure / 5, 0, 1)) + noise();
-    opts.push({ kind: 'shot', u });
+    opts.push({ kind: 'shot', u, tac: shotMul });        // tac = 감독 지시분(신경망 뒤에 다시 얹는다)
   }
   // 패스/스루
   for (const mate of Object.values(state.players)) {
@@ -342,20 +342,28 @@ function decideAction(state, carrier, dir) {
     else if (zone === 'central' && Math.abs(mate.position.z) < 12 && prog > 4) zoneBonus = 0.22;
     const u = A.wPass * tac.passBias * (0.3 + fwdW * clamp(prog / 20, -0.4, 1) + Math.min(1, open / 8) * 0.5)
       + (through ? throughMul : 0) + zoneBonus - turnover + noise();
-    opts.push({ kind: through ? 'through' : 'pass', mate, lp, aerial: (d > 28 && through) || isCross, u });
+    // 감독 지시분만 따로 든다. 존 편향은 '공격 방향' 카드의 정의이므로 지시이고,
+    // prog·open·turnover 같은 항은 내가 이해한 축구라 신경망이 덮어써야 한다.
+    let zoneTac = 1;
+    if (isCross) zoneTac = tac.crossEarly ? 1.6 : 1.3;
+    else if (wingSide !== 0 && Math.sign(mate.position.z) === wingSide && Math.abs(mate.position.z) > 16) zoneTac = 1.35;
+    opts.push({ kind: through ? 'through' : 'pass', mate, lp, aerial: (d > 28 && through) || isCross, u,
+      tac: tac.passBias * zoneTac * (through ? tac.throughBias : 1) });
   }
   // 드리블
-  opts.push({ kind: 'dribble', u: A.wDribble * tac.dribbleBias * (0.3 + clamp(pressure / 6, 0, 1) * 0.5) + (dGoal > A.shotMaxDist ? 0.2 : 0) + noise() });
+  opts.push({ kind: 'dribble', tac: tac.dribbleBias,
+    u: A.wDribble * tac.dribbleBias * (0.3 + clamp(pressure / 6, 0, 1) * 0.5) + (dGoal > A.shotMaxDist ? 0.2 : 0) + noise() });
 
   // NEXT_ACTION 카드(측면 전환·맥락 카드): 다음 소유 행동 효용을 편향하고 1회 소비.
   if (tac.nextAction || tac.switchNext) {
+    const bias = (o, m) => { o.u *= m; o.tac = (o.tac ?? 1) * m; };
     for (const o of opts) {
-      if (tac.nextAction === 'shot' && o.kind === 'shot') o.u *= 3;
-      else if (tac.nextAction === 'through' && o.kind === 'through') o.u *= 3;
-      else if (tac.nextAction === 'dribble' && o.kind === 'dribble') o.u *= 3;
-      else if (tac.nextAction === 'safe') { if (o.kind === 'shot') o.u *= 0.2; else if (o.kind === 'pass') o.u *= 2; }
-      else if (tac.nextAction === 'oneTwo' && o.kind === 'pass' && o.mate && dist2(carrier.position, o.mate.position) < 14) o.u *= 2.5;
-      if (tac.switchNext && o.mate && Math.abs(o.mate.position.z - carrier.position.z) > 22) o.u *= 2.5;   // 측면 전환: 반대쪽 롱패스
+      if (tac.nextAction === 'shot' && o.kind === 'shot') bias(o, 3);
+      else if (tac.nextAction === 'through' && o.kind === 'through') bias(o, 3);
+      else if (tac.nextAction === 'dribble' && o.kind === 'dribble') bias(o, 3);
+      else if (tac.nextAction === 'safe') { if (o.kind === 'shot') bias(o, 0.2); else if (o.kind === 'pass') bias(o, 2); }
+      else if (tac.nextAction === 'oneTwo' && o.kind === 'pass' && o.mate && dist2(carrier.position, o.mate.position) < 14) bias(o, 2.5);
+      if (tac.switchNext && o.mate && Math.abs(o.mate.position.z - carrier.position.z) > 22) bias(o, 2.5);   // 측면 전환: 반대쪽 롱패스
     }
     consumeNextAction(state, carrier.teamId);
   }
@@ -367,6 +375,29 @@ function decideAction(state, carrier, dir) {
     const cctx = { carrier, dir, defTeam, cfg, pressure, olX: offsideLineX(state, carrier.teamId) };
     for (const o of opts) { const v = carrierScore(state, o, cctx, cnet); if (v !== null) o.u = v + noise() * 0.15; }
   }
+
+  // 감독 지시를 신경망 **뒤에** 다시 얹는다.
+  //
+  // 2026-08-26 발견: 위에서 지시 배수(shotMul·passBias·dribbleBias·존 편향·NEXT_ACTION)를 곱해도
+  // 바로 다음 줄에서 `o.u = v` 로 통째로 덮어써서 **전부 사라지고 있었다.** 그래서 눈금 M4 의
+  // 개입 델타(G3·G4)가 0 이 됐다 — 카드가 결과를 못 바꾸는 상태. buildSuppress 가 같은 이유로
+  // 무력화됐던 사고(plan_audit)의 확대판이고, 이번엔 게임 문법 전체가 죽어 있었다.
+  //
+  // 제1원칙과의 관계: 이 문서가 금지하는 것은 **내가 이해한 축구를 인코딩하는 것**이다.
+  // 감독의 지시는 축구에 대한 내 가설이 아니라 **유저가 낸 명령이고, 뜻은 내가 정의해도 되는
+  // 게임 오브젝트다.** 그래서 지시분만 골라 신경망 뒤에 얹고, 축구 판단(거리·각도·압박·전진)은
+  // 신경망이 덮어쓴 채로 둔다.
+  //
+  // 값에 그냥 곱하지 않는다 — 신경망 출력은 기대값이라 음수일 수 있어서 곱셈은 뜻이 뒤집힌다.
+  // 선택지들 사이의 **선호 이동**으로 얹는다(로그 배수 × 옵션 값의 폭).
+  if (cnet && opts.some((o) => o.tac !== undefined && o.tac !== 1)) {
+    let lo = Infinity, hi = -Infinity;
+    for (const o of opts) { if (o.u < lo) lo = o.u; if (o.u > hi) hi = o.u; }
+    const spread = Math.max(1e-6, hi - lo);
+    const w = A.tacticWeight ?? 0.45;
+    for (const o of opts) if (o.tac !== undefined && o.tac !== 1) o.u += Math.log(o.tac) * spread * w;
+  }
+
   opts.sort((x, y) => y.u - x.u);
   const pick = opts[0];
 

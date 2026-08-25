@@ -145,7 +145,7 @@
     "tackleLooseProb": 0.4
   },
   "action": {
-    "_comment": "utility 의사결정(마스터 §6). 값은 효용 가중. 매 decideEvery 초마다 캐리어가 행동 재평가. minCarry=최소 소유시간('죽죽' 방지).",
+    "_comment": "utility 의사결정(마스터 §6). 값은 효용 가중. 매 decideEvery 초마다 캐리어가 행동 재평가. minCarry=최소 소유시간('죽죽' 방지). tacticWeight=감독 지시를 신경망 뒤에 얹는 세기(선택지 값 폭 대비). 0 이면 카드가 캐리어 결정을 못 바꾼다.",
     "decideEvery": 0.55,
     "minCarry": 0.85,
     "shotMaxDist": 26,
@@ -165,7 +165,8 @@
     "gkReachGain": 5.2,
     "chanceFloor": 0.1,
     "chanceSpan": 0.22,
-    "carrySpeedMul": 0.86
+    "carrySpeedMul": 0.86,
+    "tacticWeight": 0.45
   },
   "foul": {
     "_comment": "태클 resolver(마스터 §11). 태클 접촉 시 방향(등 뒤 진입)·강도(태클러 속도)로 판정: 합법 / careless=직접 프리킥 / reckless=옐로 / excessive=레드. 반칙 팀 자기 박스 안이면 PK. wallDist=상대 이격(9.15m), pkClearBack=PK 시 나머지가 마크 뒤로 물러나는 거리. boxCaution=자기 박스 안 반칙 확률 배수(수비수는 박스에서 극도로 조심한다 — 반칙=PK). 접촉의 59%가 박스 근처에 몰리므로 이 항이 없으면 PK 48회/경기가 된다. 계수는 실측 튜닝치: 반칙 ~22 · 옐로 ~3-4 · PK ~0.3/경기.",
