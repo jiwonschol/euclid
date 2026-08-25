@@ -108,7 +108,9 @@ function updatePossession(state, dt) {
     // 예전에는 이 판정이 `controlRadius 1.5m` 안에서만 일어났는데 첫 수비수의 압박 목표는
     // `press.standoff 2.2m` 였다 — 규칙이 첫 수비수를 태클이 절대 안 일어나는 자리에 세워둔 것이다.
     // 닿는 거리(tackleReach)와 공을 잡는 거리(controlRadius)는 애초에 다른 물리량이다.
-    const dnet = opp ? (state.policy?.[opp.p.teamId]?.duel || null) : null;
+    // 팀별 정책(자기대국) 우선, 없으면 단일 정책(뷰어·눈금이 policy.json 을 통째로 넘긴다).
+    // ⚠️ 이 폴백을 빼먹으면 학습 엔진과 관전·채점 엔진이 서로 달라진다 — 2026-08-12 에 한 번 당했다.
+    const dnet = opp ? (state.policy?.[opp.p.teamId]?.duel || state.policy?.duel || null) : null;
     const reach = dnet ? (cfg.duel?.reach ?? 2.4) : ctl.controlRadius;
     let engages = false;
     if (opp && opp.d <= reach) {
