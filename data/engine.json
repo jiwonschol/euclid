@@ -177,7 +177,12 @@
     "recklessAt": 0.82,
     "excessiveAt": 0.975,
     "wallDist": 9.15,
-    "pkClearBack": 10
+    "pkClearBack": 10,
+    "pk": {
+      "_c": "페널티킥(Law 14) 전용 판정. 전환율을 상수로 박지 않고 기제로 만든다: 키커는 한쪽 구석을 노리고 GK 는 한쪽을 찍는다 — 맞게 찍어야만 막을 기회가 생긴다. missProb=골문 밖, saveIfGuessed=방향을 맞혔을 때 막을 확률. 결과 전환율 ≈ (1−missProb)×(1−0.5×saveIfGuessed) ≈ 76%(실축).",
+      "missProb": 0.06,
+      "saveIfGuessed": 0.38
+    }
   },
   "attributes": {
     "_comment": "역할별 능력치 평균(디자이너 2026-07-29). 공격수는 빠르고 가볍다, 수비수는 크고 느리다, 미드필더는 중간. pace=최고속 배율, strength=경합·태클, height=공중볼. 선수마다 셔츠번호 기반 결정론 지터가 붙어 같은 역할끼리도 다르다. 1팀 공격수 대 2팀 수비수의 실제 능력차가 생겨 관찰 변수가 는다.",

@@ -686,6 +686,48 @@ function penaltyRestart(state, attTeam, defTeam, F) {
     }
   }
   log(state, 'RESTART', { kind: 'penalty', team: attTeam });
+  resolvePenalty(state, attTeam, defTeam, F);
+}
+
+/**
+ * 페널티킥은 프리킥이 아니다 — 규칙이 정한 별개의 세트피스다(Law 14).
+ *
+ * 예전에는 공을 마크에 놓고 **평범한 플레이를 재개**할 뿐이었다. 그래서 11m 에서 일반 GK
+ * 모델이 각을 덮어 전환율이 45% 였다(실축 76%). 즉 박스 안에서 달려드는 값이 실제보다 쌌다.
+ * 2026-08-26 실측이 그걸 그대로 보여줬다 — boxCaution 을 걷어낸 뒤 68세대 동안 PK 가
+ * 17 → 32회로 **늘었다.** 탐색은 "박스에서 반칙하는 게 이득"을 옳게 찾아낸 것이고,
+ * 틀린 쪽은 정책이 아니라 규칙이었다.
+ *
+ * 전환율을 상수로 박지 않는다. 기제로 만든다: 키커는 한쪽 구석을 노리고(빗나갈 수 있다),
+ * GK 는 한쪽을 찍는다. **맞게 찍어야만** 막을 기회가 생긴다.
+ */
+function resolvePenalty(state, attTeam, defTeam, F) {
+  const P = F.pk || {};
+  const b = state.ball;
+  const kicker = state.players[b.carrierId];
+  const gk = Object.values(state.players).find((p) => p.teamId === defTeam && p.role === 'GK' && !p.sentOff);
+  if (kicker) kicker.hasBall = false;
+  b.carrierId = null; b.ownerId = null; b.mode = 'LOOSE'; b.velocity = { x: 0, y: 0, z: 0 };
+  if (kicker) { b.lastTouchPlayerId = kicker.id; b.lastTouchTeamId = attTeam; }
+  state._carryStart = null; state._decideAt = null;
+
+  log(state, 'SHOT', { by: kicker ? kicker.id : null, team: attTeam, pk: true, seq: 0 });
+
+  if (state.rng.chance(P.missProb ?? 0.06)) {          // 골문 밖 — 골킥
+    log(state, 'PK_MISS', { team: attTeam });
+    const gdir = state.attackDirection[defTeam];
+    giveRestart(state, defTeam, { x: gdir * (9 - FIELD.halfLength), z: 0 });
+    log(state, 'RESTART', { kind: 'goalkick', team: defTeam });
+    return;
+  }
+  const kickSide = state.rng.chance(0.5) ? 1 : -1;
+  const gkSide = state.rng.chance(0.5) ? 1 : -1;       // GK 는 도박을 한다 — 공보다 사람이 느리다
+  if (gk && gkSide === kickSide && state.rng.chance(P.saveIfGuessed ?? 0.38)) {
+    log(state, 'SAVE', { by: gk.id, pk: true });
+    gainControl(state, gk, 'SAVE');
+    return;
+  }
+  goalRestart(state, attTeam);
 }
 
 /** 반칙 → 직접 프리킥. 반칙한 팀의 자기 페널티 박스 안이면 페널티킥(§11). */
