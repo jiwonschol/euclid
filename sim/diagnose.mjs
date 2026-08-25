@@ -36,6 +36,10 @@ const mean = (a) => a.reduce((x, y) => x + y, 0) / Math.max(1, a.length);
 const ev = {};
 const band = BANDS.map(() => ({ shots: 0, goals: 0, save: 0, block: 0 }));
 const carryDist = [], carrySec = [], nearDef = [], nearDefBox = [], boxDefN = [], gkOut = [], shotGap = [];
+// ⚠️ 페널티는 따로 센다. goalRestart→resetFormation 이 22명을 홈 앵커로 되돌린 **뒤에** 이벤트를
+// 훑기 때문에, PK 슛을 오픈플레이로 세면 '키커 홈 앵커'(골문 30~60m)에서 쏜 것으로 기록돼
+// "30-60m 전환율 100%" 같은 유령이 생긴다(2026-08-26 실제로 낚였다).
+let pkShots = 0, pkGoals = 0;
 const defLine = [];   // 상대가 우리 박스에 있을 때 우리 아웃필더 10명의 자기 골문까지 거리(가까운 순)
 
 for (let m = 0; m < N; m++) {
@@ -53,6 +57,7 @@ for (let m = 0; m < N; m++) {
     for (; seen < s.eventLog.length; seen++) {
       const e = s.eventLog[seen];
       ev[e.type] = (ev[e.type] || 0) + 1;
+      if (e.type === 'SHOT' && e.pk) { pkShots++; pending = 'pk'; continue; }   // 페널티는 오픈플레이가 아니다
       if (e.type === 'SHOT') {
         const p = s.players[e.by]; if (!p) continue;
         const gx = s.attackDirection[e.team] * FIELD.halfLength;
@@ -64,6 +69,9 @@ for (let m = 0; m < N; m++) {
         lastShotT = s.clockSeconds;
         const g = gain.get(e.by);
         if (g) { carryDist.push(Math.hypot(p.position.x - g.x, p.position.z - g.z)); carrySec.push(s.clockSeconds - g.t); }
+      } else if (pending === 'pk') {
+        if (e.type === 'GOAL') { pkGoals++; pending = null; }
+        else if (e.type === 'SAVE' || e.type === 'PK_MISS') pending = null;
       } else if (pending !== null && (e.type === 'GOAL' || e.type === 'SAVE' || e.type === 'BLOCK')) {
         band[pending][e.type === 'GOAL' ? 'goals' : e.type === 'SAVE' ? 'save' : 'block']++;
         pending = null;
@@ -125,6 +133,7 @@ BANDS.forEach(([a, b], i) => {
   console.log(`  ${String(a).padStart(2)}-${String(b).padEnd(3)}m  ${per(x.shots).padStart(7)} ${per(x.save).padStart(7)} ${per(x.block).padStart(7)} ${per(x.goals).padStart(6)}   ${(100 * x.goals / x.shots).toFixed(0)}%`);
 });
 console.log(`  슛 간격 중앙값 ${q(shotGap, 0.5).toFixed(1)}초`);
+console.log(`  페널티(오픈플레이 아님): ${per(pkShots)}회/경기 · 전환율 ${(100 * pkGoals / Math.max(1, pkShots)).toFixed(0)}%   실축 0.25회 · 76%`);
 
 console.log('\n캐리어는 어떻게 거기까지 가는가  (실축: 한 소유의 단독 운반은 몇 m 수준)');
 console.log(`  공 잡고 → 슛까지: 중앙값 ${q(carrySec, 0.5).toFixed(1)}초 · 이동 ${q(carryDist, 0.5).toFixed(1)}m`);
