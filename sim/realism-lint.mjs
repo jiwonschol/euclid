@@ -113,7 +113,12 @@ function runRegulation(seed) {
 /** 손패 있는 실제 플레이 조건(stanceCfg 포함)으로 돌린다. policy: 'none' | 'good' */
 function runPlayable(seed, policy) {
   const s = createMatch(seed, cfg, com, stc, POLICY);
-  const PICK = [['press', 'high'], ['mentality', 'attack'], ['line', 'up'], ['attack_zone', 'wing']];
+  // 2026-08-26: 'mentality:attack' 은 **없는 카드**였다(그 그룹 옵션은 balance/counter/all_out).
+  // 스탠스 재작성 때 이름이 바뀌었는데 여기가 안 따라가, selectStance 가 {ok:false,'없는 카드'}로
+  // 조용히 버리고 있었다 — '정답 경로' 넷 중 하나가 아무 일도 안 했다.
+  // ⚠️ 이 수정은 점수를 좋게 만들지 않는다(오히려 낮춘다): 지금 엔진에서 전원 공격은
+  // 슛을 늘리고 골을 줄인다. 유효한 카드를 실제로 적용하게 만드는 것이 목적이다.
+  const PICK = [['press', 'high'], ['mentality', 'all_out'], ['line', 'up'], ['attack_zone', 'wing']];
   let i = 0, subs = 0;
   while (s.phase !== 'FULLTIME') {
     tick(s);
