@@ -139,3 +139,5 @@
 {"gen":117,"adopted":true,"gd":1.175,"rejected":0,"step":0.3564,"weights":745}
 {"gen":118,"adopted":true,"gd":2.616,"rejected":0,"step":0.2708,"weights":745}
 {"gen":119,"adopted":true,"gd":1.284,"rejected":0,"step":0.3801,"weights":745}
+{"gen":120,"adopted":true,"gd":1.194,"rejected":0,"step":0.3226,"weights":745}
+{"gen":121,"adopted":true,"gd":0.64,"rejected":0,"step":0.3493,"weights":745}
