@@ -96,7 +96,7 @@ function updatePossession(state, dt) {
   if (b.mode === 'CONTROLLED') {
     const carrier = state.players[b.carrierId];
     if (!carrier) { b.mode = 'LOOSE'; b.carrierId = null; return; }
-    // 태클 경합: 캐리어 근처 상대가 controlRadius 내면 매 틱 소량 확률로 탈취(루즈볼)
+    // 1대1 경합: 닿는 거리(duel.reach) 안의 최근접 상대가 달려들지 말지를 **정한다**(duel.js).
     const opp = nearestOpp(state, carrier.teamId, carrier.position);
     const mf = carrier.teamId === 'A' ? (state.subBoost?.A?.mf || 0) : 0;
     // 읽고 대응: 수비팀의 '수비 방향' 스탠스가 상대의 실제 공격 방향과 맞으면 탈취 확률↑, 반대로 읽었으면↓
@@ -117,9 +117,9 @@ function updatePossession(state, dt) {
       const pc = duelCommitProb(state, opp.p, carrier, cfg, dnet, dt);
       engages = pc === null
         ? state.rng.chance(cfg.action.turnoverBase * tm * duel * dt * (1 - 0.18 * mf))
-        : state.rng.chance(pc * tm * (1 - 0.18 * mf));
+        : state.rng.chance(pc * tm * (1 - 0.18 * mf));   // mf 교체 = 볼 지키기↑
     }
-    if (engages) {  // mf 교체=볼 지키기↑
+    if (engages) {
       // 태클 접촉 → resolver(§11): 합법이면 아래 루즈볼, 반칙이면 프리킥/PK(+경고/퇴장)
       const res = cfg.foul ? resolveTackle(state, opp.p, carrier, cfg.foul) : { foul: false };
       if (res.foul) { foulRestart(state, opp.p, carrier, res); return; }
