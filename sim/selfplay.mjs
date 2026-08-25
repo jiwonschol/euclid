@@ -72,26 +72,29 @@ const pool = Array.from({ length: WORKERS }, () =>
   new Worker(new URL('./selfplay-worker.mjs', import.meta.url), { workerData }));
 const localDuel = WORKERS === 1 ? makeEvaluator(workerData) : null;
 
+// 리스너는 풀을 만들 때 **한 번만** 건다. 세대마다 걸면 400세대에 리스너가 400개씩 쌓인다
+// (MaxListenersExceededWarning 로 드러났다). 현재 세대의 상태는 batch 하나가 들고 있다.
+let batch = null;
+for (const w of pool) {
+  w.on('message', (m) => {
+    if (!batch) return;
+    batch.out[m.id] = { gd: m.gd, bad: m.bad };
+    if (++batch.done === batch.out.length) { const b = batch; batch = null; b.resolve(b.out); }
+    else feed(w);
+  });
+  w.on('error', (e) => { if (batch) batch.reject(e); else throw e; });
+}
+function feed(w) {
+  if (!batch || batch.next >= batch.cands.length) return;
+  const id = batch.next++;
+  w.postMessage({ id, cand: batch.cands[id], champ: batch.champ });
+}
+
 /** 도전자 여럿을 한꺼번에 평가한다. 순서 보존. */
 function evaluate(cands) {
   if (localDuel) return Promise.resolve(cands.map((c) => localDuel(c, champ)));
   return new Promise((resolve, reject) => {
-    const out = new Array(cands.length);
-    let next = 0, done = 0;
-    const feed = (w) => {
-      if (next >= cands.length) return;
-      const id = next++;
-      w.postMessage({ id, cand: cands[id], champ });
-    };
-    for (const w of pool) {
-      w.removeAllListeners('message');
-      w.on('message', (m) => {
-        out[m.id] = { gd: m.gd, bad: m.bad };
-        if (++done === cands.length) resolve(out);
-        else feed(w);
-      });
-      w.once('error', reject);
-    }
+    batch = { cands, champ, out: new Array(cands.length), next: 0, done: 0, resolve, reject };
     for (const w of pool) feed(w);
   });
 }
