@@ -89,16 +89,27 @@ console.log('\n6) 빌드업/하이라이트 분리 — 의미 없는 플레이�
 
 console.log('\n7) 참모: 직접적인 정보 + 받아들이면 그대로 적용');
 {
+  // 한 경기 전체. 예전엔 20000틱을 돌렸는데 한 경기는 9000틱(600초)이라 절반 이상이
+  // FULLTIME 이후의 헛 틱이었다 — 그래서 아래 '받아들이기'가 **시계가 멈춘 경기**에서 실행됐고,
+  // 전달 중(pending)인 지시가 영원히 도착하지 않았다. 게이트가 빨갰던 두 원인 중 하나.
   const s = mk(7);
-  run(s, 20000);
+  while (s.phase !== 'FULLTIME') tick(s);
   const adv = s.eventLog.filter((e) => e.type === 'ADVICE');
-  ok(adv.length >= 12, `참모가 계속 개입한다 (${adv.length}회, 실시간 ~10초당 1회) — 영구 dedupe 였을 땐 2회뿐이었다`);
+  ok(adv.length >= 12, `참모가 계속 개입한다 (${adv.length}회/경기) — 영구 dedupe 였을 땐 2회뿐이었다`);
   ok(adv.every((e) => e.group && e.option), '모든 조언이 실행 가능한 스탠스를 제안');
-  // 조언 받아들이기 → 그 스탠스가 그대로 들어간다
+
+  // 조언 받아들이기 → 그 스탠스가 그대로 들어간다. 반드시 **살아 있는 경기**에서.
+  const s2 = mk(7);
   let took = false;
-  for (let i = 0; i < 4000 && !took; i++) {
-    tick(s);
-    if (s.advice) { const sug = { ...s.advice.suggest }; const r = acceptAdvice(s, stc); if (r.ok) { run(s, 40); ok(s.stance.A[sug.group] === sug.option, `조언(${sug.group}=${sug.option})이 그대로 적용됨`); took = true; } }
+  while (!took && s2.phase !== 'FULLTIME') {
+    tick(s2);
+    if (!s2.advice) continue;
+    const sug = { ...s2.advice.suggest };
+    const r = acceptAdvice(s2, stc);
+    if (!r.ok) continue;
+    run(s2, 40);                                   // delivery.sec(2초) < 40틱(2.67초)
+    ok(s2.stance.A[sug.group] === sug.option, `조언(${sug.group}=${sug.option})이 그대로 적용됨`);
+    took = true;
   }
   ok(took, '참모 조언 수락 경로 동작');
 }
