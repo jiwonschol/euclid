@@ -1,5 +1,7 @@
 # Claude Code용 마스터 프롬프트
 
+> **2026-09-22 대체됨:** 이 프롬프트는 원래 구상을 보존하는 역사 자료다. 현재 실행 프롬프트는 [director_game_plan.md 부록 A](director_game_plan.md#부록-a-그대로-붙여넣을-실행-프롬프트)다. 아래 구현 명령·CP·손패·전체 규칙 요구를 독립적으로 실행하지 않는다.
+
 아래 요구사항을 **현재 저장소에 실제로 구현하라.** 너는 이 게임과 축구를 이미 안다고 가정하지 마라. 현대 액션 축구 게임을 흉내 내거나, 22개의 점을 무작위로 움직이는 것으로 축구를 구현했다고 주장하지 마라.
 
 참고 영상: https://www.youtube.com/watch?v=y8KQA6-yD6M&list=PLnImbEgFfZdHpj292TpTWwW7UFYjV0pwe

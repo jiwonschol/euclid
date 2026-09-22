@@ -19,6 +19,8 @@
     "loop:guard": "node .claude/loop/guard.mjs",
     "sim:offside": "node sim/offside-lint.mjs",
     "selfplay": "node sim/selfplay.mjs",
-    "sim:diagnose": "node sim/diagnose.mjs"
+    "sim:diagnose": "node sim/diagnose.mjs",
+    "test:director": "node sim/director-contracts.mjs && node sim/director-tactics.mjs && node sim/director-assets.mjs && node sim/director-playthrough.mjs",
+    "test:director:quick": "node sim/director-contracts.mjs && node sim/director-tactics.mjs && node sim/director-assets.mjs"
   }
 }
