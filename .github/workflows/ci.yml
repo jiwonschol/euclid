@@ -1,0 +1,23 @@
+name: ci
+
+# PR마다 도는 Linux 기본 검사. main 보호 규칙의 필수 검사 `check`가 이 job 이름을 본다.
+# paths 필터를 두지 말 것 — 필수 검사가 스킵되면 PR이 "Expected" 대기로 영원히 멈춘다.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: JS 문법 검사
+        run: find . -name '*.js' -not -path './node_modules/*' -print0 | xargs -0 -n1 node --check
