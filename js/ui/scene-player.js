@@ -6,10 +6,10 @@ export function interpolate(frame,reduced=false) {
   return {...(t<1?from:to),matchSeconds:from.matchSeconds,players:to.players.map((p,i)=>({...p,position:{x:lerp(from.players[i].position.x,p.position.x,t),z:lerp(from.players[i].position.z,p.position.z,t)}})),ball:{...to.ball,ownerId:t<1&&frame.kind!=='FLOW'?null:to.ball.ownerId,mode:t<1&&flying?'AERIAL_PASS':to.ball.mode,x:lerp(from.ball.x,to.ball.x,t),z:lerp(from.ball.z,to.ball.z,t),y:lerp(from.ball.y,to.ball.y,t)+(flying?Math.sin(t*Math.PI)*(['GOAL','SAVE','MISS'].includes(frame.kind)?2:5):0)}};
 }
 export class ScenePlayer {
-  constructor(canvas,radar){this.canvas=canvas;this.radar=radar;this.images={};this.manifest={assets:{}};this.failed=[];}
+  constructor(canvas,radar,onFailure=()=>{}){this.canvas=canvas;this.radar=radar;this.images={};this.manifest={assets:{}};this.failed=[];this.onFailure=onFailure;}
   async load() {
     this.manifest=await (await fetch('assets/director/manifest.json')).json();
-    const load=([name,a])=>new Promise(resolve=>{const img=new Image(),timer=setTimeout(resolve,3000);img.onload=()=>{clearTimeout(timer);this.images[name]=img;resolve();};img.onerror=()=>{clearTimeout(timer);this.failed.push(name);resolve();};img.src=a.path;});
+    const load=([name,a])=>new Promise(resolve=>{const img=new Image(),timer=setTimeout(resolve,3000);img.onload=()=>{clearTimeout(timer);this.images[name]=img;resolve();};img.onerror=()=>{clearTimeout(timer);this.failed.push(name);this.onFailure(name);resolve();};img.src=a.path;});
     const entries=Object.entries(this.manifest.assets).filter(([,a])=>a.kind!=='card'),first=['stadium-empty','striker-ready','defender-ready','keeper-ready'];
     await Promise.all(entries.filter(([name])=>first.includes(name)).map(load));
     for(const entry of entries.filter(([name])=>!first.includes(name)))void load(entry);

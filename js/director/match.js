@@ -5,18 +5,22 @@ import { resolveEncounter } from './resolve.js';
 export class DirectorMatch {
   constructor(rules,seed=42,profile='wing') {
     this.rules=copy(rules); this.state=createState(seed,rules,profile);this.phase='READY';this.remaining=rules.durations.READY;
-    this.pending=command();this.records=[];this.inputLog=[];this.commandEvents=[];this.flow=null;this.resolution=null;this.paused=false;this.speed=1;this.seenCommands=[];this.resolvedIds=[];
+    this.pending=command();this.records=[];this.inputLog=[];this.replayInputs=null;this.commandEvents=[];this.flow=null;this.halftimeFlow=null;this.resolution=null;this.paused=false;this.speed=1;this.seenCommands=[];this.resolvedIds=[];
   }
   setPhase(phase) {this.phase=phase;this.remaining=this.rules.durations[phase]??0;}
+  commandSnapshot() {
+    if(this.phase==='HALFTIME') return (this.halftimeFlow??=prepareEncounter(this.state,this.rules)).snapshot;
+    return this.flow?.snapshot??this.state;
+  }
   queue(cmd,id) {
     if(!['FLOW','COMMAND','HALFTIME'].includes(this.phase)) return '현재 지시는 확정됐습니다.';
     if(id&&this.seenCommands.includes(id)) return '이미 접수한 입력입니다.';
-    const s=this.flow?.snapshot??this.state, error=legal(s,'A',cmd,this.rules); if(error) return error;
+    const s=this.commandSnapshot(), error=legal(s,'A',cmd,this.rules); if(error) return error;
     if(id) this.seenCommands.push(id);
     this.commandEvents.push({type:cmd.id==='hold'?'COMMAND_CANCELED':this.pending.id==='hold'?'COMMAND_QUEUED':'COMMAND_REPLACED',encounterId:s.encounterIndex+1,cardId:cmd.id});
     this.pending=copy(cmd); return null;
   }
-  beginFlow() {this.flow=prepareEncounter(this.state,this.rules);this.state=copy(this.flow.initialState);this.resolution=null;this.setPhase('FLOW');}
+  beginFlow() {this.flow=this.halftimeFlow??prepareEncounter(this.state,this.rules);this.halftimeFlow=null;this.state=copy(this.flow.initialState);this.resolution=null;this.setPhase('FLOW');}
   commit() {
     if(this.phase!=='COMMAND') return false;
     const id=this.state.encounterIndex+1;if(this.resolvedIds.includes(id)) return false;

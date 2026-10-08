@@ -36,4 +36,18 @@ check('20 seeds replay identically; score and shot accounting use events',()=>{
 check('restore before/after decision and during playback never redraws the result',()=>{
  for(const phase of ['COMMAND','PRESENT','ADVANCE']){const a=ready(72);a.queue(command('support_flank'));if(phase!=='COMMAND')a.commit();if(phase==='ADVANCE')a.skip();const b=DirectorMatch.restore(a.snapshot(),rules);b.paused=false;if(phase==='COMMAND'){a.commit();b.commit();}a.tick(6);b.tick(6);assert.equal(a.resultHash(),b.resultHash());assert.equal(a.records.length,b.records.length);}
 });
+check('halftime reservation uses the upcoming kickoff without mutating the current state',()=>{
+ const g=new DirectorMatch(rules,42);while(g.phase!=='HALFTIME')g.advancePhase();
+ const before=g.resultHash();assert.equal(g.state.ball.ownerId,null);
+ assert.equal(g.queue(command('screen_middle')),null);assert.equal(g.resultHash(),before);
+ const restored=DirectorMatch.restore(g.snapshot(),rules);restored.advancePhase();restored.advancePhase();assert(restored.commit());
+ assert.equal(restored.records.at(-1).committedCommand.id,'screen_middle');
+ const baseline=DirectorMatch.restore(g.snapshot(),rules);baseline.halftimeFlow=null;baseline.advancePhase();baseline.advancePhase();baseline.commit();assert.equal(restored.resultHash(),baseline.resultHash());
+});
+check('replay source survives snapshots and existing records still restore',()=>{
+ const g=ready(72);g.queue(command('support_flank','right'));g.commit();
+ g.replayInputs=copy(g.inputLog);const restored=DirectorMatch.restore(g.snapshot(),rules);assert.deepEqual(restored.replayInputs,g.inputLog);
+ const old=JSON.parse(g.snapshot());delete old.replayInputs;delete old.halftimeFlow;
+ const legacy=DirectorMatch.restore(JSON.stringify(old),rules);assert.equal(legacy.replayInputs,null);assert.equal(legacy.resultHash(),g.resultHash());assert.deepEqual(legacy.records,old.records);
+});
 console.log(`${checks} contract groups passed.`);
