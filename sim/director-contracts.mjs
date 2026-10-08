@@ -13,6 +13,11 @@ check('a rejected side change keeps the selection on the reserved side',()=>{
  assert.match(mainSource,/function queue\(id,selectedSide=side\).*return error;/);
  assert.match(mainSource,/function setSide\(value\).*const error=queue\(game\.pending\.id,value\);side=error\?game\.pending\.side:value;/);
 });
+check('replay keeps side selection aligned with its reservation and locks both controls',()=>{
+ assert.ok(mainSource.includes("function setSide(value){if(game.replayInputs)return;"));
+ assert.ok(mainSource.includes("game.queue(entry?.command??command());side=game.pending.side;"));
+ assert.ok(mainSource.includes("$('left').disabled=!!game.replayInputs;$('right').disabled=!!game.replayInputs;"));
+});
 check('one reservation replaces/cancels and duplicate commit does not score twice',()=>{
  const g=ready();assert.equal(g.queue(command('support_flank'),'first'),null);assert.ok(g.queue(command('support_flank'),'first'));g.queue(command());assert.equal(g.pending.id,'hold');g.queue(command('support_flank'));assert(g.commit());const h=g.resultHash();assert(!g.commit());assert.equal(g.resultHash(),h);assert.equal(g.inputLog.length,1);
 });

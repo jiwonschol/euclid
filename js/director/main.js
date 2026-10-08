@@ -30,7 +30,7 @@ try {
  $('confirm').onclick=()=>{game.commit();save();};
  $('hold').onclick=()=>queue('hold');
  $('continue').onclick=()=>{if(game.phase==='HALFTIME'){game.advancePhase();game.paused=false;save();}};
- function setSide(value){if(game.pending.id!=='hold'&&['FLOW','COMMAND','HALFTIME'].includes(game.phase)){const error=queue(game.pending.id,value);side=error?game.pending.side:value;}else side=value;}
+ function setSide(value){if(game.replayInputs)return;if(game.pending.id!=='hold'&&['FLOW','COMMAND','HALFTIME'].includes(game.phase)){const error=queue(game.pending.id,value);side=error?game.pending.side:value;}else side=value;}
  $('left').onclick=()=>setSide('left');$('right').onclick=()=>setSide('right');
  $('retry').onclick=()=>restart(game.state.seed,game.state.profile);
  $('replay').onclick=()=>{const inputs=structuredClone(game.inputLog),seed=game.state.seed,profile=game.state.profile;restart(seed,profile,inputs);game.advancePhase();save();};
@@ -66,7 +66,7 @@ try {
    $('advice').textContent=game.flow&&['FLOW','COMMAND'].includes(game.phase)?`참모 제안 · ${CARDS[game.flow.advice.id].name}`:'';
    $('turn-label').textContent=game.phase==='COMMAND'?'이번 움직임을 확정하세요':game.phase==='FLOW'?'다음 움직임 예약':'지시 도착과 결과';
    $('timer').textContent=['FLOW','COMMAND'].includes(game.phase)?`${Math.ceil(game.remaining)}초`:'';
-   $('left').setAttribute('aria-pressed',side==='left');$('right').setAttribute('aria-pressed',side==='right');
+   $('left').disabled=!!game.replayInputs;$('right').disabled=!!game.replayInputs;$('left').setAttribute('aria-pressed',side==='left');$('right').setAttribute('aria-pressed',side==='right');
    const displayed=['PRESENT','ADVANCE'].includes(game.phase)?game.resolution.committedCommand:game.pending;
    $('pending').textContent=CARDS[displayed.id].name;$('consequence').textContent=CARDS[displayed.id].cost;$('notice').textContent=[notice,assetNotice].filter(Boolean).join(' ');
    $('confirm').disabled=game.phase!=='COMMAND'||!!game.replayInputs;$('hold').disabled=!['FLOW','COMMAND','HALFTIME'].includes(game.phase)||!!game.replayInputs;
