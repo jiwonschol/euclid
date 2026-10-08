@@ -5,9 +5,14 @@ import { command } from '../js/director/cards.js';
 import { copy,hash,isOffside,player,control } from '../js/director/state.js';
 import { resolveEncounter,passingOptions,stats } from '../js/director/resolve.js';
 const rules=JSON.parse(await readFile(new URL('../data/director/rules.json',import.meta.url)));
+const mainSource=await readFile(new URL('../js/director/main.js',import.meta.url),'utf8');
 let checks=0;
 function check(name,fn){fn();checks++;console.log('PASS',name);}
 function ready(seed=42){const g=new DirectorMatch(rules,seed);g.advancePhase();g.advancePhase();return g;}
+check('a rejected side change keeps the selection on the reserved side',()=>{
+ assert.match(mainSource,/function queue\(id,selectedSide=side\).*return error;/);
+ assert.match(mainSource,/function setSide\(value\).*const error=queue\(game\.pending\.id,value\);side=error\?game\.pending\.side:value;/);
+});
 check('one reservation replaces/cancels and duplicate commit does not score twice',()=>{
  const g=ready();assert.equal(g.queue(command('support_flank'),'first'),null);assert.ok(g.queue(command('support_flank'),'first'));g.queue(command());assert.equal(g.pending.id,'hold');g.queue(command('support_flank'));assert(g.commit());const h=g.resultHash();assert(!g.commit());assert.equal(g.resultHash(),h);assert.equal(g.inputLog.length,1);
 });

@@ -19,7 +19,7 @@ try {
  if(outcome){$('inspection').hidden=false;for(const [id,name] of Object.entries({PASS:'패스 연결',INTERCEPT:'패스 차단',CARRY:'돌파 성공',TACKLE:'돌파 실패',GOAL:'골',SAVE:'선방',MISS:'빗나감'})){const o=document.createElement('option');o.value=id;o.textContent=name;$('outcome-select').append(o);}$('outcome-select').value=outcome;$('outcome-select').onchange=()=>{game=outcomeGame(rules,$('outcome-select').value);syncSelection();lastPhase='';};}
  function save(){if(outcome||incompatibleRecord)return;try{localStorage.setItem(storageKey,game.snapshot());}catch{notice='이 브라우저에 기록을 저장할 공간이 부족합니다.';}}
  function restart(seed,profile=$('profile').value,replayInputs=null){game=new DirectorMatch(rules,seed,profile);game.replayInputs=replayInputs;syncSelection();cardKey='';lastPhase='';notice='';sliceMode=false;incompatibleRecord=null;save();}
- function queue(id){if(game.replayInputs)return;const error=game.queue(command(id,side),crypto.randomUUID());notice=error??`${CARDS[id].name} 예약. 확정 전까지 바꿀 수 있습니다.`;save();}
+ function queue(id,selectedSide=side){if(game.replayInputs)return;const error=game.queue(command(id,selectedSide),crypto.randomUUID());notice=error??`${CARDS[id].name} 예약. 확정 전까지 바꿀 수 있습니다.`;save();return error;}
  $('pause').onclick=()=>{game.paused=!game.paused;save();};
  $('speed').onclick=()=>{game.speed=game.speed===4?1:game.speed*2;};
  $('skip').onclick=()=>{game.skip();save();};
@@ -30,7 +30,7 @@ try {
  $('confirm').onclick=()=>{game.commit();save();};
  $('hold').onclick=()=>queue('hold');
  $('continue').onclick=()=>{if(game.phase==='HALFTIME'){game.advancePhase();game.paused=false;save();}};
- function setSide(value){side=value;if(game.pending.id!=='hold'&&['FLOW','COMMAND','HALFTIME'].includes(game.phase))queue(game.pending.id);}
+ function setSide(value){if(game.pending.id!=='hold'&&['FLOW','COMMAND','HALFTIME'].includes(game.phase)){const error=queue(game.pending.id,value);side=error?game.pending.side:value;}else side=value;}
  $('left').onclick=()=>setSide('left');$('right').onclick=()=>setSide('right');
  $('retry').onclick=()=>restart(game.state.seed,game.state.profile);
  $('replay').onclick=()=>{const inputs=structuredClone(game.inputLog),seed=game.state.seed,profile=game.state.profile;restart(seed,profile,inputs);game.advancePhase();save();};
