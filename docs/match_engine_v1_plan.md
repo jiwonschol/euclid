@@ -1,5 +1,7 @@
 # 연속 경기 엔진 계획 (match engine v1)
 
+> **2026-09-22 범위:** 기존 연구 엔진의 계획 이력이다. 아래 정본·질문 의무는 그 연구 범위에 한정한다. 새 게임은 [director_game_plan.md](director_game_plan.md)를 따른다. 연속 물리 완성을 새 제품의 선행 조건으로 삼지 않는다.
+
 > **이 문서보다 위에 [first_principle.md](first_principle.md) 가 있다.** 충돌 시 그쪽이 이긴다.
 >
 > **정본(SoT).** 이 문서는 마스터 계획서(`captain_tsubasa_card_manager_claude_code_prompt.md`)를

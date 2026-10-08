@@ -1,0 +1,1797 @@
+{
+  "schemaVersion": 1,
+  "coordinates": {
+    "unit": "source-pixels",
+    "origin": "top-left",
+    "x": "right",
+    "y": "down",
+    "bounds": "[left, top, rightExclusive, bottomExclusive]",
+    "points": "[x, y]; divide x by width and y by height to normalize"
+  },
+  "measurements": {
+    "alphaThresholds": {
+      "nonzero": 1,
+      "halfOpacity": 128,
+      "nearOpaque": 250
+    },
+    "contentBounds": "Half-opacity mask bounds for actors; full image bounds for opaque backgrounds and cards.",
+    "source": "Decoded PNG pixels and SHA-256 of the unmodified file bytes."
+  },
+  "anchorPolicy": {
+    "status": "provisional",
+    "ready": "ground is the projected midpoint of two visually estimated boot contacts; it is not a collision or ball-contact point.",
+    "kick": "ground marks the planted boot; kickContact separately marks the raised striking boot. Neither is the ball center. Do not replace either with an alpha bounding-box corner.",
+    "dive": "Airborne poses intentionally have no ground anchor. Use bodyPivot for the body and groundProjection only as a low-confidence placement assumption; gloveContact and supportingGloveContact mark the two palms.",
+    "collision": "Alpha bounds describe visible coverage only. Neither bounds nor the provisional anchors validate foot-ball, hand-ball, or turf contact.",
+    "mirroring": "Facing describes the source image before any horizontal reflection. Reflect anchor x with width - x when drawing the image mirrored.",
+    "run": "ground is a projection below the pelvis for scene placement; supportContact is a separate provisional boot reference, not a guarantee that the depicted stride touches turf.",
+    "poseChange": "Pose anchors have different meanings. Changing from ready to kick or dive requires an explicit placement transition; matching the image rectangle or bottom pixel is not contact validation."
+  },
+  "notes": [
+    "All 25 supplied PNGs were decoded and visually inspected. The manifest records file measurements, not runtime compositing approval.",
+    "Actor files contain broad, low-alpha colored halos. nonzeroBounds must not define anatomical height or a foot contact.",
+    "All current actor files have alpha maxima of 254, so alpha == 255 would incorrectly find no solid body.",
+    "Card illustrations contain painted balls and players; they are card art, not layers for the live match.",
+    "Background variants have different crowd appearances; see production-notes.md before intercutting them.",
+    "No PNG was resized, cropped, recolored, or otherwise modified during measurement."
+  ],
+  "assets": {
+    "stadium-empty": {
+      "path": "assets/director/stadium-empty.png",
+      "kind": "background",
+      "width": 2688,
+      "height": 1520,
+      "bytes": 6416616,
+      "sha256": "aec05840c543567a145bdab3ece691cc51d91308b434f385a81beb33c8ade5f2",
+      "colorMode": "RGB",
+      "alpha": {
+        "channel": false,
+        "hasTransparency": false,
+        "min": 255,
+        "max": 255,
+        "transparentPixels": 0,
+        "partiallyTransparentPixels": 0,
+        "opaquePixels": 4085760,
+        "nonzeroBounds": [
+          0,
+          0,
+          2688,
+          1520
+        ],
+        "halfOpacityBounds": [
+          0,
+          0,
+          2688,
+          1520
+        ],
+        "nearOpaqueBounds": [
+          0,
+          0,
+          2688,
+          1520
+        ]
+      },
+      "contentBounds": [
+        0,
+        0,
+        2688,
+        1520
+      ],
+      "facing": "not-applicable",
+      "containsBall": false,
+      "anchors": {},
+      "sourceVisualReview": "Viewed original file; pose and facing inspected. Runtime contact not yet validated."
+    },
+    "striker-ready": {
+      "path": "assets/director/striker-ready.png",
+      "kind": "actor",
+      "width": 1744,
+      "height": 2336,
+      "bytes": 2949630,
+      "sha256": "1495a91c187fbf19619e1b52fcda1a65f607eef998d4767779c41dce02fca808",
+      "colorMode": "RGBA",
+      "alpha": {
+        "channel": true,
+        "hasTransparency": true,
+        "min": 0,
+        "max": 254,
+        "transparentPixels": 3029165,
+        "partiallyTransparentPixels": 1044819,
+        "opaquePixels": 0,
+        "nonzeroBounds": [
+          17,
+          20,
+          1698,
+          2336
+        ],
+        "halfOpacityBounds": [
+          295,
+          100,
+          1498,
+          2236
+        ],
+        "nearOpaqueBounds": [
+          296,
+          107,
+          1497,
+          2234
+        ]
+      },
+      "contentBounds": [
+        295,
+        100,
+        1498,
+        2236
+      ],
+      "facing": "right",
+      "containsBall": false,
+      "anchors": {
+        "ground": {
+          "point": [
+            834.0,
+            2170.0
+          ],
+          "meaning": "stance-ground-projection",
+          "method": "midpoint-of-manually-estimated-boot-contacts",
+          "provisional": true,
+          "contactValidated": false
+        },
+        "imageLeftBoot": {
+          "point": [
+            458,
+            2218
+          ],
+          "meaning": "estimated-boot-sole-contact",
+          "method": "manual-boot-location-refined-to-local-alpha-128-silhouette-edge",
+          "provisional": true,
+          "contactValidated": false
+        },
+        "imageRightBoot": {
+          "point": [
+            1210,
+            2122
+          ],
+          "meaning": "estimated-boot-sole-contact",
+          "method": "manual-boot-location-refined-to-local-alpha-128-silhouette-edge",
+          "provisional": true,
+          "contactValidated": false
+        }
+      },
+      "pose": "ready",
+      "role": "field-player",
+      "appearance": "blue-field",
+      "sourceVisualReview": "Viewed original file; pose and facing inspected. Runtime contact not yet validated."
+    },
+    "defender-ready": {
+      "path": "assets/director/defender-ready.png",
+      "kind": "actor",
+      "width": 1744,
+      "height": 2336,
+      "bytes": 2690699,
+      "sha256": "0513df7c7fa4c90558c6ff21b0dddeddd383f69d9ef4b74cfe14e2227343cace",
+      "colorMode": "RGBA",
+      "alpha": {
+        "channel": true,
+        "hasTransparency": true,
+        "min": 0,
+        "max": 254,
+        "transparentPixels": 3043908,
+        "partiallyTransparentPixels": 1030076,
+        "opaquePixels": 0,
+        "nonzeroBounds": [
+          0,
+          20,
+          1730,
+          2314
+        ],
+        "halfOpacityBounds": [
+          208,
+          231,
+          1632,
+          2118
+        ],
+        "nearOpaqueBounds": [
+          209,
+          242,
+          1631,
+          2117
+        ]
+      },
+      "contentBounds": [
+        208,
+        231,
+        1632,
+        2118
+      ],
+      "facing": "left",
+      "containsBall": false,
+      "anchors": {
+        "ground": {
+          "point": [
+            960.0,
+            2083.5
+          ],
+          "meaning": "stance-ground-projection",
+          "method": "midpoint-of-manually-estimated-boot-contacts",
+          "provisional": true,
+          "contactValidated": false
+        },
+        "imageLeftBoot": {
+          "point": [
+            420,
+            2096
+          ],
+          "meaning": "estimated-boot-sole-contact",
+          "method": "manual-boot-location-refined-to-local-alpha-128-silhouette-edge",
+          "provisional": true,
+          "contactValidated": false
+        },
+        "imageRightBoot": {
+          "point": [
+            1500,
+            2071
+          ],
+          "meaning": "estimated-boot-sole-contact",
+          "method": "manual-boot-location-refined-to-local-alpha-128-silhouette-edge",
+          "provisional": true,
+          "contactValidated": false
+        }
+      },
+      "pose": "ready",
+      "role": "field-player",
+      "appearance": "red-field",
+      "sourceVisualReview": "Viewed original file; pose and facing inspected. Runtime contact not yet validated."
+    },
+    "keeper-ready": {
+      "path": "assets/director/keeper-ready.png",
+      "kind": "actor",
+      "width": 1744,
+      "height": 2336,
+      "bytes": 2948992,
+      "sha256": "cffcf323aa768b17c25119a8575693ad5b14bf2fff09deb5a86b879c8a115516",
+      "colorMode": "RGBA",
+      "alpha": {
+        "channel": true,
+        "hasTransparency": true,
+        "min": 0,
+        "max": 254,
+        "transparentPixels": 3028379,
+        "partiallyTransparentPixels": 1045605,
+        "opaquePixels": 0,
+        "nonzeroBounds": [
+          2,
+          20,
+          1730,
+          2312
+        ],
+        "halfOpacityBounds": [
+          53,
+          207,
+          1700,
+          2154
+        ],
+        "nearOpaqueBounds": [
+          54,
+          209,
+          1697,
+          2153
+        ]
+      },
+      "contentBounds": [
+        53,
+        207,
+        1700,
+        2154
+      ],
+      "facing": "left",
+      "containsBall": false,
+      "anchors": {
+        "ground": {
+          "point": [
+            970.0,
+            2095.5
+          ],
+          "meaning": "stance-ground-projection",
+          "method": "midpoint-of-manually-estimated-boot-contacts",
+          "provisional": true,
+          "contactValidated": false
+        },
+        "imageLeftBoot": {
+          "point": [
+            320,
+            2053
+          ],
+          "meaning": "estimated-boot-sole-contact",
+          "method": "manual-boot-location-refined-to-local-alpha-128-silhouette-edge",
+          "provisional": true,
+          "contactValidated": false
+        },
+        "imageRightBoot": {
+          "point": [
+            1620,
+            2138
+          ],
+          "meaning": "estimated-boot-sole-contact",
+          "method": "manual-boot-location-refined-to-local-alpha-128-silhouette-edge",
+          "provisional": true,
+          "contactValidated": false
+        }
+      },
+      "pose": "ready",
+      "role": "goalkeeper",
+      "appearance": "yellow-keeper",
+      "sourceVisualReview": "Viewed original file; pose and facing inspected. Runtime contact not yet validated."
+    },
+    "card-screen": {
+      "path": "assets/director/card-screen.png",
+      "kind": "card",
+      "width": 2048,
+      "height": 1360,
+      "bytes": 4280593,
+      "sha256": "fc8d240a221cca00a09bd948369c51815904ec9143faa0cc9ca9edda509d7d6c",
+      "colorMode": "RGB",
+      "alpha": {
+        "channel": false,
+        "hasTransparency": false,
+        "min": 255,
+        "max": 255,
+        "transparentPixels": 0,
+        "partiallyTransparentPixels": 0,
+        "opaquePixels": 2785280,
+        "nonzeroBounds": [
+          0,
+          0,
+          2048,
+          1360
+        ],
+        "halfOpacityBounds": [
+          0,
+          0,
+          2048,
+          1360
+        ],
+        "nearOpaqueBounds": [
+          0,
+          0,
+          2048,
+          1360
+        ]
+      },
+      "contentBounds": [
+        0,
+        0,
+        2048,
+        1360
+      ],
+      "facing": "not-applicable",
+      "containsBall": true,
+      "anchors": {},
+      "sourceVisualReview": "Viewed original file; pose and facing inspected. Runtime contact not yet validated."
+    },
+    "card-support": {
+      "path": "assets/director/card-support.png",
+      "kind": "card",
+      "width": 2048,
+      "height": 1360,
+      "bytes": 4072552,
+      "sha256": "84f32a486d03c265598f50733de48277757e6ee69de32599a46e65548a751abb",
+      "colorMode": "RGB",
+      "alpha": {
+        "channel": false,
+        "hasTransparency": false,
+        "min": 255,
+        "max": 255,
+        "transparentPixels": 0,
+        "partiallyTransparentPixels": 0,
+        "opaquePixels": 2785280,
+        "nonzeroBounds": [
+          0,
+          0,
+          2048,
+          1360
+        ],
+        "halfOpacityBounds": [
+          0,
+          0,
+          2048,
+          1360
+        ],
+        "nearOpaqueBounds": [
+          0,
+          0,
+          2048,
+          1360
+        ]
+      },
+      "contentBounds": [
+        0,
+        0,
+        2048,
+        1360
+      ],
+      "facing": "not-applicable",
+      "containsBall": true,
+      "anchors": {},
+      "sourceVisualReview": "Viewed original file; pose and facing inspected. Runtime contact not yet validated."
+    },
+    "stadium-goal": {
+      "path": "assets/director/stadium-goal.png",
+      "kind": "background",
+      "width": 2688,
+      "height": 1520,
+      "bytes": 6499000,
+      "sha256": "a24c942564de0080679b928d3c1d40f2db86cbea4e7f3bb79c14228fe96d1361",
+      "colorMode": "RGB",
+      "alpha": {
+        "channel": false,
+        "hasTransparency": false,
+        "min": 255,
+        "max": 255,
+        "transparentPixels": 0,
+        "partiallyTransparentPixels": 0,
+        "opaquePixels": 4085760,
+        "nonzeroBounds": [
+          0,
+          0,
+          2688,
+          1520
+        ],
+        "halfOpacityBounds": [
+          0,
+          0,
+          2688,
+          1520
+        ],
+        "nearOpaqueBounds": [
+          0,
+          0,
+          2688,
+          1520
+        ]
+      },
+      "contentBounds": [
+        0,
+        0,
+        2688,
+        1520
+      ],
+      "facing": "not-applicable",
+      "containsBall": false,
+      "anchors": {},
+      "limitations": [
+        "Wide view, not a goal close-up.",
+        "The stands are empty, unlike stadium-empty; cuts between them break crowd continuity."
+      ],
+      "sourceVisualReview": "Viewed original file; pose and facing inspected. Runtime contact not yet validated."
+    },
+    "stadium-bench": {
+      "path": "assets/director/stadium-bench.png",
+      "kind": "background",
+      "width": 2688,
+      "height": 1520,
+      "bytes": 6616895,
+      "sha256": "58255af9e8d644b13a82ec7349836a35444db93b9e854705875851de054dd78d",
+      "colorMode": "RGB",
+      "alpha": {
+        "channel": false,
+        "hasTransparency": false,
+        "min": 255,
+        "max": 255,
+        "transparentPixels": 0,
+        "partiallyTransparentPixels": 0,
+        "opaquePixels": 4085760,
+        "nonzeroBounds": [
+          0,
+          0,
+          2688,
+          1520
+        ],
+        "halfOpacityBounds": [
+          0,
+          0,
+          2688,
+          1520
+        ],
+        "nearOpaqueBounds": [
+          0,
+          0,
+          2688,
+          1520
+        ]
+      },
+      "contentBounds": [
+        0,
+        0,
+        2688,
+        1520
+      ],
+      "facing": "not-applicable",
+      "containsBall": false,
+      "anchors": {},
+      "limitations": [
+        "Bench and touchline are painted into the left foreground; actor placement must respect them.",
+        "Crowd appearance differs from stadium-empty."
+      ],
+      "sourceVisualReview": "Viewed original file; pose and facing inspected. Runtime contact not yet validated."
+    },
+    "striker-run": {
+      "path": "assets/director/striker-run.png",
+      "kind": "actor",
+      "width": 1744,
+      "height": 2336,
+      "bytes": 2869149,
+      "sha256": "8f818ab84bfc405f70279bc54f980331ee9d8f80e5e67de0e355c39a8ee9e37b",
+      "colorMode": "RGBA",
+      "alpha": {
+        "channel": true,
+        "hasTransparency": true,
+        "min": 0,
+        "max": 254,
+        "transparentPixels": 3093159,
+        "partiallyTransparentPixels": 980825,
+        "opaquePixels": 0,
+        "nonzeroBounds": [
+          24,
+          20,
+          1714,
+          2318
+        ],
+        "halfOpacityBounds": [
+          205,
+          108,
+          1556,
+          2261
+        ],
+        "nearOpaqueBounds": [
+          207,
+          115,
+          1554,
+          2258
+        ]
+      },
+      "contentBounds": [
+        205,
+        108,
+        1556,
+        2261
+      ],
+      "facing": "right",
+      "containsBall": false,
+      "anchors": {
+        "ground": {
+          "point": [
+            875,
+            2260
+          ],
+          "meaning": "stride-ground-projection",
+          "method": "manual-layout-estimate-below-pelvis-not-a-foot-contact",
+          "provisional": true,
+          "contactValidated": false
+        },
+        "bodyPivot": {
+          "point": [
+            875,
+            1130
+          ],
+          "meaning": "estimated-pelvis-pivot",
+          "method": "manual-visual-estimate",
+          "provisional": true,
+          "contactValidated": false
+        },
+        "supportContact": {
+          "point": [
+            390,
+            2254
+          ],
+          "meaning": "estimated-trailing-boot-ground-reference",
+          "method": "manual-boot-location-refined-to-local-alpha-128-silhouette-edge",
+          "provisional": true,
+          "contactValidated": false
+        }
+      },
+      "role": "field-player",
+      "appearance": "blue-field",
+      "pose": "run",
+      "limitations": [
+        "Single running pose, not a complete gait cycle. The image does not establish which stride instant touches turf."
+      ],
+      "sourceVisualReview": "Viewed original file; pose and facing inspected. Runtime contact not yet validated."
+    },
+    "defender-run": {
+      "path": "assets/director/defender-run.png",
+      "kind": "actor",
+      "width": 1744,
+      "height": 2336,
+      "bytes": 2877081,
+      "sha256": "fdb960a377e49b7be6fc2b661f731a015e83c9a0bce0377cc353711979ec3c1f",
+      "colorMode": "RGBA",
+      "alpha": {
+        "channel": true,
+        "hasTransparency": true,
+        "min": 0,
+        "max": 254,
+        "transparentPixels": 2982637,
+        "partiallyTransparentPixels": 1091347,
+        "opaquePixels": 0,
+        "nonzeroBounds": [
+          17,
+          9,
+          1730,
+          2336
+        ],
+        "halfOpacityBounds": [
+          160,
+          124,
+          1706,
+          2198
+        ],
+        "nearOpaqueBounds": [
+          161,
+          137,
+          1704,
+          2194
+        ]
+      },
+      "contentBounds": [
+        160,
+        124,
+        1706,
+        2198
+      ],
+      "facing": "left",
+      "containsBall": false,
+      "anchors": {
+        "ground": {
+          "point": [
+            990,
+            2197
+          ],
+          "meaning": "stride-ground-projection",
+          "method": "manual-layout-estimate-below-pelvis-not-a-foot-contact",
+          "provisional": true,
+          "contactValidated": false
+        },
+        "bodyPivot": {
+          "point": [
+            990,
+            1140
+          ],
+          "meaning": "estimated-pelvis-pivot",
+          "method": "manual-visual-estimate",
+          "provisional": true,
+          "contactValidated": false
+        },
+        "supportContact": {
+          "point": [
+            1530,
+            2163
+          ],
+          "meaning": "estimated-trailing-boot-ground-reference",
+          "method": "manual-boot-location-refined-to-local-alpha-128-silhouette-edge",
+          "provisional": true,
+          "contactValidated": false
+        }
+      },
+      "role": "field-player",
+      "appearance": "red-field",
+      "pose": "run",
+      "limitations": [
+        "Single running pose, not a complete gait cycle. The image does not establish which stride instant touches turf."
+      ],
+      "sourceVisualReview": "Viewed original file; pose and facing inspected. Runtime contact not yet validated."
+    },
+    "striker-kick": {
+      "path": "assets/director/striker-kick.png",
+      "kind": "actor",
+      "width": 1744,
+      "height": 2336,
+      "bytes": 2969240,
+      "sha256": "ca3da0ad7f8e5f6f916c86e5ca6e377da77d72c251b02806490563b62925b08f",
+      "colorMode": "RGBA",
+      "alpha": {
+        "channel": true,
+        "hasTransparency": true,
+        "min": 0,
+        "max": 254,
+        "transparentPixels": 3127238,
+        "partiallyTransparentPixels": 946746,
+        "opaquePixels": 0,
+        "nonzeroBounds": [
+          0,
+          20,
+          1722,
+          2336
+        ],
+        "halfOpacityBounds": [
+          39,
+          127,
+          1710,
+          2254
+        ],
+        "nearOpaqueBounds": [
+          43,
+          134,
+          1710,
+          2253
+        ]
+      },
+      "contentBounds": [
+        39,
+        127,
+        1710,
+        2254
+      ],
+      "facing": "right",
+      "containsBall": false,
+      "anchors": {
+        "ground": {
+          "point": [
+            595,
+            2240
+          ],
+          "meaning": "estimated-planted-boot-sole-contact",
+          "method": "manual-boot-location-refined-to-local-alpha-128-silhouette-edge",
+          "provisional": true,
+          "contactValidated": false
+        },
+        "bodyPivot": {
+          "point": [
+            820,
+            1160
+          ],
+          "meaning": "estimated-pelvis-pivot",
+          "method": "manual-visual-estimate",
+          "provisional": true,
+          "contactValidated": false
+        },
+        "kickContact": {
+          "point": [
+            1692,
+            1510
+          ],
+          "meaning": "estimated-raised-boot-striking-surface",
+          "method": "manual-visual-estimate",
+          "provisional": true,
+          "contactValidated": false
+        }
+      },
+      "role": "field-player",
+      "appearance": "blue-field",
+      "pose": "kick",
+      "limitations": [
+        "The kicking boot is raised far above the planted foot. This is not a grounded passing pose.",
+        "kickContact is a point on the boot, not the center of a rendered ball."
+      ],
+      "sourceVisualReview": "Viewed original file; pose and facing inspected. Runtime contact not yet validated."
+    },
+    "defender-kick": {
+      "path": "assets/director/defender-kick.png",
+      "kind": "actor",
+      "width": 1744,
+      "height": 2336,
+      "bytes": 2851798,
+      "sha256": "16e67355474d48729810f313b1e5b65f3bf57ad252cccf7006eca26e7ef54659",
+      "colorMode": "RGBA",
+      "alpha": {
+        "channel": true,
+        "hasTransparency": true,
+        "min": 0,
+        "max": 254,
+        "transparentPixels": 3190883,
+        "partiallyTransparentPixels": 883101,
+        "opaquePixels": 0,
+        "nonzeroBounds": [
+          19,
+          20,
+          1743,
+          2320
+        ],
+        "halfOpacityBounds": [
+          48,
+          246,
+          1730,
+          2209
+        ],
+        "nearOpaqueBounds": [
+          49,
+          250,
+          1728,
+          2208
+        ]
+      },
+      "contentBounds": [
+        48,
+        246,
+        1730,
+        2209
+      ],
+      "facing": "left",
+      "containsBall": false,
+      "anchors": {
+        "ground": {
+          "point": [
+            1150,
+            2184
+          ],
+          "meaning": "estimated-planted-boot-sole-contact",
+          "method": "manual-boot-location-refined-to-local-alpha-128-silhouette-edge",
+          "provisional": true,
+          "contactValidated": false
+        },
+        "bodyPivot": {
+          "point": [
+            1130,
+            1170
+          ],
+          "meaning": "estimated-pelvis-pivot",
+          "method": "manual-visual-estimate",
+          "provisional": true,
+          "contactValidated": false
+        },
+        "kickContact": {
+          "point": [
+            60,
+            1490
+          ],
+          "meaning": "estimated-raised-boot-striking-surface",
+          "method": "manual-visual-estimate",
+          "provisional": true,
+          "contactValidated": false
+        }
+      },
+      "role": "field-player",
+      "appearance": "red-field",
+      "pose": "kick",
+      "limitations": [
+        "The kicking boot is raised far above the planted foot. This is not a grounded passing pose.",
+        "kickContact is a point on the boot, not the center of a rendered ball."
+      ],
+      "sourceVisualReview": "Viewed original file; pose and facing inspected. Runtime contact not yet validated."
+    },
+    "striker-recover": {
+      "path": "assets/director/striker-recover.png",
+      "kind": "actor",
+      "width": 1744,
+      "height": 2336,
+      "bytes": 2849801,
+      "sha256": "454ae7a20f239ef6dc823566e82bb5348431b3098a63b074faa00796732992f2",
+      "colorMode": "RGBA",
+      "alpha": {
+        "channel": true,
+        "hasTransparency": true,
+        "min": 0,
+        "max": 254,
+        "transparentPixels": 3020857,
+        "partiallyTransparentPixels": 1053127,
+        "opaquePixels": 0,
+        "nonzeroBounds": [
+          19,
+          20,
+          1710,
+          2336
+        ],
+        "halfOpacityBounds": [
+          296,
+          97,
+          1502,
+          2247
+        ],
+        "nearOpaqueBounds": [
+          297,
+          112,
+          1501,
+          2246
+        ]
+      },
+      "contentBounds": [
+        296,
+        97,
+        1502,
+        2247
+      ],
+      "facing": "right",
+      "containsBall": false,
+      "anchors": {
+        "ground": {
+          "point": [
+            835.0,
+            2180.0
+          ],
+          "meaning": "stance-ground-projection",
+          "method": "midpoint-of-manually-estimated-boot-contacts",
+          "provisional": true,
+          "contactValidated": false
+        },
+        "imageLeftBoot": {
+          "point": [
+            460,
+            2228
+          ],
+          "meaning": "estimated-boot-sole-contact",
+          "method": "manual-boot-location-refined-to-local-alpha-128-silhouette-edge",
+          "provisional": true,
+          "contactValidated": false
+        },
+        "imageRightBoot": {
+          "point": [
+            1210,
+            2132
+          ],
+          "meaning": "estimated-boot-sole-contact",
+          "method": "manual-boot-location-refined-to-local-alpha-128-silhouette-edge",
+          "provisional": true,
+          "contactValidated": false
+        }
+      },
+      "role": "field-player",
+      "appearance": "blue-field",
+      "pose": "recover",
+      "limitations": [
+        "The pose closely resembles ready. It does not visibly depict falling, being beaten, or a failed challenge."
+      ],
+      "sourceVisualReview": "Viewed original file; pose and facing inspected. Runtime contact not yet validated."
+    },
+    "defender-recover": {
+      "path": "assets/director/defender-recover.png",
+      "kind": "actor",
+      "width": 1744,
+      "height": 2336,
+      "bytes": 2712778,
+      "sha256": "8a1366950786d500c43cb05571556aa33212ab025e44d473cf679c21ad736431",
+      "colorMode": "RGBA",
+      "alpha": {
+        "channel": true,
+        "hasTransparency": true,
+        "min": 0,
+        "max": 254,
+        "transparentPixels": 3026323,
+        "partiallyTransparentPixels": 1047661,
+        "opaquePixels": 0,
+        "nonzeroBounds": [
+          0,
+          20,
+          1730,
+          2314
+        ],
+        "halfOpacityBounds": [
+          203,
+          211,
+          1634,
+          2122
+        ],
+        "nearOpaqueBounds": [
+          205,
+          224,
+          1633,
+          2121
+        ]
+      },
+      "contentBounds": [
+        203,
+        211,
+        1634,
+        2122
+      ],
+      "facing": "left",
+      "containsBall": false,
+      "anchors": {
+        "ground": {
+          "point": [
+            965.0,
+            2091.0
+          ],
+          "meaning": "stance-ground-projection",
+          "method": "midpoint-of-manually-estimated-boot-contacts",
+          "provisional": true,
+          "contactValidated": false
+        },
+        "imageLeftBoot": {
+          "point": [
+            420,
+            2100
+          ],
+          "meaning": "estimated-boot-sole-contact",
+          "method": "manual-boot-location-refined-to-local-alpha-128-silhouette-edge",
+          "provisional": true,
+          "contactValidated": false
+        },
+        "imageRightBoot": {
+          "point": [
+            1510,
+            2082
+          ],
+          "meaning": "estimated-boot-sole-contact",
+          "method": "manual-boot-location-refined-to-local-alpha-128-silhouette-edge",
+          "provisional": true,
+          "contactValidated": false
+        }
+      },
+      "role": "field-player",
+      "appearance": "red-field",
+      "pose": "recover",
+      "limitations": [
+        "The pose closely resembles ready. It does not visibly depict falling, being beaten, or a failed challenge."
+      ],
+      "sourceVisualReview": "Viewed original file; pose and facing inspected. Runtime contact not yet validated."
+    },
+    "keeper-green-ready": {
+      "path": "assets/director/keeper-green-ready.png",
+      "kind": "actor",
+      "width": 1744,
+      "height": 2336,
+      "bytes": 2695205,
+      "sha256": "5f310243dc20027157212a56bb104d24ab4198050313ed709312e8e0ae97f0e2",
+      "colorMode": "RGBA",
+      "alpha": {
+        "channel": true,
+        "hasTransparency": true,
+        "min": 0,
+        "max": 254,
+        "transparentPixels": 3017148,
+        "partiallyTransparentPixels": 1056836,
+        "opaquePixels": 0,
+        "nonzeroBounds": [
+          0,
+          21,
+          1724,
+          2312
+        ],
+        "halfOpacityBounds": [
+          54,
+          194,
+          1706,
+          2150
+        ],
+        "nearOpaqueBounds": [
+          55,
+          195,
+          1705,
+          2147
+        ]
+      },
+      "contentBounds": [
+        54,
+        194,
+        1706,
+        2150
+      ],
+      "facing": "left",
+      "containsBall": false,
+      "anchors": {
+        "ground": {
+          "point": [
+            970.0,
+            2094.0
+          ],
+          "meaning": "stance-ground-projection",
+          "method": "midpoint-of-manually-estimated-boot-contacts",
+          "provisional": true,
+          "contactValidated": false
+        },
+        "imageLeftBoot": {
+          "point": [
+            320,
+            2053
+          ],
+          "meaning": "estimated-boot-sole-contact",
+          "method": "manual-boot-location-refined-to-local-alpha-128-silhouette-edge",
+          "provisional": true,
+          "contactValidated": false
+        },
+        "imageRightBoot": {
+          "point": [
+            1620,
+            2135
+          ],
+          "meaning": "estimated-boot-sole-contact",
+          "method": "manual-boot-location-refined-to-local-alpha-128-silhouette-edge",
+          "provisional": true,
+          "contactValidated": false
+        }
+      },
+      "role": "goalkeeper",
+      "appearance": "green-keeper",
+      "pose": "ready",
+      "sourceVisualReview": "Viewed original file; pose and facing inspected. Runtime contact not yet validated."
+    },
+    "keeper-dive-yellow": {
+      "path": "assets/director/keeper-dive-yellow.png",
+      "kind": "actor",
+      "width": 2048,
+      "height": 1360,
+      "bytes": 2113015,
+      "sha256": "5a71904dfcee451b660a4f13454f1194299794eb6d98418cf92c909bae5dee78",
+      "colorMode": "RGBA",
+      "alpha": {
+        "channel": true,
+        "hasTransparency": true,
+        "min": 0,
+        "max": 254,
+        "transparentPixels": 2248214,
+        "partiallyTransparentPixels": 537066,
+        "opaquePixels": 0,
+        "nonzeroBounds": [
+          0,
+          19,
+          2034,
+          1360
+        ],
+        "halfOpacityBounds": [
+          28,
+          187,
+          2016,
+          1152
+        ],
+        "nearOpaqueBounds": [
+          30,
+          190,
+          2016,
+          1151
+        ]
+      },
+      "contentBounds": [
+        28,
+        187,
+        2016,
+        1152
+      ],
+      "facing": "left",
+      "containsBall": false,
+      "anchors": {
+        "bodyPivot": {
+          "point": [
+            1100,
+            665
+          ],
+          "meaning": "estimated-waist-pelvis-pivot",
+          "method": "manual-visual-estimate",
+          "provisional": true,
+          "contactValidated": false
+        },
+        "groundProjection": {
+          "point": [
+            1100,
+            1230
+          ],
+          "meaning": "estimated-ground-projection-below-airborne-body",
+          "method": "manual-layout-assumption-no-ground-is-drawn",
+          "provisional": true,
+          "contactValidated": false,
+          "confidence": "low"
+        },
+        "gloveContact": {
+          "point": [
+            145,
+            490
+          ],
+          "meaning": "estimated-leading-glove-palm-center",
+          "method": "manual-visual-estimate",
+          "provisional": true,
+          "contactValidated": false
+        },
+        "supportingGloveContact": {
+          "point": [
+            440,
+            579
+          ],
+          "meaning": "estimated-second-glove-palm-center",
+          "method": "manual-visual-estimate",
+          "provisional": true,
+          "contactValidated": false
+        }
+      },
+      "role": "goalkeeper",
+      "appearance": "yellow-keeper",
+      "pose": "dive",
+      "limitations": [
+        "Airborne pose: no foot or hand is established as a turf contact.",
+        "Ground projection is a placement assumption, not a pixel measurement.",
+        "Glove anchors mark palm centers, not the ball center or its collision boundary.",
+        "Landscape pose must not be scaled to the same image height as a standing keeper."
+      ],
+      "sourceVisualReview": "Viewed original file; pose and facing inspected. Runtime contact not yet validated."
+    },
+    "keeper-dive-green": {
+      "path": "assets/director/keeper-dive-green.png",
+      "kind": "actor",
+      "width": 2048,
+      "height": 1360,
+      "bytes": 2014674,
+      "sha256": "726f8f33999e65ed96d308536b34f324d960e8d44c24da24374150b4ca4a2824",
+      "colorMode": "RGBA",
+      "alpha": {
+        "channel": true,
+        "hasTransparency": true,
+        "min": 0,
+        "max": 254,
+        "transparentPixels": 2227839,
+        "partiallyTransparentPixels": 557441,
+        "opaquePixels": 0,
+        "nonzeroBounds": [
+          0,
+          21,
+          2022,
+          1336
+        ],
+        "halfOpacityBounds": [
+          17,
+          188,
+          2019,
+          1155
+        ],
+        "nearOpaqueBounds": [
+          18,
+          191,
+          2018,
+          1153
+        ]
+      },
+      "contentBounds": [
+        17,
+        188,
+        2019,
+        1155
+      ],
+      "facing": "left",
+      "containsBall": false,
+      "anchors": {
+        "bodyPivot": {
+          "point": [
+            1110,
+            675
+          ],
+          "meaning": "estimated-waist-pelvis-pivot",
+          "method": "manual-visual-estimate",
+          "provisional": true,
+          "contactValidated": false
+        },
+        "groundProjection": {
+          "point": [
+            1110,
+            1230
+          ],
+          "meaning": "estimated-ground-projection-below-airborne-body",
+          "method": "manual-layout-assumption-no-ground-is-drawn",
+          "provisional": true,
+          "contactValidated": false,
+          "confidence": "low"
+        },
+        "gloveContact": {
+          "point": [
+            142,
+            405
+          ],
+          "meaning": "estimated-leading-glove-palm-center",
+          "method": "manual-visual-estimate",
+          "provisional": true,
+          "contactValidated": false
+        },
+        "supportingGloveContact": {
+          "point": [
+            473,
+            580
+          ],
+          "meaning": "estimated-second-glove-palm-center",
+          "method": "manual-visual-estimate",
+          "provisional": true,
+          "contactValidated": false
+        }
+      },
+      "role": "goalkeeper",
+      "appearance": "green-keeper",
+      "pose": "dive",
+      "limitations": [
+        "Airborne pose: no foot or hand is established as a turf contact.",
+        "Ground projection is a placement assumption, not a pixel measurement.",
+        "Glove anchors mark palm centers, not the ball center or its collision boundary.",
+        "Landscape pose must not be scaled to the same image height as a standing keeper.",
+        "Hand positions differ from the yellow pose; do not reuse its contact anchors."
+      ],
+      "sourceVisualReview": "Viewed original file; pose and facing inspected. Runtime contact not yet validated."
+    },
+    "coach-blue-watch": {
+      "path": "assets/director/coach-blue-watch.png",
+      "kind": "actor",
+      "width": 1744,
+      "height": 2336,
+      "bytes": 2194918,
+      "sha256": "6311c4801aff7c7888593dc3e45d460ad3244741f085b8f38fd5ea23c3ccf12d",
+      "colorMode": "RGBA",
+      "alpha": {
+        "channel": true,
+        "hasTransparency": true,
+        "min": 0,
+        "max": 254,
+        "transparentPixels": 3354008,
+        "partiallyTransparentPixels": 719976,
+        "opaquePixels": 0,
+        "nonzeroBounds": [
+          19,
+          79,
+          1702,
+          2336
+        ],
+        "halfOpacityBounds": [
+          524,
+          84,
+          1158,
+          2238
+        ],
+        "nearOpaqueBounds": [
+          526,
+          85,
+          1157,
+          2237
+        ]
+      },
+      "contentBounds": [
+        524,
+        84,
+        1158,
+        2238
+      ],
+      "facing": "right",
+      "containsBall": false,
+      "anchors": {
+        "ground": {
+          "point": [
+            807.5,
+            2196.5
+          ],
+          "meaning": "stance-ground-projection",
+          "method": "midpoint-of-manually-estimated-boot-contacts",
+          "provisional": true,
+          "contactValidated": false
+        },
+        "imageLeftBoot": {
+          "point": [
+            595,
+            2224
+          ],
+          "meaning": "estimated-boot-sole-contact",
+          "method": "manual-boot-location-refined-to-local-alpha-128-silhouette-edge",
+          "provisional": true,
+          "contactValidated": false
+        },
+        "imageRightBoot": {
+          "point": [
+            1020,
+            2169
+          ],
+          "meaning": "estimated-boot-sole-contact",
+          "method": "manual-boot-location-refined-to-local-alpha-128-silhouette-edge",
+          "provisional": true,
+          "contactValidated": false
+        }
+      },
+      "role": "coach",
+      "appearance": "blue-coach",
+      "pose": "watch",
+      "sourceVisualReview": "Viewed original file; pose and facing inspected. Runtime contact not yet validated."
+    },
+    "coach-red-watch": {
+      "path": "assets/director/coach-red-watch.png",
+      "kind": "actor",
+      "width": 1744,
+      "height": 2336,
+      "bytes": 2151774,
+      "sha256": "26aa5fd869665b47a09b2eda8434f638f416a854a10e759fdc22cab63182ae76",
+      "colorMode": "RGBA",
+      "alpha": {
+        "channel": true,
+        "hasTransparency": true,
+        "min": 0,
+        "max": 254,
+        "transparentPixels": 3301797,
+        "partiallyTransparentPixels": 772187,
+        "opaquePixels": 0,
+        "nonzeroBounds": [
+          17,
+          21,
+          1702,
+          2320
+        ],
+        "halfOpacityBounds": [
+          551,
+          84,
+          1166,
+          2255
+        ],
+        "nearOpaqueBounds": [
+          553,
+          85,
+          1165,
+          2254
+        ]
+      },
+      "contentBounds": [
+        551,
+        84,
+        1166,
+        2255
+      ],
+      "facing": "right",
+      "containsBall": false,
+      "anchors": {
+        "ground": {
+          "point": [
+            816.5,
+            2229.0
+          ],
+          "meaning": "stance-ground-projection",
+          "method": "midpoint-of-manually-estimated-boot-contacts",
+          "provisional": true,
+          "contactValidated": false
+        },
+        "imageLeftBoot": {
+          "point": [
+            623,
+            2254
+          ],
+          "meaning": "estimated-boot-sole-contact",
+          "method": "manual-boot-location-refined-to-local-alpha-128-silhouette-edge",
+          "provisional": true,
+          "contactValidated": false
+        },
+        "imageRightBoot": {
+          "point": [
+            1010,
+            2204
+          ],
+          "meaning": "estimated-boot-sole-contact",
+          "method": "manual-boot-location-refined-to-local-alpha-128-silhouette-edge",
+          "provisional": true,
+          "contactValidated": false
+        }
+      },
+      "role": "coach",
+      "appearance": "red-coach",
+      "pose": "watch",
+      "sourceVisualReview": "Viewed original file; pose and facing inspected. Runtime contact not yet validated."
+    },
+    "coach-blue-command": {
+      "path": "assets/director/coach-blue-command.png",
+      "kind": "actor",
+      "width": 1744,
+      "height": 2336,
+      "bytes": 2703814,
+      "sha256": "528bd8c37ff0bd160a596b555c4a1f3a9835181e3329177566b8c2369e62a12e",
+      "colorMode": "RGBA",
+      "alpha": {
+        "channel": true,
+        "hasTransparency": true,
+        "min": 0,
+        "max": 254,
+        "transparentPixels": 3212990,
+        "partiallyTransparentPixels": 860994,
+        "opaquePixels": 0,
+        "nonzeroBounds": [
+          19,
+          21,
+          1724,
+          2320
+        ],
+        "halfOpacityBounds": [
+          387,
+          85,
+          1650,
+          2242
+        ],
+        "nearOpaqueBounds": [
+          389,
+          87,
+          1646,
+          2241
+        ]
+      },
+      "contentBounds": [
+        387,
+        85,
+        1650,
+        2242
+      ],
+      "facing": "right",
+      "containsBall": false,
+      "anchors": {
+        "ground": {
+          "point": [
+            757.0,
+            2202.5
+          ],
+          "meaning": "stance-ground-projection",
+          "method": "midpoint-of-manually-estimated-boot-contacts",
+          "provisional": true,
+          "contactValidated": false
+        },
+        "imageLeftBoot": {
+          "point": [
+            524,
+            2230
+          ],
+          "meaning": "estimated-boot-sole-contact",
+          "method": "manual-boot-location-refined-to-local-alpha-128-silhouette-edge",
+          "provisional": true,
+          "contactValidated": false
+        },
+        "imageRightBoot": {
+          "point": [
+            990,
+            2175
+          ],
+          "meaning": "estimated-boot-sole-contact",
+          "method": "manual-boot-location-refined-to-local-alpha-128-silhouette-edge",
+          "provisional": true,
+          "contactValidated": false
+        }
+      },
+      "role": "coach",
+      "appearance": "blue-coach",
+      "pose": "command",
+      "sourceVisualReview": "Viewed original file; pose and facing inspected. Runtime contact not yet validated."
+    },
+    "coach-red-command": {
+      "path": "assets/director/coach-red-command.png",
+      "kind": "actor",
+      "width": 1744,
+      "height": 2336,
+      "bytes": 2738690,
+      "sha256": "11255b53feaf7b09273294d8ba2e2ea8a2c67794e89d034a933dc2fd197b5888",
+      "colorMode": "RGBA",
+      "alpha": {
+        "channel": true,
+        "hasTransparency": true,
+        "min": 0,
+        "max": 254,
+        "transparentPixels": 3154777,
+        "partiallyTransparentPixels": 919207,
+        "opaquePixels": 0,
+        "nonzeroBounds": [
+          17,
+          21,
+          1728,
+          2336
+        ],
+        "halfOpacityBounds": [
+          276,
+          81,
+          1638,
+          2252
+        ],
+        "nearOpaqueBounds": [
+          278,
+          84,
+          1635,
+          2251
+        ]
+      },
+      "contentBounds": [
+        276,
+        81,
+        1638,
+        2252
+      ],
+      "facing": "right",
+      "containsBall": false,
+      "anchors": {
+        "ground": {
+          "point": [
+            712.5,
+            2227.0
+          ],
+          "meaning": "stance-ground-projection",
+          "method": "midpoint-of-manually-estimated-boot-contacts",
+          "provisional": true,
+          "contactValidated": false
+        },
+        "imageLeftBoot": {
+          "point": [
+            500,
+            2251
+          ],
+          "meaning": "estimated-boot-sole-contact",
+          "method": "manual-boot-location-refined-to-local-alpha-128-silhouette-edge",
+          "provisional": true,
+          "contactValidated": false
+        },
+        "imageRightBoot": {
+          "point": [
+            925,
+            2203
+          ],
+          "meaning": "estimated-boot-sole-contact",
+          "method": "manual-boot-location-refined-to-local-alpha-128-silhouette-edge",
+          "provisional": true,
+          "contactValidated": false
+        }
+      },
+      "role": "coach",
+      "appearance": "red-coach",
+      "pose": "command",
+      "sourceVisualReview": "Viewed original file; pose and facing inspected. Runtime contact not yet validated."
+    },
+    "card-inside": {
+      "path": "assets/director/card-inside.png",
+      "kind": "card",
+      "width": 2048,
+      "height": 1360,
+      "bytes": 4244726,
+      "sha256": "244f25f446f1a634e4a6ab96786d4806e22a2c52fad0f45502ff350782cefcb7",
+      "colorMode": "RGB",
+      "alpha": {
+        "channel": false,
+        "hasTransparency": false,
+        "min": 255,
+        "max": 255,
+        "transparentPixels": 0,
+        "partiallyTransparentPixels": 0,
+        "opaquePixels": 2785280,
+        "nonzeroBounds": [
+          0,
+          0,
+          2048,
+          1360
+        ],
+        "halfOpacityBounds": [
+          0,
+          0,
+          2048,
+          1360
+        ],
+        "nearOpaqueBounds": [
+          0,
+          0,
+          2048,
+          1360
+        ]
+      },
+      "contentBounds": [
+        0,
+        0,
+        2048,
+        1360
+      ],
+      "facing": "not-applicable",
+      "containsBall": true,
+      "anchors": {},
+      "sourceVisualReview": "Viewed original file; pose and facing inspected. Runtime contact not yet validated."
+    },
+    "card-switch": {
+      "path": "assets/director/card-switch.png",
+      "kind": "card",
+      "width": 2048,
+      "height": 1360,
+      "bytes": 4634513,
+      "sha256": "246ec228df7d0afbb6d1025bd1b3abee319e9f499b80575fe61dae17bed14923",
+      "colorMode": "RGB",
+      "alpha": {
+        "channel": false,
+        "hasTransparency": false,
+        "min": 255,
+        "max": 255,
+        "transparentPixels": 0,
+        "partiallyTransparentPixels": 0,
+        "opaquePixels": 2785280,
+        "nonzeroBounds": [
+          0,
+          0,
+          2048,
+          1360
+        ],
+        "halfOpacityBounds": [
+          0,
+          0,
+          2048,
+          1360
+        ],
+        "nearOpaqueBounds": [
+          0,
+          0,
+          2048,
+          1360
+        ]
+      },
+      "contentBounds": [
+        0,
+        0,
+        2048,
+        1360
+      ],
+      "facing": "not-applicable",
+      "containsBall": true,
+      "anchors": {},
+      "sourceVisualReview": "Viewed original file; pose and facing inspected. Runtime contact not yet validated."
+    },
+    "card-press": {
+      "path": "assets/director/card-press.png",
+      "kind": "card",
+      "width": 2048,
+      "height": 1360,
+      "bytes": 4367457,
+      "sha256": "ed7b3bb645d0c8d3fe48fe49eb862527bcf1ea9449369b526262808f03b3be91",
+      "colorMode": "RGB",
+      "alpha": {
+        "channel": false,
+        "hasTransparency": false,
+        "min": 255,
+        "max": 255,
+        "transparentPixels": 0,
+        "partiallyTransparentPixels": 0,
+        "opaquePixels": 2785280,
+        "nonzeroBounds": [
+          0,
+          0,
+          2048,
+          1360
+        ],
+        "halfOpacityBounds": [
+          0,
+          0,
+          2048,
+          1360
+        ],
+        "nearOpaqueBounds": [
+          0,
+          0,
+          2048,
+          1360
+        ]
+      },
+      "contentBounds": [
+        0,
+        0,
+        2048,
+        1360
+      ],
+      "facing": "not-applicable",
+      "containsBall": true,
+      "anchors": {},
+      "sourceVisualReview": "Viewed original file; pose and facing inspected. Runtime contact not yet validated."
+    },
+    "card-drop": {
+      "path": "assets/director/card-drop.png",
+      "kind": "card",
+      "width": 2048,
+      "height": 1360,
+      "bytes": 4499138,
+      "sha256": "d2a83cb7d7a282afa83905c13a0b66e7897c2ce8305d85906cab1fb41d577121",
+      "colorMode": "RGB",
+      "alpha": {
+        "channel": false,
+        "hasTransparency": false,
+        "min": 255,
+        "max": 255,
+        "transparentPixels": 0,
+        "partiallyTransparentPixels": 0,
+        "opaquePixels": 2785280,
+        "nonzeroBounds": [
+          0,
+          0,
+          2048,
+          1360
+        ],
+        "halfOpacityBounds": [
+          0,
+          0,
+          2048,
+          1360
+        ],
+        "nearOpaqueBounds": [
+          0,
+          0,
+          2048,
+          1360
+        ]
+      },
+      "contentBounds": [
+        0,
+        0,
+        2048,
+        1360
+      ],
+      "facing": "not-applicable",
+      "containsBall": true,
+      "anchors": {},
+      "sourceVisualReview": "Viewed original file; pose and facing inspected. Runtime contact not yet validated."
+    }
+  }
+}

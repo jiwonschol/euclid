@@ -1,0 +1,74 @@
+{
+  "date": "2026-09-22",
+  "rulesVersion": "director-1.0.1",
+  "browser": "Codex in-app browser",
+  "viewports": [
+    {
+      "width": 1280,
+      "height": 720,
+      "horizontalOverflow": false,
+      "outsideMainControls": []
+    },
+    {
+      "width": 1920,
+      "height": 1080,
+      "horizontalOverflow": false,
+      "outsideMainControls": []
+    }
+  ],
+  "outcomesInspected": [
+    "PASS",
+    "INTERCEPT",
+    "CARRY",
+    "TACKLE",
+    "GOAL",
+    "SAVE",
+    "MISS"
+  ],
+  "comparisonScenesOperated": [
+    "attack",
+    "defence",
+    "switch",
+    "pressure",
+    "transition"
+  ],
+  "defaultMatch": {
+    "seed": 3363977941,
+    "speed": 1,
+    "skip": false,
+    "input": "hold by timeout",
+    "startedAt": "2026-09-22T09:46:13.351Z",
+    "finishedBySeconds": 639.203,
+    "matchSeconds": 5400,
+    "encounters": 25,
+    "score": [
+      0,
+      0
+    ],
+    "shots": [
+      2,
+      1
+    ],
+    "onTarget": [
+      1,
+      1
+    ],
+    "saves": [
+      1,
+      1
+    ]
+  },
+  "normalFreshLoad": {
+    "consoleErrors": 0,
+    "networkFailures": 0
+  },
+  "missingAssetFallback": {
+    "blocked": "striker-ready.png",
+    "noticeShown": true,
+    "controlsWorked": true,
+    "result": "seed42 support -> B11 intercept,225 seconds,0:0",
+    "blockRemoved": true
+  },
+  "humanPlaytest": "pending",
+  "screenshots": "Inspected inline in task browser tool; no screenshot files were exported."
+}

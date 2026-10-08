@@ -1,0 +1,405 @@
+{
+  "quotedCredits": 57,
+  "requests": [
+    {
+      "index": 1,
+      "assetId": "striker-run",
+      "params": {
+        "model": "gpt_image_2_5",
+        "variant": "flare",
+        "quality": "high",
+        "resolution": "2k",
+        "count": 1,
+        "use_unlim": false,
+        "prompt": "Use this exact original character and uniform from the supplied reference. Preserve face, hair, colors, proportions, crisp anime sports linework and cel shading. One isolated full body adult footballer, facing RIGHT, in a dynamic forward running stride, leaning forward, one knee lifted, strong readable arm swing, one planted boot. No ball: game code renders it separately. True transparent RGBA background, no shadow, no grass, no ground, no checkerboard, no text, no numbers, no logos. Keep every hand and boot fully within the frame with 8% margins. Exactly one figure, no pose sheet. Production game cutout matching reference.",
+        "aspect_ratio": "3:4",
+        "background": "transparent",
+        "medias": [
+          {
+            "role": "image",
+            "value": "c475f25a-fa95-4776-b1c3-02a33d17271d"
+          }
+        ]
+      }
+    },
+    {
+      "index": 2,
+      "assetId": "striker-kick",
+      "params": {
+        "model": "gpt_image_2_5",
+        "variant": "flare",
+        "quality": "high",
+        "resolution": "2k",
+        "count": 1,
+        "use_unlim": false,
+        "prompt": "Use this exact original character and uniform from the supplied reference. Preserve face, hair, colors, proportions, crisp anime sports linework and cel shading. One isolated full body adult footballer, facing RIGHT, in the exact moment of striking a ball, one planted supporting boot and the other leg extended in a powerful kicking follow-through, balanced arms. No ball: game code renders it separately. True transparent RGBA background, no shadow, no grass, no ground, no checkerboard, no text, no numbers, no logos. Keep every hand and boot fully within the frame with 8% margins. Exactly one figure, no pose sheet. Production game cutout matching reference.",
+        "aspect_ratio": "3:4",
+        "background": "transparent",
+        "medias": [
+          {
+            "role": "image",
+            "value": "c475f25a-fa95-4776-b1c3-02a33d17271d"
+          }
+        ]
+      }
+    },
+    {
+      "index": 3,
+      "assetId": "striker-recover",
+      "params": {
+        "model": "gpt_image_2_5",
+        "variant": "flare",
+        "quality": "high",
+        "resolution": "2k",
+        "count": 1,
+        "use_unlim": false,
+        "prompt": "Use this exact original character and uniform from the supplied reference. Preserve face, hair, colors, proportions, crisp anime sports linework and cel shading. One isolated full body adult footballer, facing RIGHT, in a braced recovery pose after losing a duel, turning torso back toward play, knees flexed, arms balancing, standing on both feet. No ball: game code renders it separately. True transparent RGBA background, no shadow, no grass, no ground, no checkerboard, no text, no numbers, no logos. Keep every hand and boot fully within the frame with 8% margins. Exactly one figure, no pose sheet. Production game cutout matching reference.",
+        "aspect_ratio": "3:4",
+        "background": "transparent",
+        "medias": [
+          {
+            "role": "image",
+            "value": "c475f25a-fa95-4776-b1c3-02a33d17271d"
+          }
+        ]
+      }
+    },
+    {
+      "index": 4,
+      "assetId": "defender-run",
+      "params": {
+        "model": "gpt_image_2_5",
+        "variant": "flare",
+        "quality": "high",
+        "resolution": "2k",
+        "count": 1,
+        "use_unlim": false,
+        "prompt": "Use this exact original character and uniform from the supplied reference. Preserve face, hair, colors, proportions, crisp anime sports linework and cel shading. One isolated full body adult footballer, facing LEFT, in a dynamic forward running stride, leaning forward, one knee lifted, strong readable arm swing, one planted boot. No ball: game code renders it separately. True transparent RGBA background, no shadow, no grass, no ground, no checkerboard, no text, no numbers, no logos. Keep every hand and boot fully within the frame with 8% margins. Exactly one figure, no pose sheet. Production game cutout matching reference.",
+        "aspect_ratio": "3:4",
+        "background": "transparent",
+        "medias": [
+          {
+            "role": "image",
+            "value": "fbc29555-2459-4221-98ca-f6bd8e411fbf"
+          }
+        ]
+      }
+    },
+    {
+      "index": 5,
+      "assetId": "defender-kick",
+      "params": {
+        "model": "gpt_image_2_5",
+        "variant": "flare",
+        "quality": "high",
+        "resolution": "2k",
+        "count": 1,
+        "use_unlim": false,
+        "prompt": "Use this exact original character and uniform from the supplied reference. Preserve face, hair, colors, proportions, crisp anime sports linework and cel shading. One isolated full body adult footballer, facing LEFT, in the exact moment of striking a ball, one planted supporting boot and the other leg extended in a powerful kicking follow-through, balanced arms. No ball: game code renders it separately. True transparent RGBA background, no shadow, no grass, no ground, no checkerboard, no text, no numbers, no logos. Keep every hand and boot fully within the frame with 8% margins. Exactly one figure, no pose sheet. Production game cutout matching reference.",
+        "aspect_ratio": "3:4",
+        "background": "transparent",
+        "medias": [
+          {
+            "role": "image",
+            "value": "fbc29555-2459-4221-98ca-f6bd8e411fbf"
+          }
+        ]
+      }
+    },
+    {
+      "index": 6,
+      "assetId": "defender-recover",
+      "params": {
+        "model": "gpt_image_2_5",
+        "variant": "flare",
+        "quality": "high",
+        "resolution": "2k",
+        "count": 1,
+        "use_unlim": false,
+        "prompt": "Use this exact original character and uniform from the supplied reference. Preserve face, hair, colors, proportions, crisp anime sports linework and cel shading. One isolated full body adult footballer, facing LEFT, in a braced recovery pose after losing a duel, turning torso back toward play, knees flexed, arms balancing, standing on both feet. No ball: game code renders it separately. True transparent RGBA background, no shadow, no grass, no ground, no checkerboard, no text, no numbers, no logos. Keep every hand and boot fully within the frame with 8% margins. Exactly one figure, no pose sheet. Production game cutout matching reference.",
+        "aspect_ratio": "3:4",
+        "background": "transparent",
+        "medias": [
+          {
+            "role": "image",
+            "value": "fbc29555-2459-4221-98ca-f6bd8e411fbf"
+          }
+        ]
+      }
+    },
+    {
+      "index": 7,
+      "assetId": "keeper-dive-yellow",
+      "params": {
+        "model": "gpt_image_2_5",
+        "variant": "flare",
+        "quality": "high",
+        "resolution": "2k",
+        "count": 1,
+        "use_unlim": false,
+        "prompt": "Same original adult goalkeeper as reference, preserve facial identity and sports anime cel shading. Preserve yellow jersey, black shorts, white gloves. One full body airborne goalkeeper stretched horizontally diving LEFT, both arms and gloves extended toward the left, knees trailing right, clearly readable silhouette. No football. True transparent RGBA, no ground/shadow/checkerboard/UI/text/logo. Entire person inside frame with margin, no body part cropped. One figure.",
+        "aspect_ratio": "3:2",
+        "background": "transparent",
+        "medias": [
+          {
+            "role": "image",
+            "value": "fb1013b6-81d1-4c3c-805c-b3d982ead5e0"
+          }
+        ]
+      }
+    },
+    {
+      "index": 8,
+      "assetId": "keeper-dive-green",
+      "params": {
+        "model": "gpt_image_2_5",
+        "variant": "flare",
+        "quality": "high",
+        "resolution": "2k",
+        "count": 1,
+        "use_unlim": false,
+        "prompt": "Same original adult goalkeeper as reference, preserve facial identity and sports anime cel shading. Change jersey to emerald green and socks to green; keep black shorts and white gloves. One full body airborne goalkeeper stretched horizontally diving LEFT, both arms and gloves extended toward the left, knees trailing right, clearly readable silhouette. No football. True transparent RGBA, no ground/shadow/checkerboard/UI/text/logo. Entire person inside frame with margin, no body part cropped. One figure.",
+        "aspect_ratio": "3:2",
+        "background": "transparent",
+        "medias": [
+          {
+            "role": "image",
+            "value": "fb1013b6-81d1-4c3c-805c-b3d982ead5e0"
+          }
+        ]
+      }
+    },
+    {
+      "index": 9,
+      "assetId": "keeper-green-ready",
+      "params": {
+        "model": "gpt_image_2_5",
+        "variant": "flare",
+        "quality": "high",
+        "resolution": "2k",
+        "count": 1,
+        "use_unlim": false,
+        "prompt": "Same original adult goalkeeper as reference, exact character identity and crouched ready pose facing LEFT. Change ONLY jersey and socks to emerald green, preserve black shorts and white gloves. Crisp sports anime cel shading. One isolated full body figure, all boots and hands inside margin, true transparent RGBA, no ball, no ground, no shadow, no checkerboard, no text/logo.",
+        "aspect_ratio": "3:4",
+        "background": "transparent",
+        "medias": [
+          {
+            "role": "image",
+            "value": "fb1013b6-81d1-4c3c-805c-b3d982ead5e0"
+          }
+        ]
+      }
+    },
+    {
+      "index": 10,
+      "assetId": "card-switch",
+      "params": {
+        "model": "gpt_image_2_5",
+        "variant": "flare",
+        "quality": "high",
+        "resolution": "2k",
+        "count": 1,
+        "use_unlim": false,
+        "prompt": "Original football tactics card illustration, same drawing style and blue/cream versus brick red uniforms as reference. A blue player at left sends a long lofted diagonal football pass across open pitch to a blue teammate on the opposite right flank. Red defenders grouped at left leave distant side open. Clear tactical distance. Clear crisp hand drawn anime linework, cel shading, green pitch and modest stadium daylight. Exactly one football. No text, no card frame, no arrows, no labels, no logo. Landscape 3:2, readable as a small card illustration.",
+        "aspect_ratio": "3:2",
+        "background": "opaque",
+        "medias": [
+          {
+            "role": "image",
+            "value": "34b8633a-0d17-4664-ab2b-3356a5c58cc0"
+          }
+        ]
+      }
+    },
+    {
+      "index": 11,
+      "assetId": "card-inside",
+      "params": {
+        "model": "gpt_image_2_5",
+        "variant": "flare",
+        "quality": "high",
+        "resolution": "2k",
+        "count": 1,
+        "use_unlim": false,
+        "prompt": "Original football tactics card illustration, same drawing style and blue/cream versus brick red uniforms as reference. One blue forward darts into the central gap between two red defenders while a blue ball carrier in foreground prepares a through pass. Show the central lane and exposed midfield behind the runner. Clear crisp hand drawn anime linework, cel shading, green pitch and modest stadium daylight. Exactly one football. No text, no card frame, no arrows, no labels, no logo. Landscape 3:2, readable as a small card illustration.",
+        "aspect_ratio": "3:2",
+        "background": "opaque",
+        "medias": [
+          {
+            "role": "image",
+            "value": "34b8633a-0d17-4664-ab2b-3356a5c58cc0"
+          }
+        ]
+      }
+    },
+    {
+      "index": 12,
+      "assetId": "card-press",
+      "params": {
+        "model": "gpt_image_2_5",
+        "variant": "flare",
+        "quality": "high",
+        "resolution": "2k",
+        "count": 1,
+        "use_unlim": false,
+        "prompt": "Original football tactics card illustration, same drawing style and blue/cream versus brick red uniforms as reference. Two blue defenders converge toward one red ball carrier near the touchline, leaving a clear empty lane on the opposite side. Clear crisp hand drawn anime linework, cel shading, green pitch and modest stadium daylight. Exactly one football. No text, no card frame, no arrows, no labels, no logo. Landscape 3:2, readable as a small card illustration.",
+        "aspect_ratio": "3:2",
+        "background": "opaque",
+        "medias": [
+          {
+            "role": "image",
+            "value": "34b8633a-0d17-4664-ab2b-3356a5c58cc0"
+          }
+        ]
+      }
+    },
+    {
+      "index": 13,
+      "assetId": "card-drop",
+      "params": {
+        "model": "gpt_image_2_5",
+        "variant": "flare",
+        "quality": "high",
+        "resolution": "2k",
+        "count": 1,
+        "use_unlim": false,
+        "prompt": "Original football tactics card illustration, same drawing style and blue/cream versus brick red uniforms as reference. Two blue defenders run back toward their own goal while watching a red attacker advancing with a football; show the space willingly conceded in front. Clear crisp hand drawn anime linework, cel shading, green pitch and modest stadium daylight. Exactly one football. No text, no card frame, no arrows, no labels, no logo. Landscape 3:2, readable as a small card illustration.",
+        "aspect_ratio": "3:2",
+        "background": "opaque",
+        "medias": [
+          {
+            "role": "image",
+            "value": "34b8633a-0d17-4664-ab2b-3356a5c58cc0"
+          }
+        ]
+      }
+    },
+    {
+      "index": 14,
+      "assetId": "stadium-goal",
+      "params": {
+        "model": "gpt_image_2_5",
+        "variant": "flare",
+        "quality": "high",
+        "resolution": "2k",
+        "count": 1,
+        "use_unlim": false,
+        "prompt": "Same original modest football stadium, daylight, anime cel shaded style and palette as reference. Low side camera near penalty area, goal clearly visible on RIGHT third, empty foreground pitch over lower 60% with clear goal line, distant stands and sky upper 40%. No people, no balls, no text or UI. Wide reusable game background.",
+        "aspect_ratio": "16:9",
+        "background": "opaque",
+        "medias": [
+          {
+            "role": "image",
+            "value": "84871637-5452-4584-b8dc-f3ba442d613c"
+          }
+        ]
+      }
+    },
+    {
+      "index": 15,
+      "assetId": "stadium-bench",
+      "params": {
+        "model": "gpt_image_2_5",
+        "variant": "flare",
+        "quality": "high",
+        "resolution": "2k",
+        "count": 1,
+        "use_unlim": false,
+        "prompt": "Same original modest daylight football stadium and crisp anime cel shading. Touchline view, simple blue dugout seats on LEFT quarter, wide empty grass pitch occupying lower 55%, distant stands and sky. No people, no balls, no text or logos. Wide reusable halftime game background.",
+        "aspect_ratio": "16:9",
+        "background": "opaque",
+        "medias": [
+          {
+            "role": "image",
+            "value": "84871637-5452-4584-b8dc-f3ba442d613c"
+          }
+        ]
+      }
+    },
+    {
+      "index": 16,
+      "assetId": "coach-blue-watch",
+      "params": {
+        "model": "gpt_image_2_5",
+        "variant": "flare",
+        "quality": "high",
+        "resolution": "2k",
+        "count": 1,
+        "use_unlim": false,
+        "prompt": "Original adult football coach, East Asian woman age about 38 with short straight black bob, navy track jacket with cream shoulder stripe and navy trousers. Calm focused face, arms folded, three-quarter view facing RIGHT. One isolated full body person, boots fully visible, transparent RGBA, no ball, no ground/shadow/checkerboard, no text/logo/numbers. Crisp sports anime linework and cel shading matching reference, not photorealistic. Generous margin.",
+        "aspect_ratio": "3:4",
+        "background": "transparent",
+        "medias": [
+          {
+            "role": "image",
+            "value": "34b8633a-0d17-4664-ab2b-3356a5c58cc0"
+          }
+        ]
+      }
+    },
+    {
+      "index": 17,
+      "assetId": "coach-blue-command",
+      "params": {
+        "model": "gpt_image_2_5",
+        "variant": "flare",
+        "quality": "high",
+        "resolution": "2k",
+        "count": 1,
+        "use_unlim": false,
+        "prompt": "Original adult football coach, East Asian woman age about 38 with short straight black bob, navy track jacket with cream shoulder stripe and navy trousers. Focused animated face, right arm extended pointing to the RIGHT, left hand at waist. One isolated full body person, boots fully visible, transparent RGBA, no ball, no ground/shadow/checkerboard, no text/logo/numbers. Crisp sports anime linework and cel shading matching reference, not photorealistic. Generous margin.",
+        "aspect_ratio": "3:4",
+        "background": "transparent",
+        "medias": [
+          {
+            "role": "image",
+            "value": "34b8633a-0d17-4664-ab2b-3356a5c58cc0"
+          }
+        ]
+      }
+    },
+    {
+      "index": 18,
+      "assetId": "coach-red-watch",
+      "params": {
+        "model": "gpt_image_2_5",
+        "variant": "flare",
+        "quality": "high",
+        "resolution": "2k",
+        "count": 1,
+        "use_unlim": false,
+        "prompt": "Original adult football coach, East Asian man age about 45 with short dark hair and square glasses, brick-red track jacket with cream trim and black trousers. Calm focused face, arms folded, three-quarter view facing RIGHT. One isolated full body person, boots fully visible, transparent RGBA, no ball, no ground/shadow/checkerboard, no text/logo/numbers. Crisp sports anime linework and cel shading matching reference, not photorealistic. Generous margin.",
+        "aspect_ratio": "3:4",
+        "background": "transparent",
+        "medias": [
+          {
+            "role": "image",
+            "value": "34b8633a-0d17-4664-ab2b-3356a5c58cc0"
+          }
+        ]
+      }
+    },
+    {
+      "index": 19,
+      "assetId": "coach-red-command",
+      "params": {
+        "model": "gpt_image_2_5",
+        "variant": "flare",
+        "quality": "high",
+        "resolution": "2k",
+        "count": 1,
+        "use_unlim": false,
+        "prompt": "Original adult football coach, East Asian man age about 45 with short dark hair and square glasses, brick-red track jacket with cream trim and black trousers. Focused animated face, right arm extended pointing to the RIGHT, left hand at waist. One isolated full body person, boots fully visible, transparent RGBA, no ball, no ground/shadow/checkerboard, no text/logo/numbers. Crisp sports anime linework and cel shading matching reference, not photorealistic. Generous margin.",
+        "aspect_ratio": "3:4",
+        "background": "transparent",
+        "medias": [
+          {
+            "role": "image",
+            "value": "34b8633a-0d17-4664-ab2b-3356a5c58cc0"
+          }
+        ]
+      }
+    }
+  ],
+  "submissionState": "reserved"
+}

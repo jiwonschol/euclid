@@ -1,0 +1,1010 @@
+{
+  "schemaVersion": 1,
+  "project": "euclid",
+  "updatedDate": "2026-09-22",
+  "purpose": "Director game assets and generation budget",
+  "budget": {
+    "authorizedCredits": 300,
+    "quotedCompletedCredits": 78,
+    "observedBatchDebitCredits": 78,
+    "accountBalanceBefore": 910,
+    "accountBalanceAfter": 832,
+    "pendingReservedCredits": 0,
+    "budgetUsedCredits": 78,
+    "remainingAuthorizedCredits": 222,
+    "verification": "26 completed jobs quoted at 3 credits each, 1 failed generation refunded: account 910 to 832. Initial production balance 889, after first nine completions and one failure 862, final 832. Individual receipts not exposed; amounts verified as aggregate balance deltas.",
+    "rule": "Before each submission: budgetUsedCredits + pendingReservedCredits + newQuotedCredits <= authorizedCredits. Query pending IDs before retrying. Log refunds only when verified.",
+    "allocations": [
+      {
+        "category": "style_and_production_proof",
+        "cap": 30,
+        "used": 21
+      },
+      {
+        "category": "shipping_static_assets",
+        "cap": 120,
+        "used": 57
+      },
+      {
+        "category": "corrections_and_consistency",
+        "cap": 70,
+        "used": 0
+      },
+      {
+        "category": "optional_sprite_or_video_trial",
+        "cap": 30,
+        "used": 0
+      },
+      {
+        "category": "in_game_revision_reserve",
+        "cap": 50,
+        "used": 0
+      }
+    ]
+  },
+  "verification": {
+    "date": "2026-09-22",
+    "reviewer": "primary agent",
+    "scope": [
+      "Downloaded original PNGs and verified dimensions / SHA-256",
+      "Read alpha bytes of striker PNG: 0..254; fully transparent border pixels present",
+      "Viewed original images",
+      "Viewed actual browser composition on stadium, white, and dark backgrounds",
+      "All 25 runtime originals visually inspected; hashes and dimensions verified",
+      "Seven outcome scenes inspected in browser; 1280x720 and 1920x1080 controls checked",
+      "Missing actor image fallback exercised without changing the seeded result"
+    ],
+    "pending": [
+      "Human playtest",
+      "Kick contact, recovery pose and stadium continuity polish",
+      "Distribution size optimization"
+    ],
+    "isPlayable": true
+  },
+  "jobs": [
+    {
+      "assetId": "encounter-style",
+      "status": "completed",
+      "jobId": "34b8633a-0d17-4664-ab2b-3356a5c58cc0",
+      "provider": "Higgsfield MCP",
+      "model": "gpt_image_2_5",
+      "quotedCredits": 3,
+      "chargedCredits": null,
+      "chargeEvidence": "aggregate balance delta in budget",
+      "allocation": "style_and_production_proof",
+      "prompt": "Create one original production concept illustration for a 2D cinematic football tactics game. Widescreen 16:9. The visual purpose is to make a tactical confrontation readable before the coach chooses the next instruction. Crisp hand-drawn sports-anime linework, controlled cel shading, strong expressive silhouettes, contemporary clean digital finish, vibrant grass green, deep royal blue and warm brick red, restrained pale-cream highlights. No pixel art, no photorealism, no 3D-rendered look. Side-on low camera at player waist height, clear flat soccer pitch perspective. At left-center a focused young adult East Asian male striker in a plain royal-blue short-sleeved jersey with a single cream shoulder stripe, plain cream shorts, blue socks, black cleats, short slightly tousled black hair, controls exactly one normal black-and-white football just in front of his right boot. At right-center one athletic young adult defender in plain brick-red jersey, dark red shorts and red socks, short dark hair, faces the striker, crouched and preparing to block. Two meters of clear readable space between them; neither has collided or kicked yet. In the far right middle-distance one small blue teammate is moving into an open wing lane, and a distant white goal is visible with one small yellow-shirt goalkeeper. Main actors are full-body and completely inside frame with margin around heads and boots. A modest football stadium crowd and roof in the background, daylight, clear pitch markings. Show a football situation, not a promotional poster. Upper 15 percent mostly simple stadium/sky; lower 15 percent uninterrupted grass reserved for future interface overlay. No text, no letters, no numbers on kits, no card frames, no UI, no arrows, no logos, no emblems, no speech balloons. Original characters only. Do not reproduce any existing anime character or existing game screenshot. High quality finished illustration, a reusable visual reference for the first playable encounter.",
+      "params": {
+        "aspect_ratio": "16:9",
+        "variant": "flare",
+        "quality": "high",
+        "resolution": "2k",
+        "count": 1,
+        "use_unlim": false
+      },
+      "referenceJobIds": [],
+      "resultUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3HrIyz4YFlzGN7GR5SaK5i43kmH/hf_20260922_062644_34b8633a-0d17-4664-ab2b-3356a5c58cc0.png",
+      "file": "encounter-style.png",
+      "sha256": "8218f751d139abc9e48168b8486c063c18a15e8f599c7da05b5fe2cc64dd21a8",
+      "pixelWidth": 2688,
+      "pixelHeight": 1520,
+      "fileBytes": 5780079,
+      "hasAlpha": false,
+      "role": "Visual style and tactical encounter reference; contains actors and ball; do not use as reusable stage background.",
+      "reviewStatus": "prototype_source_reviewed_runtime_check_documented",
+      "shippingApproved": false,
+      "anchor": null
+    },
+    {
+      "assetId": "striker-ready",
+      "status": "completed",
+      "jobId": "c475f25a-fa95-4776-b1c3-02a33d17271d",
+      "provider": "Higgsfield MCP",
+      "model": "gpt_image_2_5",
+      "quotedCredits": 3,
+      "chargedCredits": null,
+      "chargeEvidence": "aggregate balance delta in budget",
+      "allocation": "style_and_production_proof",
+      "prompt": "Use the supplied illustration as the strict character and drawing-style reference. Produce exactly ONE isolated full-body game character: the royal-blue-shirted striker from the left side of the reference, preserving his face, short tousled black hair, royal blue jersey with one cream shoulder stripe, cream shorts, blue socks, black football boots, lean athletic young-adult proportions, crisp sports-anime linework and cel shading. Three-quarter side view facing RIGHT. A balanced active ready stance, slightly bent knees, torso upright, arms naturally ready to run. Both hands and both complete boots clearly visible with generous transparent margin. No football and no other object; the ball will be rendered separately by game code. TRUE transparent RGBA background, no stadium, no grass, no ground plane, no checkerboard printed in the image, no cast shadow beyond the character, no UI, no text, no badge, no numbers, no logo. One character only, not a character sheet and not multiple poses. Consistent production cutout suitable for reuse in a 2D football scene.",
+      "params": {
+        "aspect_ratio": "3:4",
+        "reference_images": [
+          "34b8633a-0d17-4664-ab2b-3356a5c58cc0"
+        ],
+        "variant": "flare",
+        "quality": "high",
+        "resolution": "2k",
+        "background": "transparent",
+        "count": 1,
+        "use_unlim": false
+      },
+      "referenceJobIds": [
+        "34b8633a-0d17-4664-ab2b-3356a5c58cc0"
+      ],
+      "resultUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3HrIyz4YFlzGN7GR5SaK5i43kmH/hf_20260922_063030_c475f25a-fa95-4776-b1c3-02a33d17271d.png",
+      "file": "striker-ready.png",
+      "sha256": "1495a91c187fbf19619e1b52fcda1a65f607eef998d4767779c41dce02fca808",
+      "pixelWidth": 1744,
+      "pixelHeight": 2336,
+      "fileBytes": 2949630,
+      "hasAlpha": true,
+      "role": "Single blue-team actor, facing right; ball is separate; isolated pose for initial composition.",
+      "reviewStatus": "prototype_source_reviewed_runtime_check_documented",
+      "shippingApproved": false,
+      "anchor": {
+        "normalized": [
+          0.5,
+          0.95
+        ],
+        "status": "provisional; calibrate actual feet to M2 ground plane"
+      },
+      "alphaInspection": {
+        "min": 0,
+        "max": 254,
+        "transparentPixels": 3029165,
+        "partiallyTransparentPixels": 1044819,
+        "fullyOpaquePixels": 0
+      }
+    },
+    {
+      "assetId": "stadium-empty",
+      "status": "completed",
+      "jobId": "84871637-5452-4584-b8dc-f3ba442d613c",
+      "provider": "Higgsfield MCP",
+      "model": "gpt_image_2_5",
+      "quotedCredits": 3,
+      "chargedCredits": null,
+      "chargeEvidence": "aggregate balance delta in budget",
+      "allocation": "style_and_production_proof",
+      "prompt": "Use the supplied image as a strict visual reference for the same football stadium, lighting, palette, grass, pitch perspective, crowd and crisp clean sports-anime illustration style. Create an EMPTY reusable widescreen stadium background plate. Remove every foreground and on-pitch human including blue striker, red defender, far teammate and goalkeeper. Remove the football. Keep the spectator crowd only as indistinct painted background spectators in the stands. Keep the white football goal in the right middle distance, the distant stadium roof, clear blue daylight sky, readable field markings, broad open playing surface. Preserve camera at player-waist height and side-on field perspective so separate character cutouts can be placed at left-center and right-center on the same ground plane. Lower 20 percent is open uninterrupted grass. Do not fill removed areas with any new characters or objects. Opaque image, 16:9. No text, no numbers, no logos, no UI, no cards, no arrows, no photorealism. A clean game background, not a poster.",
+      "params": {
+        "aspect_ratio": "16:9",
+        "reference_images": [
+          "34b8633a-0d17-4664-ab2b-3356a5c58cc0"
+        ],
+        "variant": "flare",
+        "quality": "high",
+        "resolution": "2k",
+        "background": "opaque",
+        "count": 1,
+        "use_unlim": false
+      },
+      "referenceJobIds": [
+        "34b8633a-0d17-4664-ab2b-3356a5c58cc0"
+      ],
+      "resultUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3HrIyz4YFlzGN7GR5SaK5i43kmH/hf_20260922_063034_84871637-5452-4584-b8dc-f3ba442d613c.png",
+      "file": "stadium-empty.png",
+      "sha256": "aec05840c543567a145bdab3ece691cc51d91308b434f385a81beb33c8ade5f2",
+      "pixelWidth": 2688,
+      "pixelHeight": 1520,
+      "fileBytes": 6416616,
+      "hasAlpha": false,
+      "role": "Reusable empty stadium plate, no on-pitch actors or ball; needs camera calibration in M2.",
+      "reviewStatus": "prototype_source_reviewed_runtime_check_documented",
+      "shippingApproved": false,
+      "anchor": null
+    },
+    {
+      "assetId": "defender-ready",
+      "status": "completed",
+      "jobId": "fbc29555-2459-4221-98ca-f6bd8e411fbf",
+      "file": "defender-ready.png",
+      "resultUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3HrIyz4YFlzGN7GR5SaK5i43kmH/hf_20260922_080508_fbc29555-2459-4221-98ca-f6bd8e411fbf.png",
+      "params": {
+        "model": "gpt_image_2_5",
+        "variant": "flare",
+        "quality": "high",
+        "resolution": "2k",
+        "count": 1,
+        "use_unlim": false,
+        "medias": [
+          {
+            "role": "image",
+            "value": "34b8633a-0d17-4664-ab2b-3356a5c58cc0"
+          }
+        ],
+        "aspect_ratio": "3:4",
+        "background": "transparent",
+        "prompt": "Use the reference's crisp original sports-anime linework, cel shading and brick-red team kit. Exactly one isolated full-body athletic young adult male football defender, short dark brown hair, brick red jersey and dark red shorts, red socks, black cleats. Facing LEFT in three-quarter low defensive ready stance, hands apart, knees bent. Both hands and feet fully visible with generous margins. True transparent RGBA background. No ball, no pitch, no ground shadow, no text, numbers, badges, logos or other players. Clean reusable game cutout; original character."
+      },
+      "quotedCredits": 3,
+      "sha256": "0513df7c7fa4c90558c6ff21b0dddeddd383f69d9ef4b74cfe14e2227343cace",
+      "pixelWidth": 1744,
+      "pixelHeight": 2336,
+      "hasAlpha": true,
+      "reviewStatus": "prototype_source_reviewed_runtime_check_documented",
+      "shippingApproved": false,
+      "allocation": "style_and_production_proof"
+    },
+    {
+      "assetId": "keeper-ready",
+      "status": "completed",
+      "jobId": "fb1013b6-81d1-4c3c-805c-b3d982ead5e0",
+      "file": "keeper-ready.png",
+      "resultUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3HrIyz4YFlzGN7GR5SaK5i43kmH/hf_20260922_080510_fb1013b6-81d1-4c3c-805c-b3d982ead5e0.png",
+      "params": {
+        "model": "gpt_image_2_5",
+        "variant": "flare",
+        "quality": "high",
+        "resolution": "2k",
+        "count": 1,
+        "use_unlim": false,
+        "medias": [
+          {
+            "role": "image",
+            "value": "34b8633a-0d17-4664-ab2b-3356a5c58cc0"
+          }
+        ],
+        "aspect_ratio": "3:4",
+        "background": "transparent",
+        "prompt": "Match reference's clean original sports-anime linework and controlled cel shading. Exactly one isolated full-body goalkeeper, athletic young adult dark-skinned male with cropped black hair. Yellow long sleeve jersey, black shorts, yellow socks, black boots, large white goalkeeper gloves. Front three-quarter view facing LEFT, wide balanced ready stance, arms open and knees bent preparing to save. Both hands and feet fully visible with margin. TRUE transparent RGBA background, no ball, no goal or pitch, no text, numbers, logos, no cast shadow or other objects. Reusable original game character."
+      },
+      "quotedCredits": 3,
+      "sha256": "cffcf323aa768b17c25119a8575693ad5b14bf2fff09deb5a86b879c8a115516",
+      "pixelWidth": 1744,
+      "pixelHeight": 2336,
+      "hasAlpha": true,
+      "reviewStatus": "prototype_source_reviewed_runtime_check_documented",
+      "shippingApproved": false,
+      "allocation": "style_and_production_proof"
+    },
+    {
+      "assetId": "card-support",
+      "status": "completed",
+      "jobId": "7d74fb8f-e84e-4cb5-a0e4-d9233e2c8d4f",
+      "file": "card-support.png",
+      "resultUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3HrIyz4YFlzGN7GR5SaK5i43kmH/hf_20260922_080508_7d74fb8f-e84e-4cb5-a0e4-d9233e2c8d4f.png",
+      "params": {
+        "model": "gpt_image_2_5",
+        "variant": "flare",
+        "quality": "high",
+        "resolution": "2k",
+        "count": 1,
+        "use_unlim": false,
+        "medias": [
+          {
+            "role": "image",
+            "value": "34b8633a-0d17-4664-ab2b-3356a5c58cc0"
+          }
+        ],
+        "aspect_ratio": "3:2",
+        "background": "opaque",
+        "prompt": "Original sports-anime tactical illustration using the same blue and cream team kit and crisp cel-shaded style as the reference. Landscape card ART ONLY, no UI frame, no text, no numbers, no arrows. A blue winger in foreground carries football along the near sideline while a second blue teammate runs forward behind and outside him in an overlapping support run. The visible open grass behind the overlapping teammate makes the cost in defensive cover readable. Dynamic clean composition, readable at small size, green pitch, no opponent faces in focus."
+      },
+      "quotedCredits": 3,
+      "sha256": "84f32a486d03c265598f50733de48277757e6ee69de32599a46e65548a751abb",
+      "pixelWidth": 2048,
+      "pixelHeight": 1360,
+      "hasAlpha": false,
+      "reviewStatus": "prototype_source_reviewed_runtime_check_documented",
+      "shippingApproved": false,
+      "allocation": "style_and_production_proof"
+    },
+    {
+      "assetId": "card-screen",
+      "status": "completed",
+      "jobId": "c16dcbfa-b545-46b6-a86c-a2c067a4b467",
+      "file": "card-screen.png",
+      "resultUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3HrIyz4YFlzGN7GR5SaK5i43kmH/hf_20260922_080508_c16dcbfa-b545-46b6-a86c-a2c067a4b467.png",
+      "params": {
+        "model": "gpt_image_2_5",
+        "variant": "flare",
+        "quality": "high",
+        "resolution": "2k",
+        "count": 1,
+        "use_unlim": false,
+        "medias": [
+          {
+            "role": "image",
+            "value": "34b8633a-0d17-4664-ab2b-3356a5c58cc0"
+          }
+        ],
+        "aspect_ratio": "3:2",
+        "background": "opaque",
+        "prompt": "Original sports-anime tactical illustration, same blue cream and brick-red team kit design and crisp cel shading as reference. Landscape card ART ONLY, no UI frame, no letters, numbers or arrows. Two blue defenders seen from three-quarter side move together to cover a central passing lane. A red attacking midfielder with ball pauses in front of them. On the far wing a red teammate has open grass. Visually readable central cover with the cost of leaving the flank open, clean strong silhouettes, green grass, restrained stadium detail."
+      },
+      "quotedCredits": 3,
+      "sha256": "fc8d240a221cca00a09bd948369c51815904ec9143faa0cc9ca9edda509d7d6c",
+      "pixelWidth": 2048,
+      "pixelHeight": 1360,
+      "hasAlpha": false,
+      "reviewStatus": "prototype_source_reviewed_runtime_check_documented",
+      "shippingApproved": false,
+      "allocation": "style_and_production_proof"
+    },
+    {
+      "assetId": "striker-run",
+      "jobId": "84b26b05-d9bb-4a29-b9c2-3fdb11df2f2c",
+      "status": "completed",
+      "provider": "Higgsfield MCP",
+      "model": "gpt_image_2_5",
+      "quotedCredits": 3,
+      "chargedCredits": null,
+      "allocation": "shipping_static_assets",
+      "params": {
+        "model": "gpt_image_2_5",
+        "variant": "flare",
+        "quality": "high",
+        "resolution": "2k",
+        "count": 1,
+        "use_unlim": false,
+        "prompt": "Use this exact original character and uniform from the supplied reference. Preserve face, hair, colors, proportions, crisp anime sports linework and cel shading. One isolated full body adult footballer, facing RIGHT, in a dynamic forward running stride, leaning forward, one knee lifted, strong readable arm swing, one planted boot. No ball: game code renders it separately. True transparent RGBA background, no shadow, no grass, no ground, no checkerboard, no text, no numbers, no logos. Keep every hand and boot fully within the frame with 8% margins. Exactly one figure, no pose sheet. Production game cutout matching reference.",
+        "aspect_ratio": "3:4",
+        "background": "transparent",
+        "medias": [
+          {
+            "role": "image",
+            "value": "c475f25a-fa95-4776-b1c3-02a33d17271d"
+          }
+        ]
+      },
+      "reviewStatus": "prototype_source_reviewed_runtime_check_documented",
+      "resultUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3HrIyz4YFlzGN7GR5SaK5i43kmH/hf_20260922_091726_84b26b05-d9bb-4a29-b9c2-3fdb11df2f2c.png",
+      "file": "assets/director/striker-run.png",
+      "sha256": "8f818ab84bfc405f70279bc54f980331ee9d8f80e5e67de0e355c39a8ee9e37b",
+      "pixelWidth": 1744,
+      "pixelHeight": 2336,
+      "fileBytes": 2869149,
+      "shippingApproved": false
+    },
+    {
+      "assetId": "striker-kick",
+      "jobId": "b989ad7a-affa-4d0a-b428-fedafddff3ca",
+      "status": "completed",
+      "provider": "Higgsfield MCP",
+      "model": "gpt_image_2_5",
+      "quotedCredits": 3,
+      "chargedCredits": null,
+      "allocation": "shipping_static_assets",
+      "params": {
+        "model": "gpt_image_2_5",
+        "variant": "flare",
+        "quality": "high",
+        "resolution": "2k",
+        "count": 1,
+        "use_unlim": false,
+        "prompt": "Use this exact original character and uniform from the supplied reference. Preserve face, hair, colors, proportions, crisp anime sports linework and cel shading. One isolated full body adult footballer, facing RIGHT, in the exact moment of striking a ball, one planted supporting boot and the other leg extended in a powerful kicking follow-through, balanced arms. No ball: game code renders it separately. True transparent RGBA background, no shadow, no grass, no ground, no checkerboard, no text, no numbers, no logos. Keep every hand and boot fully within the frame with 8% margins. Exactly one figure, no pose sheet. Production game cutout matching reference.",
+        "aspect_ratio": "3:4",
+        "background": "transparent",
+        "medias": [
+          {
+            "role": "image",
+            "value": "c475f25a-fa95-4776-b1c3-02a33d17271d"
+          }
+        ]
+      },
+      "reviewStatus": "prototype_source_reviewed_runtime_check_documented",
+      "resultUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3HrIyz4YFlzGN7GR5SaK5i43kmH/hf_20260922_091726_b989ad7a-affa-4d0a-b428-fedafddff3ca.png",
+      "file": "assets/director/striker-kick.png",
+      "sha256": "ca3da0ad7f8e5f6f916c86e5ca6e377da77d72c251b02806490563b62925b08f",
+      "pixelWidth": 1744,
+      "pixelHeight": 2336,
+      "fileBytes": 2969240,
+      "shippingApproved": false
+    },
+    {
+      "assetId": "striker-recover",
+      "jobId": "4c8425f2-9cb3-4f94-9033-09f1a0ff8543",
+      "status": "completed",
+      "provider": "Higgsfield MCP",
+      "model": "gpt_image_2_5",
+      "quotedCredits": 3,
+      "chargedCredits": null,
+      "allocation": "shipping_static_assets",
+      "params": {
+        "model": "gpt_image_2_5",
+        "variant": "flare",
+        "quality": "high",
+        "resolution": "2k",
+        "count": 1,
+        "use_unlim": false,
+        "prompt": "Use this exact original character and uniform from the supplied reference. Preserve face, hair, colors, proportions, crisp anime sports linework and cel shading. One isolated full body adult footballer, facing RIGHT, in a braced recovery pose after losing a duel, turning torso back toward play, knees flexed, arms balancing, standing on both feet. No ball: game code renders it separately. True transparent RGBA background, no shadow, no grass, no ground, no checkerboard, no text, no numbers, no logos. Keep every hand and boot fully within the frame with 8% margins. Exactly one figure, no pose sheet. Production game cutout matching reference.",
+        "aspect_ratio": "3:4",
+        "background": "transparent",
+        "medias": [
+          {
+            "role": "image",
+            "value": "c475f25a-fa95-4776-b1c3-02a33d17271d"
+          }
+        ]
+      },
+      "reviewStatus": "prototype_source_reviewed_runtime_check_documented",
+      "resultUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3HrIyz4YFlzGN7GR5SaK5i43kmH/hf_20260922_091726_4c8425f2-9cb3-4f94-9033-09f1a0ff8543.png",
+      "file": "assets/director/striker-recover.png",
+      "sha256": "454ae7a20f239ef6dc823566e82bb5348431b3098a63b074faa00796732992f2",
+      "pixelWidth": 1744,
+      "pixelHeight": 2336,
+      "fileBytes": 2849801,
+      "shippingApproved": false
+    },
+    {
+      "assetId": "defender-run",
+      "jobId": "8f4dd460-b296-4b61-bfe1-65b399a850b8",
+      "status": "completed",
+      "provider": "Higgsfield MCP",
+      "model": "gpt_image_2_5",
+      "quotedCredits": 3,
+      "chargedCredits": null,
+      "allocation": "shipping_static_assets",
+      "params": {
+        "model": "gpt_image_2_5",
+        "variant": "flare",
+        "quality": "high",
+        "resolution": "2k",
+        "count": 1,
+        "use_unlim": false,
+        "prompt": "Use this exact original character and uniform from the supplied reference. Preserve face, hair, colors, proportions, crisp anime sports linework and cel shading. One isolated full body adult footballer, facing LEFT, in a dynamic forward running stride, leaning forward, one knee lifted, strong readable arm swing, one planted boot. No ball: game code renders it separately. True transparent RGBA background, no shadow, no grass, no ground, no checkerboard, no text, no numbers, no logos. Keep every hand and boot fully within the frame with 8% margins. Exactly one figure, no pose sheet. Production game cutout matching reference.",
+        "aspect_ratio": "3:4",
+        "background": "transparent",
+        "medias": [
+          {
+            "role": "image",
+            "value": "fbc29555-2459-4221-98ca-f6bd8e411fbf"
+          }
+        ]
+      },
+      "reviewStatus": "prototype_source_reviewed_runtime_check_documented",
+      "resultUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3HrIyz4YFlzGN7GR5SaK5i43kmH/hf_20260922_091726_8f4dd460-b296-4b61-bfe1-65b399a850b8.png",
+      "file": "assets/director/defender-run.png",
+      "sha256": "fdb960a377e49b7be6fc2b661f731a015e83c9a0bce0377cc353711979ec3c1f",
+      "pixelWidth": 1744,
+      "pixelHeight": 2336,
+      "fileBytes": 2877081,
+      "shippingApproved": false
+    },
+    {
+      "assetId": "defender-kick",
+      "jobId": "96d3394f-5bea-431c-a47b-e58c8e74c492",
+      "status": "completed",
+      "provider": "Higgsfield MCP",
+      "model": "gpt_image_2_5",
+      "quotedCredits": 3,
+      "chargedCredits": null,
+      "allocation": "shipping_static_assets",
+      "params": {
+        "model": "gpt_image_2_5",
+        "variant": "flare",
+        "quality": "high",
+        "resolution": "2k",
+        "count": 1,
+        "use_unlim": false,
+        "prompt": "Use this exact original character and uniform from the supplied reference. Preserve face, hair, colors, proportions, crisp anime sports linework and cel shading. One isolated full body adult footballer, facing LEFT, in the exact moment of striking a ball, one planted supporting boot and the other leg extended in a powerful kicking follow-through, balanced arms. No ball: game code renders it separately. True transparent RGBA background, no shadow, no grass, no ground, no checkerboard, no text, no numbers, no logos. Keep every hand and boot fully within the frame with 8% margins. Exactly one figure, no pose sheet. Production game cutout matching reference.",
+        "aspect_ratio": "3:4",
+        "background": "transparent",
+        "medias": [
+          {
+            "role": "image",
+            "value": "fbc29555-2459-4221-98ca-f6bd8e411fbf"
+          }
+        ]
+      },
+      "reviewStatus": "prototype_source_reviewed_runtime_check_documented",
+      "resultUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3HrIyz4YFlzGN7GR5SaK5i43kmH/hf_20260922_091726_96d3394f-5bea-431c-a47b-e58c8e74c492.png",
+      "file": "assets/director/defender-kick.png",
+      "sha256": "16e67355474d48729810f313b1e5b65f3bf57ad252cccf7006eca26e7ef54659",
+      "pixelWidth": 1744,
+      "pixelHeight": 2336,
+      "fileBytes": 2851798,
+      "shippingApproved": false
+    },
+    {
+      "assetId": "defender-recover",
+      "jobId": "7d6833a3-bc1b-4957-9601-549f1efd0c4e",
+      "status": "completed",
+      "provider": "Higgsfield MCP",
+      "model": "gpt_image_2_5",
+      "quotedCredits": 3,
+      "chargedCredits": null,
+      "allocation": "shipping_static_assets",
+      "params": {
+        "model": "gpt_image_2_5",
+        "variant": "flare",
+        "quality": "high",
+        "resolution": "2k",
+        "count": 1,
+        "use_unlim": false,
+        "prompt": "Use this exact original character and uniform from the supplied reference. Preserve face, hair, colors, proportions, crisp anime sports linework and cel shading. One isolated full body adult footballer, facing LEFT, in a braced recovery pose after losing a duel, turning torso back toward play, knees flexed, arms balancing, standing on both feet. No ball: game code renders it separately. True transparent RGBA background, no shadow, no grass, no ground, no checkerboard, no text, no numbers, no logos. Keep every hand and boot fully within the frame with 8% margins. Exactly one figure, no pose sheet. Production game cutout matching reference.",
+        "aspect_ratio": "3:4",
+        "background": "transparent",
+        "medias": [
+          {
+            "role": "image",
+            "value": "fbc29555-2459-4221-98ca-f6bd8e411fbf"
+          }
+        ]
+      },
+      "reviewStatus": "prototype_source_reviewed_runtime_check_documented",
+      "resultUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3HrIyz4YFlzGN7GR5SaK5i43kmH/hf_20260922_091726_7d6833a3-bc1b-4957-9601-549f1efd0c4e.png",
+      "file": "assets/director/defender-recover.png",
+      "sha256": "8a1366950786d500c43cb05571556aa33212ab025e44d473cf679c21ad736431",
+      "pixelWidth": 1744,
+      "pixelHeight": 2336,
+      "fileBytes": 2712778,
+      "shippingApproved": false
+    },
+    {
+      "assetId": "keeper-dive-yellow",
+      "jobId": "d0378a97-22a0-4528-9bc5-a7a80347b71f",
+      "status": "completed",
+      "provider": "Higgsfield MCP",
+      "model": "gpt_image_2_5",
+      "quotedCredits": 3,
+      "chargedCredits": null,
+      "allocation": "shipping_static_assets",
+      "params": {
+        "model": "gpt_image_2_5",
+        "variant": "flare",
+        "quality": "high",
+        "resolution": "2k",
+        "count": 1,
+        "use_unlim": false,
+        "prompt": "Same original adult goalkeeper as reference, preserve facial identity and sports anime cel shading. Preserve yellow jersey, black shorts, white gloves. One full body airborne goalkeeper stretched horizontally diving LEFT, both arms and gloves extended toward the left, knees trailing right, clearly readable silhouette. No football. True transparent RGBA, no ground/shadow/checkerboard/UI/text/logo. Entire person inside frame with margin, no body part cropped. One figure.",
+        "aspect_ratio": "3:2",
+        "background": "transparent",
+        "medias": [
+          {
+            "role": "image",
+            "value": "fb1013b6-81d1-4c3c-805c-b3d982ead5e0"
+          }
+        ]
+      },
+      "reviewStatus": "prototype_source_reviewed_runtime_check_documented",
+      "resultUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3HrIyz4YFlzGN7GR5SaK5i43kmH/hf_20260922_091734_d0378a97-22a0-4528-9bc5-a7a80347b71f.png",
+      "file": "assets/director/keeper-dive-yellow.png",
+      "sha256": "5a71904dfcee451b660a4f13454f1194299794eb6d98418cf92c909bae5dee78",
+      "pixelWidth": 2048,
+      "pixelHeight": 1360,
+      "fileBytes": 2113015,
+      "shippingApproved": false
+    },
+    {
+      "assetId": "keeper-dive-green",
+      "jobId": "4c2fb105-a4f7-4f08-b586-6099cc168e09",
+      "status": "completed",
+      "provider": "Higgsfield MCP",
+      "model": "gpt_image_2_5",
+      "quotedCredits": 3,
+      "chargedCredits": null,
+      "allocation": "shipping_static_assets",
+      "params": {
+        "model": "gpt_image_2_5",
+        "variant": "flare",
+        "quality": "high",
+        "resolution": "2k",
+        "count": 1,
+        "use_unlim": false,
+        "prompt": "Same original adult goalkeeper as reference, preserve facial identity and sports anime cel shading. Change jersey to emerald green and socks to green; keep black shorts and white gloves. One full body airborne goalkeeper stretched horizontally diving LEFT, both arms and gloves extended toward the left, knees trailing right, clearly readable silhouette. No football. True transparent RGBA, no ground/shadow/checkerboard/UI/text/logo. Entire person inside frame with margin, no body part cropped. One figure.",
+        "aspect_ratio": "3:2",
+        "background": "transparent",
+        "medias": [
+          {
+            "role": "image",
+            "value": "fb1013b6-81d1-4c3c-805c-b3d982ead5e0"
+          }
+        ]
+      },
+      "reviewStatus": "prototype_source_reviewed_runtime_check_documented",
+      "resultUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3HrIyz4YFlzGN7GR5SaK5i43kmH/hf_20260922_091733_4c2fb105-a4f7-4f08-b586-6099cc168e09.png",
+      "file": "assets/director/keeper-dive-green.png",
+      "sha256": "726f8f33999e65ed96d308536b34f324d960e8d44c24da24374150b4ca4a2824",
+      "pixelWidth": 2048,
+      "pixelHeight": 1360,
+      "fileBytes": 2014674,
+      "shippingApproved": false
+    },
+    {
+      "assetId": "card-switch",
+      "jobId": "4967d09d-2a35-4fc4-add0-41307c521b32",
+      "status": "failed",
+      "provider": "Higgsfield MCP",
+      "model": "gpt_image_2_5",
+      "quotedCredits": 3,
+      "chargedCredits": null,
+      "allocation": "shipping_static_assets",
+      "params": {
+        "model": "gpt_image_2_5",
+        "variant": "flare",
+        "quality": "high",
+        "resolution": "2k",
+        "count": 1,
+        "use_unlim": false,
+        "prompt": "Original football tactics card illustration, same drawing style and blue/cream versus brick red uniforms as reference. A blue player at left sends a long lofted diagonal football pass across open pitch to a blue teammate on the opposite right flank. Red defenders grouped at left leave distant side open. Clear tactical distance. Clear crisp hand drawn anime linework, cel shading, green pitch and modest stadium daylight. Exactly one football. No text, no card frame, no arrows, no labels, no logo. Landscape 3:2, readable as a small card illustration.",
+        "aspect_ratio": "3:2",
+        "background": "opaque",
+        "medias": [
+          {
+            "role": "image",
+            "value": "34b8633a-0d17-4664-ab2b-3356a5c58cc0"
+          }
+        ]
+      },
+      "reviewStatus": "awaiting_visual_review",
+      "chargeEvidence": "failed job; first production batch net debit 27 for nine completions"
+    },
+    {
+      "assetId": "card-inside",
+      "jobId": "5ef5c880-23d3-4427-919d-ed1f88cc7318",
+      "status": "completed",
+      "provider": "Higgsfield MCP",
+      "model": "gpt_image_2_5",
+      "quotedCredits": 3,
+      "chargedCredits": null,
+      "allocation": "shipping_static_assets",
+      "params": {
+        "model": "gpt_image_2_5",
+        "variant": "flare",
+        "quality": "high",
+        "resolution": "2k",
+        "count": 1,
+        "use_unlim": false,
+        "prompt": "Original football tactics card illustration, same drawing style and blue/cream versus brick red uniforms as reference. One blue forward darts into the central gap between two red defenders while a blue ball carrier in foreground prepares a through pass. Show the central lane and exposed midfield behind the runner. Clear crisp hand drawn anime linework, cel shading, green pitch and modest stadium daylight. Exactly one football. No text, no card frame, no arrows, no labels, no logo. Landscape 3:2, readable as a small card illustration.",
+        "aspect_ratio": "3:2",
+        "background": "opaque",
+        "medias": [
+          {
+            "role": "image",
+            "value": "34b8633a-0d17-4664-ab2b-3356a5c58cc0"
+          }
+        ]
+      },
+      "reviewStatus": "prototype_source_reviewed_runtime_check_documented",
+      "resultUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3HrIyz4YFlzGN7GR5SaK5i43kmH/hf_20260922_091733_5ef5c880-23d3-4427-919d-ed1f88cc7318.png",
+      "file": "assets/director/card-inside.png",
+      "sha256": "244f25f446f1a634e4a6ab96786d4806e22a2c52fad0f45502ff350782cefcb7",
+      "pixelWidth": 2048,
+      "pixelHeight": 1360,
+      "fileBytes": 4244726,
+      "shippingApproved": false
+    },
+    {
+      "assetId": "keeper-green-ready",
+      "jobId": "fe1d020f-60b7-42ab-84d6-b2a74e295fbe",
+      "status": "completed",
+      "provider": "Higgsfield MCP",
+      "model": "gpt_image_2_5",
+      "quotedCredits": 3,
+      "chargedCredits": null,
+      "allocation": "shipping_static_assets",
+      "params": {
+        "model": "gpt_image_2_5",
+        "variant": "flare",
+        "quality": "high",
+        "resolution": "2k",
+        "count": 1,
+        "use_unlim": false,
+        "prompt": "Same original adult goalkeeper as reference, exact character identity and crouched ready pose facing LEFT. Change ONLY jersey and socks to emerald green, preserve black shorts and white gloves. Crisp sports anime cel shading. One isolated full body figure, all boots and hands inside margin, true transparent RGBA, no ball, no ground, no shadow, no checkerboard, no text/logo.",
+        "aspect_ratio": "3:4",
+        "background": "transparent",
+        "medias": [
+          {
+            "role": "image",
+            "value": "fb1013b6-81d1-4c3c-805c-b3d982ead5e0"
+          }
+        ]
+      },
+      "reviewStatus": "prototype_source_reviewed_runtime_check_documented",
+      "resultUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3HrIyz4YFlzGN7GR5SaK5i43kmH/hf_20260922_092028_fe1d020f-60b7-42ab-84d6-b2a74e295fbe.png",
+      "file": "assets/director/keeper-green-ready.png",
+      "sha256": "5f310243dc20027157212a56bb104d24ab4198050313ed709312e8e0ae97f0e2",
+      "pixelWidth": 1744,
+      "pixelHeight": 2336,
+      "fileBytes": 2695205,
+      "shippingApproved": false
+    },
+    {
+      "assetId": "card-switch",
+      "jobId": "19b9a829-2dc8-4a20-b5e8-d29bbbec75c3",
+      "status": "completed",
+      "provider": "Higgsfield MCP",
+      "model": "gpt_image_2_5",
+      "quotedCredits": 3,
+      "chargedCredits": null,
+      "allocation": "shipping_static_assets",
+      "params": {
+        "model": "gpt_image_2_5",
+        "variant": "flare",
+        "quality": "high",
+        "resolution": "2k",
+        "count": 1,
+        "use_unlim": false,
+        "prompt": "Original football tactics card illustration, same drawing style and blue/cream versus brick red uniforms as reference. A blue player at left sends a long lofted diagonal football pass across open pitch to a blue teammate on the opposite right flank. Red defenders grouped at left leave distant side open. Clear tactical distance. Clear crisp hand drawn anime linework, cel shading, green pitch and modest stadium daylight. Exactly one football. No text, no card frame, no arrows, no labels, no logo. Landscape 3:2, readable as a small card illustration.",
+        "aspect_ratio": "3:2",
+        "background": "opaque",
+        "medias": [
+          {
+            "role": "image",
+            "value": "34b8633a-0d17-4664-ab2b-3356a5c58cc0"
+          }
+        ]
+      },
+      "reviewStatus": "prototype_source_reviewed_runtime_check_documented",
+      "resultUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3HrIyz4YFlzGN7GR5SaK5i43kmH/hf_20260922_092027_19b9a829-2dc8-4a20-b5e8-d29bbbec75c3.png",
+      "file": "assets/director/card-switch.png",
+      "sha256": "246ec228df7d0afbb6d1025bd1b3abee319e9f499b80575fe61dae17bed14923",
+      "pixelWidth": 2048,
+      "pixelHeight": 1360,
+      "fileBytes": 4634513,
+      "shippingApproved": false
+    },
+    {
+      "assetId": "card-press",
+      "jobId": "72eed4e0-c104-4e55-ae35-61d8aed50306",
+      "status": "completed",
+      "provider": "Higgsfield MCP",
+      "model": "gpt_image_2_5",
+      "quotedCredits": 3,
+      "chargedCredits": null,
+      "allocation": "shipping_static_assets",
+      "params": {
+        "model": "gpt_image_2_5",
+        "variant": "flare",
+        "quality": "high",
+        "resolution": "2k",
+        "count": 1,
+        "use_unlim": false,
+        "prompt": "Original football tactics card illustration, same drawing style and blue/cream versus brick red uniforms as reference. Two blue defenders converge toward one red ball carrier near the touchline, leaving a clear empty lane on the opposite side. Clear crisp hand drawn anime linework, cel shading, green pitch and modest stadium daylight. Exactly one football. No text, no card frame, no arrows, no labels, no logo. Landscape 3:2, readable as a small card illustration.",
+        "aspect_ratio": "3:2",
+        "background": "opaque",
+        "medias": [
+          {
+            "role": "image",
+            "value": "34b8633a-0d17-4664-ab2b-3356a5c58cc0"
+          }
+        ]
+      },
+      "reviewStatus": "prototype_source_reviewed_runtime_check_documented",
+      "resultUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3HrIyz4YFlzGN7GR5SaK5i43kmH/hf_20260922_092027_72eed4e0-c104-4e55-ae35-61d8aed50306.png",
+      "file": "assets/director/card-press.png",
+      "sha256": "ed7b3bb645d0c8d3fe48fe49eb862527bcf1ea9449369b526262808f03b3be91",
+      "pixelWidth": 2048,
+      "pixelHeight": 1360,
+      "fileBytes": 4367457,
+      "shippingApproved": false
+    },
+    {
+      "assetId": "card-drop",
+      "jobId": "31f464a8-9e20-4694-bbd5-8a4f989b3105",
+      "status": "completed",
+      "provider": "Higgsfield MCP",
+      "model": "gpt_image_2_5",
+      "quotedCredits": 3,
+      "chargedCredits": null,
+      "allocation": "shipping_static_assets",
+      "params": {
+        "model": "gpt_image_2_5",
+        "variant": "flare",
+        "quality": "high",
+        "resolution": "2k",
+        "count": 1,
+        "use_unlim": false,
+        "prompt": "Original football tactics card illustration, same drawing style and blue/cream versus brick red uniforms as reference. Two blue defenders run back toward their own goal while watching a red attacker advancing with a football; show the space willingly conceded in front. Clear crisp hand drawn anime linework, cel shading, green pitch and modest stadium daylight. Exactly one football. No text, no card frame, no arrows, no labels, no logo. Landscape 3:2, readable as a small card illustration.",
+        "aspect_ratio": "3:2",
+        "background": "opaque",
+        "medias": [
+          {
+            "role": "image",
+            "value": "34b8633a-0d17-4664-ab2b-3356a5c58cc0"
+          }
+        ]
+      },
+      "reviewStatus": "prototype_source_reviewed_runtime_check_documented",
+      "resultUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3HrIyz4YFlzGN7GR5SaK5i43kmH/hf_20260922_092027_31f464a8-9e20-4694-bbd5-8a4f989b3105.png",
+      "file": "assets/director/card-drop.png",
+      "sha256": "d2a83cb7d7a282afa83905c13a0b66e7897c2ce8305d85906cab1fb41d577121",
+      "pixelWidth": 2048,
+      "pixelHeight": 1360,
+      "fileBytes": 4499138,
+      "shippingApproved": false
+    },
+    {
+      "assetId": "stadium-goal",
+      "jobId": "363f632d-60e5-4e85-9cb6-0df2a3e769ef",
+      "status": "completed",
+      "provider": "Higgsfield MCP",
+      "model": "gpt_image_2_5",
+      "quotedCredits": 3,
+      "chargedCredits": null,
+      "allocation": "shipping_static_assets",
+      "params": {
+        "model": "gpt_image_2_5",
+        "variant": "flare",
+        "quality": "high",
+        "resolution": "2k",
+        "count": 1,
+        "use_unlim": false,
+        "prompt": "Same original modest football stadium, daylight, anime cel shaded style and palette as reference. Low side camera near penalty area, goal clearly visible on RIGHT third, empty foreground pitch over lower 60% with clear goal line, distant stands and sky upper 40%. No people, no balls, no text or UI. Wide reusable game background.",
+        "aspect_ratio": "16:9",
+        "background": "opaque",
+        "medias": [
+          {
+            "role": "image",
+            "value": "84871637-5452-4584-b8dc-f3ba442d613c"
+          }
+        ]
+      },
+      "reviewStatus": "prototype_source_reviewed_runtime_check_documented",
+      "resultUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3HrIyz4YFlzGN7GR5SaK5i43kmH/hf_20260922_092028_363f632d-60e5-4e85-9cb6-0df2a3e769ef.png",
+      "file": "assets/director/stadium-goal.png",
+      "sha256": "a24c942564de0080679b928d3c1d40f2db86cbea4e7f3bb79c14228fe96d1361",
+      "pixelWidth": 2688,
+      "pixelHeight": 1520,
+      "fileBytes": 6499000,
+      "shippingApproved": false
+    },
+    {
+      "assetId": "stadium-bench",
+      "jobId": "a1aa7947-027c-42d5-9e23-601b2b5b2236",
+      "status": "completed",
+      "provider": "Higgsfield MCP",
+      "model": "gpt_image_2_5",
+      "quotedCredits": 3,
+      "chargedCredits": null,
+      "allocation": "shipping_static_assets",
+      "params": {
+        "model": "gpt_image_2_5",
+        "variant": "flare",
+        "quality": "high",
+        "resolution": "2k",
+        "count": 1,
+        "use_unlim": false,
+        "prompt": "Same original modest daylight football stadium and crisp anime cel shading. Touchline view, simple blue dugout seats on LEFT quarter, wide empty grass pitch occupying lower 55%, distant stands and sky. No people, no balls, no text or logos. Wide reusable halftime game background.",
+        "aspect_ratio": "16:9",
+        "background": "opaque",
+        "medias": [
+          {
+            "role": "image",
+            "value": "84871637-5452-4584-b8dc-f3ba442d613c"
+          }
+        ]
+      },
+      "reviewStatus": "prototype_source_reviewed_runtime_check_documented",
+      "resultUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3HrIyz4YFlzGN7GR5SaK5i43kmH/hf_20260922_092027_a1aa7947-027c-42d5-9e23-601b2b5b2236.png",
+      "file": "assets/director/stadium-bench.png",
+      "sha256": "58255af9e8d644b13a82ec7349836a35444db93b9e854705875851de054dd78d",
+      "pixelWidth": 2688,
+      "pixelHeight": 1520,
+      "fileBytes": 6616895,
+      "shippingApproved": false
+    },
+    {
+      "assetId": "coach-blue-watch",
+      "jobId": "fd07b9bc-fc35-4530-bb5a-482c903d5dd4",
+      "status": "completed",
+      "provider": "Higgsfield MCP",
+      "model": "gpt_image_2_5",
+      "quotedCredits": 3,
+      "chargedCredits": null,
+      "allocation": "shipping_static_assets",
+      "params": {
+        "model": "gpt_image_2_5",
+        "variant": "flare",
+        "quality": "high",
+        "resolution": "2k",
+        "count": 1,
+        "use_unlim": false,
+        "prompt": "Original adult football coach, East Asian woman age about 38 with short straight black bob, navy track jacket with cream shoulder stripe and navy trousers. Calm focused face, arms folded, three-quarter view facing RIGHT. One isolated full body person, boots fully visible, transparent RGBA, no ball, no ground/shadow/checkerboard, no text/logo/numbers. Crisp sports anime linework and cel shading matching reference, not photorealistic. Generous margin.",
+        "aspect_ratio": "3:4",
+        "background": "transparent",
+        "medias": [
+          {
+            "role": "image",
+            "value": "34b8633a-0d17-4664-ab2b-3356a5c58cc0"
+          }
+        ]
+      },
+      "reviewStatus": "prototype_source_reviewed_runtime_check_documented",
+      "resultUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3HrIyz4YFlzGN7GR5SaK5i43kmH/hf_20260922_092206_fd07b9bc-fc35-4530-bb5a-482c903d5dd4.png",
+      "file": "assets/director/coach-blue-watch.png",
+      "sha256": "6311c4801aff7c7888593dc3e45d460ad3244741f085b8f38fd5ea23c3ccf12d",
+      "pixelWidth": 1744,
+      "pixelHeight": 2336,
+      "fileBytes": 2194918,
+      "shippingApproved": false
+    },
+    {
+      "assetId": "coach-red-watch",
+      "jobId": "82a4b55c-3a5b-423f-af9d-a884d85fcf85",
+      "status": "completed",
+      "provider": "Higgsfield MCP",
+      "model": "gpt_image_2_5",
+      "quotedCredits": 3,
+      "chargedCredits": null,
+      "allocation": "shipping_static_assets",
+      "params": {
+        "model": "gpt_image_2_5",
+        "variant": "flare",
+        "quality": "high",
+        "resolution": "2k",
+        "count": 1,
+        "use_unlim": false,
+        "prompt": "Original adult football coach, East Asian man age about 45 with short dark hair and square glasses, brick-red track jacket with cream trim and black trousers. Calm focused face, arms folded, three-quarter view facing RIGHT. One isolated full body person, boots fully visible, transparent RGBA, no ball, no ground/shadow/checkerboard, no text/logo/numbers. Crisp sports anime linework and cel shading matching reference, not photorealistic. Generous margin.",
+        "aspect_ratio": "3:4",
+        "background": "transparent",
+        "medias": [
+          {
+            "role": "image",
+            "value": "34b8633a-0d17-4664-ab2b-3356a5c58cc0"
+          }
+        ]
+      },
+      "reviewStatus": "prototype_source_reviewed_runtime_check_documented",
+      "resultUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3HrIyz4YFlzGN7GR5SaK5i43kmH/hf_20260922_092206_82a4b55c-3a5b-423f-af9d-a884d85fcf85.png",
+      "file": "assets/director/coach-red-watch.png",
+      "sha256": "26aa5fd869665b47a09b2eda8434f638f416a854a10e759fdc22cab63182ae76",
+      "pixelWidth": 1744,
+      "pixelHeight": 2336,
+      "fileBytes": 2151774,
+      "shippingApproved": false
+    },
+    {
+      "assetId": "coach-blue-command",
+      "jobId": "5daeddd6-ddb0-4bbd-acf4-ade9584f8e88",
+      "status": "completed",
+      "provider": "Higgsfield MCP",
+      "model": "gpt_image_2_5",
+      "quotedCredits": 3,
+      "chargedCredits": null,
+      "allocation": "shipping_static_assets",
+      "params": {
+        "model": "gpt_image_2_5",
+        "variant": "flare",
+        "quality": "high",
+        "resolution": "2k",
+        "count": 1,
+        "use_unlim": false,
+        "prompt": "Preserve the EXACT same coach, face, hairstyle, age, outfit and colors from the supplied reference. Change only pose to giving a clear instruction: right arm extended pointing RIGHT, left hand at waist, focused expression. One full body figure with feet/hands entirely inside frame and margin. True transparent RGBA, no ball, no text, no shadow, no checkerboard. Same crisp sports-anime drawing and cel shading.",
+        "aspect_ratio": "3:4",
+        "background": "transparent",
+        "medias": [
+          {
+            "role": "image",
+            "value": "fd07b9bc-fc35-4530-bb5a-482c903d5dd4"
+          }
+        ]
+      },
+      "reviewStatus": "prototype_source_reviewed_runtime_check_documented",
+      "resultUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3HrIyz4YFlzGN7GR5SaK5i43kmH/hf_20260922_092328_5daeddd6-ddb0-4bbd-acf4-ade9584f8e88.png",
+      "file": "assets/director/coach-blue-command.png",
+      "sha256": "528bd8c37ff0bd160a596b555c4a1f3a9835181e3329177566b8c2369e62a12e",
+      "pixelWidth": 1744,
+      "pixelHeight": 2336,
+      "fileBytes": 2703814,
+      "shippingApproved": false
+    },
+    {
+      "assetId": "coach-red-command",
+      "jobId": "a949391f-04f1-4ef5-bdc1-065bf863db18",
+      "status": "completed",
+      "provider": "Higgsfield MCP",
+      "model": "gpt_image_2_5",
+      "quotedCredits": 3,
+      "chargedCredits": null,
+      "allocation": "shipping_static_assets",
+      "params": {
+        "model": "gpt_image_2_5",
+        "variant": "flare",
+        "quality": "high",
+        "resolution": "2k",
+        "count": 1,
+        "use_unlim": false,
+        "prompt": "Preserve the EXACT same coach, face, hairstyle, age, outfit and colors from the supplied reference. Change only pose to giving a clear instruction: right arm extended pointing RIGHT, left hand at waist, focused expression. One full body figure with feet/hands entirely inside frame and margin. True transparent RGBA, no ball, no text, no shadow, no checkerboard. Same crisp sports-anime drawing and cel shading.",
+        "aspect_ratio": "3:4",
+        "background": "transparent",
+        "medias": [
+          {
+            "role": "image",
+            "value": "82a4b55c-3a5b-423f-af9d-a884d85fcf85"
+          }
+        ]
+      },
+      "reviewStatus": "prototype_source_reviewed_runtime_check_documented",
+      "resultUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3HrIyz4YFlzGN7GR5SaK5i43kmH/hf_20260922_092329_a949391f-04f1-4ef5-bdc1-065bf863db18.png",
+      "file": "assets/director/coach-red-command.png",
+      "sha256": "11255b53feaf7b09273294d8ba2e2ea8a2c67794e89d034a933dc2fd197b5888",
+      "pixelWidth": 1744,
+      "pixelHeight": 2336,
+      "fileBytes": 2738690,
+      "shippingApproved": false
+    }
+  ],
+  "pendingBatch": null
+}

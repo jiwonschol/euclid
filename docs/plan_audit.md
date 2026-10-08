@@ -1,5 +1,7 @@
 # 계획서 충실도 감사 (2026-07-15)
 
+> **2026-09-22 범위:** 아래 결과는 2026-07-15의 감사 기록이며 현재 HEAD나 새 제품의 검증 결과가 아니다. 새 실행 정본·검증 계약은 [director_game_plan.md](director_game_plan.md)다.
+
 대상: `docs/captain_tsubasa_card_manager_claude_code_prompt.md` (마스터 계획서)
 코드: `feature/continuous-match-engine` · `js/game/` (연속 엔진) · `viewer.html`
 방법: 4개 감사 에이전트가 **코드 직접 확인**(문서 주장 불신) + 헤드리스 실측 + 브라우저.

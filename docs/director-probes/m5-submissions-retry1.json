@@ -1,0 +1,170 @@
+{
+  "completed": [
+    {
+      "index": 1,
+      "job_id": "84b26b05-d9bb-4a29-b9c2-3fdb11df2f2c",
+      "status": "completed",
+      "type": "image",
+      "model": "gpt_image_2_5",
+      "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3HrIyz4YFlzGN7GR5SaK5i43kmH/hf_20260922_091726_84b26b05-d9bb-4a29-b9c2-3fdb11df2f2c.png"
+    },
+    {
+      "index": 2,
+      "job_id": "b989ad7a-affa-4d0a-b428-fedafddff3ca",
+      "status": "completed",
+      "type": "image",
+      "model": "gpt_image_2_5",
+      "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3HrIyz4YFlzGN7GR5SaK5i43kmH/hf_20260922_091726_b989ad7a-affa-4d0a-b428-fedafddff3ca.png"
+    },
+    {
+      "index": 3,
+      "job_id": "4c8425f2-9cb3-4f94-9033-09f1a0ff8543",
+      "status": "completed",
+      "type": "image",
+      "model": "gpt_image_2_5",
+      "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3HrIyz4YFlzGN7GR5SaK5i43kmH/hf_20260922_091726_4c8425f2-9cb3-4f94-9033-09f1a0ff8543.png"
+    },
+    {
+      "index": 4,
+      "job_id": "8f4dd460-b296-4b61-bfe1-65b399a850b8",
+      "status": "completed",
+      "type": "image",
+      "model": "gpt_image_2_5",
+      "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3HrIyz4YFlzGN7GR5SaK5i43kmH/hf_20260922_091726_8f4dd460-b296-4b61-bfe1-65b399a850b8.png"
+    },
+    {
+      "index": 5,
+      "job_id": "96d3394f-5bea-431c-a47b-e58c8e74c492",
+      "status": "completed",
+      "type": "image",
+      "model": "gpt_image_2_5",
+      "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3HrIyz4YFlzGN7GR5SaK5i43kmH/hf_20260922_091726_96d3394f-5bea-431c-a47b-e58c8e74c492.png"
+    },
+    {
+      "index": 6,
+      "job_id": "7d6833a3-bc1b-4957-9601-549f1efd0c4e",
+      "status": "completed",
+      "type": "image",
+      "model": "gpt_image_2_5",
+      "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3HrIyz4YFlzGN7GR5SaK5i43kmH/hf_20260922_091726_7d6833a3-bc1b-4957-9601-549f1efd0c4e.png"
+    },
+    {
+      "index": 7,
+      "job_id": "d0378a97-22a0-4528-9bc5-a7a80347b71f",
+      "status": "completed",
+      "type": "image",
+      "model": "gpt_image_2_5",
+      "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3HrIyz4YFlzGN7GR5SaK5i43kmH/hf_20260922_091734_d0378a97-22a0-4528-9bc5-a7a80347b71f.png"
+    },
+    {
+      "index": 8,
+      "job_id": "4c2fb105-a4f7-4f08-b586-6099cc168e09",
+      "status": "completed",
+      "type": "image",
+      "model": "gpt_image_2_5",
+      "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3HrIyz4YFlzGN7GR5SaK5i43kmH/hf_20260922_091733_4c2fb105-a4f7-4f08-b586-6099cc168e09.png"
+    },
+    {
+      "index": 10,
+      "job_id": "4967d09d-2a35-4fc4-add0-41307c521b32",
+      "status": "failed",
+      "type": "image",
+      "model": "gpt_image_2_5"
+    },
+    {
+      "index": 11,
+      "job_id": "5ef5c880-23d3-4427-919d-ed1f88cc7318",
+      "status": "completed",
+      "type": "image",
+      "model": "gpt_image_2_5",
+      "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3HrIyz4YFlzGN7GR5SaK5i43kmH/hf_20260922_091733_5ef5c880-23d3-4427-919d-ed1f88cc7318.png"
+    }
+  ],
+  "retry": {
+    "content": [
+      {
+        "type": "text",
+        "text": "Submitted 6/6 image generations.\n- index 9: fe1d020f-60b7-42ab-84d6-b2a74e295fbe (pending)\n- index 10: 19b9a829-2dc8-4a20-b5e8-d29bbbec75c3 (pending)\n- index 12: 72eed4e0-c104-4e55-ae35-61d8aed50306 (pending)\n- index 13: 31f464a8-9e20-4694-bbd5-8a4f989b3105 (pending)\n- index 14: 363f632d-60e5-4e85-9cb6-0df2a3e769ef (pending)\n- index 15: a1aa7947-027c-42d5-9e23-601b2b5b2236 (pending)\nWait for the complete requested set with jobs_wait, then show it together with show_generation_by_ids using the collected indexed jobs. This includes jobs submitted across separate calls. job_display accepts only one id and cannot display a group; do not pass ids or call it once per job."
+      }
+    ],
+    "structuredContent": {
+      "jobs": [
+        {
+          "index": 9,
+          "job_id": "fe1d020f-60b7-42ab-84d6-b2a74e295fbe",
+          "status": "pending",
+          "adjustments": {
+            "medias[0].role": {
+              "requested": "image",
+              "used": "image_references",
+              "reason": "GPT Image 2.5 backend expects schema-key media roles"
+            }
+          }
+        },
+        {
+          "index": 10,
+          "job_id": "19b9a829-2dc8-4a20-b5e8-d29bbbec75c3",
+          "status": "pending",
+          "adjustments": {
+            "medias[0].role": {
+              "requested": "image",
+              "used": "image_references",
+              "reason": "GPT Image 2.5 backend expects schema-key media roles"
+            }
+          }
+        },
+        {
+          "index": 12,
+          "job_id": "72eed4e0-c104-4e55-ae35-61d8aed50306",
+          "status": "pending",
+          "adjustments": {
+            "medias[0].role": {
+              "requested": "image",
+              "used": "image_references",
+              "reason": "GPT Image 2.5 backend expects schema-key media roles"
+            }
+          }
+        },
+        {
+          "index": 13,
+          "job_id": "31f464a8-9e20-4694-bbd5-8a4f989b3105",
+          "status": "pending",
+          "adjustments": {
+            "medias[0].role": {
+              "requested": "image",
+              "used": "image_references",
+              "reason": "GPT Image 2.5 backend expects schema-key media roles"
+            }
+          }
+        },
+        {
+          "index": 14,
+          "job_id": "363f632d-60e5-4e85-9cb6-0df2a3e769ef",
+          "status": "pending",
+          "adjustments": {
+            "medias[0].role": {
+              "requested": "image",
+              "used": "image_references",
+              "reason": "GPT Image 2.5 backend expects schema-key media roles"
+            }
+          }
+        },
+        {
+          "index": 15,
+          "job_id": "a1aa7947-027c-42d5-9e23-601b2b5b2236",
+          "status": "pending",
+          "adjustments": {
+            "medias[0].role": {
+              "requested": "image",
+              "used": "image_references",
+              "reason": "GPT Image 2.5 backend expects schema-key media roles"
+            }
+          }
+        }
+      ],
+      "submitted_count": 6,
+      "failed_count": 0
+    },
+    "isError": false
+  }
+}

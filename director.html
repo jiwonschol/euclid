@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="ko">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>그라운드의 유클리드 · 감독 경기</title><link rel="icon" href="data:,"><link rel="stylesheet" href="css/director.css"></head>
+<body>
+<main id="game" aria-label="감독 경기">
+  <header><h1>그라운드의 유클리드</h1><div class="scoreboard"><span class="home">청해</span><strong id="score">0 : 0</strong><span class="away">홍림</span><time id="clock">전반 00:00</time></div><nav aria-label="재생"><button id="pause">일시정지</button><button id="speed">1×</button><button id="skip" disabled>결과 스킵</button><button id="new">새 경기</button></nav></header>
+  <section class="stage" aria-label="경기 장면"><canvas id="scene" aria-label="현재 선수와 공의 경기 장면"></canvas><div class="stage-top"><span id="possession">청해 공격</span><span id="advice"></span><span id="phase">경기 준비</span></div><div id="inspection" hidden><label>판정 장면 <select id="outcome-select"></select></label></div><div id="caption" role="status" aria-live="polite">경기장을 준비하고 있습니다.</div><div id="welcome" class="overlay"><h2>다음 움직임을<br>지시하세요.</h2><p>상대의 위치를 읽고, 지시 하나를 예약하세요.<br>득점만큼 남겨진 공간도 중요합니다.</p><label>상대 성향 <select id="profile"><option value="wing">측면 전개</option><option value="central">중앙 침투</option><option value="patient">신중한 복귀</option></select></label><button id="export-prior" hidden>이전 규칙의 기록 저장</button><button id="begin" class="primary">경기 시작</button><button id="slice">82초 첫 장면</button></div><div id="review" class="overlay" hidden><h2 id="result-title">경기 종료</h2><p id="result-stats"></p><div id="review-events"></div><button id="continue" hidden>후반 시작</button><button id="replay">같은 선택 다시 보기</button><button id="retry">같은 시드 다시 판단</button><button id="export">기록 저장</button></div></section>
+  <section class="bench" aria-label="감독 지시">
+    <div class="tactics"><div class="section-label">전술 필드 <span>청해 ● / 홍림 ◆</span></div><canvas id="radar" aria-label="22명과 공의 실제 위치"></canvas><p id="observation"></p></div>
+    <div class="commands"><div class="command-heading"><strong id="turn-label">다음 국면 준비</strong><span id="timer"></span><div class="side"><button id="left" aria-pressed="true">왼쪽</button><button id="right" aria-pressed="false">오른쪽</button></div></div><div id="cards" aria-label="사용 가능한 감독 카드"></div></div>
+    <aside class="reservation"><div class="section-label">예약한 지시</div><strong id="pending">기본 유지</strong><p id="consequence">선수가 현재 공간에서 판단합니다.</p><button id="confirm" class="primary" disabled>지시 확정 ↵</button><button id="hold" disabled>기본 유지 / 취소</button><p id="notice" role="status"></p></aside>
+  </section>
+  <footer><span>1–3 지시 · ← → 측면 · Enter 확정 · Space 일시정지 · Esc 취소</span><label><input id="reduced" type="checkbox">동작 줄이기</label><span id="seed-label"></span></footer>
+</main>
+<script type="module" src="js/director/main.js"></script>
+</body></html>

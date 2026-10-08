@@ -1,0 +1,186 @@
+{
+  "requests": [
+    {
+      "index": 0,
+      "assetId": "defender-ready",
+      "params": {
+        "model": "gpt_image_2_5",
+        "variant": "flare",
+        "quality": "high",
+        "resolution": "2k",
+        "count": 1,
+        "use_unlim": false,
+        "medias": [
+          {
+            "role": "image",
+            "value": "34b8633a-0d17-4664-ab2b-3356a5c58cc0"
+          }
+        ],
+        "aspect_ratio": "3:4",
+        "background": "transparent",
+        "prompt": "Use the reference's crisp original sports-anime linework, cel shading and brick-red team kit. Exactly one isolated full-body athletic young adult male football defender, short dark brown hair, brick red jersey and dark red shorts, red socks, black cleats. Facing LEFT in three-quarter low defensive ready stance, hands apart, knees bent. Both hands and feet fully visible with generous margins. True transparent RGBA background. No ball, no pitch, no ground shadow, no text, numbers, badges, logos or other players. Clean reusable game cutout; original character."
+      }
+    },
+    {
+      "index": 1,
+      "assetId": "keeper-ready",
+      "params": {
+        "model": "gpt_image_2_5",
+        "variant": "flare",
+        "quality": "high",
+        "resolution": "2k",
+        "count": 1,
+        "use_unlim": false,
+        "medias": [
+          {
+            "role": "image",
+            "value": "34b8633a-0d17-4664-ab2b-3356a5c58cc0"
+          }
+        ],
+        "aspect_ratio": "3:4",
+        "background": "transparent",
+        "prompt": "Match reference's clean original sports-anime linework and controlled cel shading. Exactly one isolated full-body goalkeeper, athletic young adult dark-skinned male with cropped black hair. Yellow long sleeve jersey, black shorts, yellow socks, black boots, large white goalkeeper gloves. Front three-quarter view facing LEFT, wide balanced ready stance, arms open and knees bent preparing to save. Both hands and feet fully visible with margin. TRUE transparent RGBA background, no ball, no goal or pitch, no text, numbers, logos, no cast shadow or other objects. Reusable original game character."
+      }
+    },
+    {
+      "index": 2,
+      "assetId": "card-support",
+      "params": {
+        "model": "gpt_image_2_5",
+        "variant": "flare",
+        "quality": "high",
+        "resolution": "2k",
+        "count": 1,
+        "use_unlim": false,
+        "medias": [
+          {
+            "role": "image",
+            "value": "34b8633a-0d17-4664-ab2b-3356a5c58cc0"
+          }
+        ],
+        "aspect_ratio": "3:2",
+        "background": "opaque",
+        "prompt": "Original sports-anime tactical illustration using the same blue and cream team kit and crisp cel-shaded style as the reference. Landscape card ART ONLY, no UI frame, no text, no numbers, no arrows. A blue winger in foreground carries football along the near sideline while a second blue teammate runs forward behind and outside him in an overlapping support run. The visible open grass behind the overlapping teammate makes the cost in defensive cover readable. Dynamic clean composition, readable at small size, green pitch, no opponent faces in focus."
+      }
+    },
+    {
+      "index": 3,
+      "assetId": "card-screen",
+      "params": {
+        "model": "gpt_image_2_5",
+        "variant": "flare",
+        "quality": "high",
+        "resolution": "2k",
+        "count": 1,
+        "use_unlim": false,
+        "medias": [
+          {
+            "role": "image",
+            "value": "34b8633a-0d17-4664-ab2b-3356a5c58cc0"
+          }
+        ],
+        "aspect_ratio": "3:2",
+        "background": "opaque",
+        "prompt": "Original sports-anime tactical illustration, same blue cream and brick-red team kit design and crisp cel shading as reference. Landscape card ART ONLY, no UI frame, no letters, numbers or arrows. Two blue defenders seen from three-quarter side move together to cover a central passing lane. A red attacking midfielder with ball pauses in front of them. On the far wing a red teammate has open grass. Visually readable central cover with the cost of leaving the flank open, clean strong silhouettes, green grass, restrained stadium detail."
+      }
+    }
+  ],
+  "submission": {
+    "jobs": [
+      {
+        "index": 0,
+        "job_id": "fbc29555-2459-4221-98ca-f6bd8e411fbf",
+        "status": "pending",
+        "adjustments": {
+          "medias[0].role": {
+            "requested": "image",
+            "used": "image_references",
+            "reason": "GPT Image 2.5 backend expects schema-key media roles"
+          }
+        }
+      },
+      {
+        "index": 1,
+        "job_id": "fb1013b6-81d1-4c3c-805c-b3d982ead5e0",
+        "status": "pending",
+        "adjustments": {
+          "medias[0].role": {
+            "requested": "image",
+            "used": "image_references",
+            "reason": "GPT Image 2.5 backend expects schema-key media roles"
+          }
+        }
+      },
+      {
+        "index": 2,
+        "job_id": "7d74fb8f-e84e-4cb5-a0e4-d9233e2c8d4f",
+        "status": "pending",
+        "adjustments": {
+          "medias[0].role": {
+            "requested": "image",
+            "used": "image_references",
+            "reason": "GPT Image 2.5 backend expects schema-key media roles"
+          }
+        }
+      },
+      {
+        "index": 3,
+        "job_id": "c16dcbfa-b545-46b6-a86c-a2c067a4b467",
+        "status": "pending",
+        "adjustments": {
+          "medias[0].role": {
+            "requested": "image",
+            "used": "image_references",
+            "reason": "GPT Image 2.5 backend expects schema-key media roles"
+          }
+        }
+      }
+    ],
+    "submitted_count": 4,
+    "failed_count": 0
+  },
+  "completion": {
+    "jobs": [
+      {
+        "index": 0,
+        "job_id": "fbc29555-2459-4221-98ca-f6bd8e411fbf",
+        "status": "completed",
+        "type": "image",
+        "model": "gpt_image_2_5",
+        "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3HrIyz4YFlzGN7GR5SaK5i43kmH/hf_20260922_080508_fbc29555-2459-4221-98ca-f6bd8e411fbf.png"
+      },
+      {
+        "index": 1,
+        "job_id": "fb1013b6-81d1-4c3c-805c-b3d982ead5e0",
+        "status": "completed",
+        "type": "image",
+        "model": "gpt_image_2_5",
+        "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3HrIyz4YFlzGN7GR5SaK5i43kmH/hf_20260922_080510_fb1013b6-81d1-4c3c-805c-b3d982ead5e0.png"
+      },
+      {
+        "index": 2,
+        "job_id": "7d74fb8f-e84e-4cb5-a0e4-d9233e2c8d4f",
+        "status": "completed",
+        "type": "image",
+        "model": "gpt_image_2_5",
+        "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3HrIyz4YFlzGN7GR5SaK5i43kmH/hf_20260922_080508_7d74fb8f-e84e-4cb5-a0e4-d9233e2c8d4f.png"
+      },
+      {
+        "index": 3,
+        "job_id": "c16dcbfa-b545-46b6-a86c-a2c067a4b467",
+        "status": "completed",
+        "type": "image",
+        "model": "gpt_image_2_5",
+        "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3HrIyz4YFlzGN7GR5SaK5i43kmH/hf_20260922_080508_c16dcbfa-b545-46b6-a86c-a2c067a4b467.png"
+      }
+    ],
+    "summary": {
+      "total": 4,
+      "completed": 4,
+      "failed": 0,
+      "active": 0,
+      "errors": 0
+    },
+    "all_terminal": true
+  }
+}

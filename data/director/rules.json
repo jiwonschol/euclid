@@ -1,0 +1,29 @@
+{
+  "version": "director-1.0.1",
+  "halfSeconds": 2700,
+  "durations": {
+    "READY": 10,
+    "FLOW": 12,
+    "COMMAND": 6,
+    "PRESENT": 5,
+    "ADVANCE": 1,
+    "HALFTIME": 10
+  },
+  "baseDelta": 225,
+  "deltaMin": 200,
+  "deltaMax": 270,
+  "enabledCards": [
+    "support_flank",
+    "switch_play",
+    "run_inside",
+    "press_flank",
+    "screen_middle",
+    "delay_drop"
+  ],
+  "duelScale": 120,
+  "ratingCap": 20,
+  "passReach": 44,
+  "supportReach": 22,
+  "pressureReach": 11,
+  "foulRate": 0.018
+}

@@ -1,0 +1,190 @@
+{
+  "watch": {
+    "content": [
+      {
+        "type": "text",
+        "text": "Submitted 2/2 image generations.\n- index 16: fd07b9bc-fc35-4530-bb5a-482c903d5dd4 (pending)\n- index 18: 82a4b55c-3a5b-423f-af9d-a884d85fcf85 (pending)\nWait for the complete requested set with jobs_wait, then show it together with show_generation_by_ids using the collected indexed jobs. This includes jobs submitted across separate calls. job_display accepts only one id and cannot display a group; do not pass ids or call it once per job."
+      }
+    ],
+    "structuredContent": {
+      "jobs": [
+        {
+          "index": 16,
+          "job_id": "fd07b9bc-fc35-4530-bb5a-482c903d5dd4",
+          "status": "pending",
+          "adjustments": {
+            "medias[0].role": {
+              "requested": "image",
+              "used": "image_references",
+              "reason": "GPT Image 2.5 backend expects schema-key media roles"
+            }
+          }
+        },
+        {
+          "index": 18,
+          "job_id": "82a4b55c-3a5b-423f-af9d-a884d85fcf85",
+          "status": "pending",
+          "adjustments": {
+            "medias[0].role": {
+              "requested": "image",
+              "used": "image_references",
+              "reason": "GPT Image 2.5 backend expects schema-key media roles"
+            }
+          }
+        }
+      ],
+      "submitted_count": 2,
+      "failed_count": 0
+    },
+    "isError": false
+  },
+  "completed": [
+    {
+      "index": 9,
+      "job_id": "fe1d020f-60b7-42ab-84d6-b2a74e295fbe",
+      "status": "completed",
+      "type": "image",
+      "model": "gpt_image_2_5",
+      "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3HrIyz4YFlzGN7GR5SaK5i43kmH/hf_20260922_092028_fe1d020f-60b7-42ab-84d6-b2a74e295fbe.png"
+    },
+    {
+      "index": 10,
+      "job_id": "19b9a829-2dc8-4a20-b5e8-d29bbbec75c3",
+      "status": "completed",
+      "type": "image",
+      "model": "gpt_image_2_5",
+      "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3HrIyz4YFlzGN7GR5SaK5i43kmH/hf_20260922_092027_19b9a829-2dc8-4a20-b5e8-d29bbbec75c3.png"
+    },
+    {
+      "index": 12,
+      "job_id": "72eed4e0-c104-4e55-ae35-61d8aed50306",
+      "status": "completed",
+      "type": "image",
+      "model": "gpt_image_2_5",
+      "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3HrIyz4YFlzGN7GR5SaK5i43kmH/hf_20260922_092027_72eed4e0-c104-4e55-ae35-61d8aed50306.png"
+    },
+    {
+      "index": 13,
+      "job_id": "31f464a8-9e20-4694-bbd5-8a4f989b3105",
+      "status": "completed",
+      "type": "image",
+      "model": "gpt_image_2_5",
+      "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3HrIyz4YFlzGN7GR5SaK5i43kmH/hf_20260922_092027_31f464a8-9e20-4694-bbd5-8a4f989b3105.png"
+    },
+    {
+      "index": 14,
+      "job_id": "363f632d-60e5-4e85-9cb6-0df2a3e769ef",
+      "status": "completed",
+      "type": "image",
+      "model": "gpt_image_2_5",
+      "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3HrIyz4YFlzGN7GR5SaK5i43kmH/hf_20260922_092028_363f632d-60e5-4e85-9cb6-0df2a3e769ef.png"
+    },
+    {
+      "index": 15,
+      "job_id": "a1aa7947-027c-42d5-9e23-601b2b5b2236",
+      "status": "completed",
+      "type": "image",
+      "model": "gpt_image_2_5",
+      "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3HrIyz4YFlzGN7GR5SaK5i43kmH/hf_20260922_092027_a1aa7947-027c-42d5-9e23-601b2b5b2236.png"
+    },
+    {
+      "index": 16,
+      "job_id": "fd07b9bc-fc35-4530-bb5a-482c903d5dd4",
+      "status": "completed",
+      "type": "image",
+      "model": "gpt_image_2_5",
+      "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3HrIyz4YFlzGN7GR5SaK5i43kmH/hf_20260922_092206_fd07b9bc-fc35-4530-bb5a-482c903d5dd4.png"
+    },
+    {
+      "index": 18,
+      "job_id": "82a4b55c-3a5b-423f-af9d-a884d85fcf85",
+      "status": "completed",
+      "type": "image",
+      "model": "gpt_image_2_5",
+      "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3HrIyz4YFlzGN7GR5SaK5i43kmH/hf_20260922_092206_82a4b55c-3a5b-423f-af9d-a884d85fcf85.png"
+    }
+  ],
+  "commandRequests": [
+    {
+      "index": 17,
+      "assetId": "coach-blue-command",
+      "params": {
+        "model": "gpt_image_2_5",
+        "variant": "flare",
+        "quality": "high",
+        "resolution": "2k",
+        "count": 1,
+        "use_unlim": false,
+        "prompt": "Preserve the EXACT same coach, face, hairstyle, age, outfit and colors from the supplied reference. Change only pose to giving a clear instruction: right arm extended pointing RIGHT, left hand at waist, focused expression. One full body figure with feet/hands entirely inside frame and margin. True transparent RGBA, no ball, no text, no shadow, no checkerboard. Same crisp sports-anime drawing and cel shading.",
+        "aspect_ratio": "3:4",
+        "background": "transparent",
+        "medias": [
+          {
+            "role": "image",
+            "value": "fd07b9bc-fc35-4530-bb5a-482c903d5dd4"
+          }
+        ]
+      }
+    },
+    {
+      "index": 19,
+      "assetId": "coach-red-command",
+      "params": {
+        "model": "gpt_image_2_5",
+        "variant": "flare",
+        "quality": "high",
+        "resolution": "2k",
+        "count": 1,
+        "use_unlim": false,
+        "prompt": "Preserve the EXACT same coach, face, hairstyle, age, outfit and colors from the supplied reference. Change only pose to giving a clear instruction: right arm extended pointing RIGHT, left hand at waist, focused expression. One full body figure with feet/hands entirely inside frame and margin. True transparent RGBA, no ball, no text, no shadow, no checkerboard. Same crisp sports-anime drawing and cel shading.",
+        "aspect_ratio": "3:4",
+        "background": "transparent",
+        "medias": [
+          {
+            "role": "image",
+            "value": "82a4b55c-3a5b-423f-af9d-a884d85fcf85"
+          }
+        ]
+      }
+    }
+  ],
+  "commandSubmission": {
+    "content": [
+      {
+        "type": "text",
+        "text": "Submitted 2/2 image generations.\n- index 17: 5daeddd6-ddb0-4bbd-acf4-ade9584f8e88 (pending)\n- index 19: a949391f-04f1-4ef5-bdc1-065bf863db18 (pending)\nWait for the complete requested set with jobs_wait, then show it together with show_generation_by_ids using the collected indexed jobs. This includes jobs submitted across separate calls. job_display accepts only one id and cannot display a group; do not pass ids or call it once per job."
+      }
+    ],
+    "structuredContent": {
+      "jobs": [
+        {
+          "index": 17,
+          "job_id": "5daeddd6-ddb0-4bbd-acf4-ade9584f8e88",
+          "status": "pending",
+          "adjustments": {
+            "medias[0].role": {
+              "requested": "image",
+              "used": "image_references",
+              "reason": "GPT Image 2.5 backend expects schema-key media roles"
+            }
+          }
+        },
+        {
+          "index": 19,
+          "job_id": "a949391f-04f1-4ef5-bdc1-065bf863db18",
+          "status": "pending",
+          "adjustments": {
+            "medias[0].role": {
+              "requested": "image",
+              "used": "image_references",
+              "reason": "GPT Image 2.5 backend expects schema-key media roles"
+            }
+          }
+        }
+      ],
+      "submitted_count": 2,
+      "failed_count": 0
+    },
+    "isError": false
+  }
+}
