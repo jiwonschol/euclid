@@ -2,12 +2,12 @@
   "version": "director-1.0.1",
   "halfSeconds": 2700,
   "durations": {
-    "READY": 10,
-    "FLOW": 12,
+    "READY": 2,
+    "FLOW": 2.75,
     "COMMAND": 6,
-    "PRESENT": 5,
-    "ADVANCE": 1,
-    "HALFTIME": 10
+    "PRESENT": 3.5,
+    "ADVANCE": 0.25,
+    "HALFTIME": 2
   },
   "baseDelta": 225,
   "deltaMin": 200,

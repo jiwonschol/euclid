@@ -20,7 +20,7 @@ export function outcomeGame(rules,kind) {
   if(['GOAL','SAVE','MISS'].includes(kind)){p.position={x:39,z:0};control(g.state,p);}
   if(['CARRY','TACKLE'].includes(kind)){p.position={x:20,z:-25};control(g.state,p);g.state.players.filter(q=>q.team==='A'&&q.id!==p.id).forEach(q=>q.position.x=-35);player(g.state,'B5').position={x:24,z:-25};}
   g.advancePhase();g.advancePhase();if(['PASS','INTERCEPT'].includes(kind))g.queue({id:'support_flank',side:'left'});g.commit();
-  const index=g.resolution.beats.findIndex(b=>b.kind===kind&&(kind!=='CARRY'||b.eventTypes.includes('BEATEN')));if(index<0)continue;
-  g.remaining=rules.durations.PRESENT*(1-(index+.85)/g.resolution.beats.length);g.paused=true;return g;
+  const final=g.resolution.beats.at(-1);if(final.kind!==kind||(kind==='CARRY'&&!final.eventTypes.includes('BEATEN')))continue;
+  g.remaining=.3;g.paused=true;return g;
  }throw new Error('결과 장면을 찾지 못했습니다.');
 }

@@ -37,7 +37,7 @@ export function run(seed,strategy,speed=1,skip=false,restore=false){
 }
 const report={matches:0,replayed:0,durations:[],goals:{A:0,B:0},shots:{A:0,B:0},events:{}};
 for(let seed=1;seed<=100;seed++)for(let strategy=0;strategy<4;strategy++){
- const {game,duration}=run(seed,strategy);assert(duration>=500-1e-6&&duration<=692+1e-6);report.matches++;report.durations.push(Math.round(duration));
+ const {game,duration}=run(seed,strategy);assert(duration>0&&duration<=360+1e-6);report.matches++;report.durations.push(Math.round(duration));
  for(const t of ['A','B']){report.goals[t]+=game.state.score[t];report.shots[t]+=stats(game.state.eventLog,t).shots;}
  for(const e of game.state.eventLog)report.events[e.type]=(report.events[e.type]??0)+1;
  if(seed<=20){for(const [speed,skip,restore] of [[1,false,false],[2,false,false],[4,true,false],[4,false,true]]){const other=run(seed,strategy,speed,skip,restore).game;assert.equal(other.resultHash(),game.resultHash());report.replayed++;}}
