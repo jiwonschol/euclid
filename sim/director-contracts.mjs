@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { DirectorMatch } from '../js/director/match.js';
+import { DirectorMatch, presentationCuts } from '../js/director/match.js';
 import { command } from '../js/director/cards.js';
 import { copy,hash,isOffside,player,control } from '../js/director/state.js';
 import { resolveEncounter,passingOptions,stats } from '../js/director/resolve.js';
+import { interpolate } from '../js/ui/scene-player.js';
 const rules=JSON.parse(await readFile(new URL('../data/director/rules.json',import.meta.url)));
 const mainSource=await readFile(new URL('../js/director/main.js',import.meta.url),'utf8');
 let checks=0;
@@ -15,7 +16,7 @@ check('a rejected side change keeps the selection on the reserved side',()=>{
 });
 check('replay keeps side selection aligned with its reservation and locks both controls',()=>{
  assert.ok(mainSource.includes("function setSide(value){if(game.replayInputs)return;"));
- assert.ok(mainSource.includes("game.queue(entry?.command??command());side=game.pending.side;"));
+ assert.ok(mainSource.includes("game.queue(entry?.command??command());side=game.pending.side;game.commit();"));
  assert.ok(mainSource.includes("$('left').disabled=!!game.replayInputs;$('right').disabled=!!game.replayInputs;"));
 });
 check('one reservation replaces/cancels and duplicate commit does not score twice',()=>{
@@ -31,7 +32,7 @@ check('central screen and dropping create different real defensive positions',()
 });
 check('opponent intent cannot read a private reservation',()=>{const a=new DirectorMatch(rules,9),b=new DirectorMatch(rules,9);a.advancePhase();b.advancePhase();a.queue(command('support_flank'));assert.deepEqual(a.flow.opponentIntent,b.flow.opponentIntent);});
 check('FLOW preserves possession and core is independent of frame step',()=>{
- const a=new DirectorMatch(rules,7),b=new DirectorMatch(rules,7),owner=a.state.ball.ownerId;a.tick(22);for(let i=0;i<220;i++)b.tick(.1);assert.equal(a.state.ball.ownerId,owner);assert.equal(a.phase,'COMMAND');assert.equal(b.phase,'COMMAND');assert.equal(hash(a.state),hash(b.state));
+ const a=new DirectorMatch(rules,7),b=new DirectorMatch(rules,7),owner=a.state.ball.ownerId,time=rules.durations.READY+rules.durations.FLOW;a.tick(time);for(let elapsed=0;elapsed<time;elapsed+=.05)b.tick(Math.min(.05,time-elapsed));assert.equal(a.state.ball.ownerId,owner);assert.equal(a.phase,'COMMAND');assert.equal(b.phase,'COMMAND');assert.equal(hash(a.state),hash(b.state));
 });
 check('offside uses ball and second-last opponent at release, with restart exemptions',()=>{
  const g=ready(),s=g.state,p=player(s,'A9'),q=player(s,'A10');p.position.x=25;q.position.x=35;control(s,p);s.players.filter(p=>p.team==='B').forEach((p,i)=>p.position.x=i===0?49:30);
@@ -59,5 +60,14 @@ check('replay source survives snapshots and existing records still restore',()=>
  g.replayInputs=copy(g.inputLog);const restored=DirectorMatch.restore(g.snapshot(),rules);assert.deepEqual(restored.replayInputs,g.inputLog);
  const old=JSON.parse(g.snapshot());delete old.replayInputs;delete old.halftimeFlow;
  const legacy=DirectorMatch.restore(JSON.stringify(old),rules);assert.equal(legacy.replayInputs,null);assert.equal(legacy.resultHash(),g.resultHash());assert.deepEqual(legacy.records,old.records);
+});
+check('presentation names only recorded movers and reveals scores on the result cut',()=>{
+ const g=ready();g.queue(command('support_flank'));g.commit();const before=hash(g),cuts=presentationCuts(g.resolution),movers=g.resolution.appliedChanges.filter(c=>c.team==='A'&&Math.hypot(c.to.x-c.from.x,c.to.z-c.from.z)>.01).map(c=>c.playerId);
+ assert.deepEqual(cuts.find(c=>c.cut==='movement').actorIds,movers);assert.match(cuts[0].text,/측면 지원!/);assert.deepEqual(cuts.map(c=>c.cut),['directive','movement','opponent','ours',cuts[4].cut,'result']);assert(Math.abs(cuts.reduce((n,c)=>n+c.duration,0)-rules.durations.PRESENT)<1e-8);assert(cuts.every(c=>c.duration<=2));assert.equal(hash(g),before);
+ for(const cut of cuts.slice(0,-1)){assert.deepEqual(cut.from.score,g.flow.snapshot.score);assert.deepEqual(cut.to.score,g.flow.snapshot.score);}
+ const hold=ready();hold.commit();assert.match(presentationCuts(hold.resolution)[0].text,/지시 없음/);assert.equal(presentationCuts(hold.resolution)[1].actorIds.length,0);
+ assert.equal(interpolate(cuts.at(-1),false).ball.ownerId,cuts.at(-1).to.ball.ownerId);
+ const defence=ready();control(defence.state,player(defence.state,'B9'));const defendingCuts=presentationCuts(resolveEncounter(defence.state,command('screen_middle'),command(),rules));
+ assert(defendingCuts.find(c=>c.cut==='opponent').actorIds.every(id=>id.startsWith('B')));assert(defendingCuts.find(c=>c.cut==='ours').actorIds.every(id=>id.startsWith('A')));
 });
 console.log(`${checks} contract groups passed.`);

@@ -19,7 +19,7 @@ try {
  if(outcome){$('inspection').hidden=false;for(const [id,name] of Object.entries({PASS:'패스 연결',INTERCEPT:'패스 차단',CARRY:'돌파 성공',TACKLE:'돌파 실패',GOAL:'골',SAVE:'선방',MISS:'빗나감'})){const o=document.createElement('option');o.value=id;o.textContent=name;$('outcome-select').append(o);}$('outcome-select').value=outcome;$('outcome-select').onchange=()=>{game=outcomeGame(rules,$('outcome-select').value);syncSelection();lastPhase='';};}
  function save(){if(outcome||incompatibleRecord)return;try{localStorage.setItem(storageKey,game.snapshot());}catch{notice='이 브라우저에 기록을 저장할 공간이 부족합니다.';}}
  function restart(seed,profile=$('profile').value,replayInputs=null){game=new DirectorMatch(rules,seed,profile);game.replayInputs=replayInputs;syncSelection();cardKey='';lastPhase='';notice='';sliceMode=false;incompatibleRecord=null;save();}
- function queue(id,selectedSide=side){if(game.replayInputs)return;const error=game.queue(command(id,selectedSide),crypto.randomUUID());notice=error??`${CARDS[id].name} 예약. 확정 전까지 바꿀 수 있습니다.`;save();return error;}
+ function queue(id,selectedSide=side){if(game.replayInputs)return;const error=game.queue(command(id,selectedSide),crypto.randomUUID());if(!error&&game.phase==='HALFTIME')game.advancePhase();if(!error&&game.phase==='FLOW')game.advancePhase();if(!error&&game.phase==='COMMAND')game.commit();notice=error??`${CARDS[id].name} 확정. 결과를 확인하세요.`;save();return error;}
  // Keep both sets mounted: no-store must not turn possession changes into image downloads.
  $('cards').replaceChildren(...rules.enabledCards.map(id=>{const c=CARDS[id],button=document.createElement('button'),i=rules.enabledCards.filter(key=>CARDS[key].kind===c.kind).indexOf(id);button.className='card';button.dataset.card=id;button.setAttribute('aria-label',c.name);button.innerHTML=`${c.art?`<img class="art" src="${scene.manifest.assets[c.art].path}" alt="">`:'<div class="symbol">↗</div>'}<span class="key">${i+1}</span><span class="copy"><strong>${c.name}</strong><small>${c.detail}</small></span>`;const image=button.querySelector('img');if(image)image.onerror=()=>{const symbol=document.createElement('div');symbol.className='symbol';symbol.textContent='↗';image.replaceWith(symbol);assetNotice='일부 그림을 불러오지 못해 기본 표시로 진행합니다.';};button.onclick=()=>queue(id);return button;}));
  $('pause').onclick=()=>{game.paused=!game.paused;save();};
@@ -29,7 +29,6 @@ try {
  $('begin').onclick=()=>{incompatibleRecord=null;game.state.profile=$('profile').value;game.paused=false;game.advancePhase();save();};
  $('profile').onchange=()=>{if(game.phase==='READY'){game.state.profile=$('profile').value;save();}};
  $('slice').onclick=()=>{restart(42);sliceMode=true;save();};
- $('confirm').onclick=()=>{game.commit();save();};
  $('hold').onclick=()=>queue('hold');
  $('continue').onclick=()=>{if(game.phase==='HALFTIME'){game.advancePhase();game.paused=false;save();}};
  function setSide(value){if(game.replayInputs)return;if(game.pending.id!=='hold'&&['FLOW','COMMAND','HALFTIME'].includes(game.phase)){const error=queue(game.pending.id,value);side=error?game.pending.side:value;}else side=value;}
@@ -42,36 +41,37 @@ try {
  document.addEventListener('keydown',event=>{
    if(['INPUT','SELECT','TEXTAREA'].includes(event.target.tagName))return;
    if(event.code==='Space'){event.preventDefault();$('pause').click();}
-   if(event.key==='Enter'&&game.phase==='COMMAND')$('confirm').click();
+   if(event.key==='Enter'&&game.phase==='COMMAND')queue('hold');
    if(event.key==='Escape')queue('hold');
    if(event.key==='ArrowLeft')setSide('left');if(event.key==='ArrowRight')setSide('right');
    const n=Number(event.key);if(n>=1&&n<=3)$('cards').querySelectorAll('.card:not([hidden])')[n-1]?.click();
  });
  function render() {
    if(lastPhase!==game.phase){
-     if(game.phase==='COMMAND'&&game.replayInputs){const entry=game.replayInputs.find(x=>x.encounterId===game.state.encounterIndex+1);game.queue(entry?.command??command());side=game.pending.side;}
+     if(game.phase==='COMMAND'&&game.replayInputs){const entry=game.replayInputs.find(x=>x.encounterId===game.state.encounterIndex+1);game.queue(entry?.command??command());side=game.pending.side;game.commit();}
      if(game.phase==='FLOW'&&game.pending.id==='hold'){const s=game.commandSnapshot();if(s.ball.z!==0)side=s.ball.z*direction(s,'A')<0?'left':'right';}
    }
    const projection=game.projection(), shown=scene.draw(projection,$('reduced').checked);
    $('game').dataset.phase=game.phase;$('game').dataset.encounter=String(game.state.encounterIndex);$('game').classList.toggle('paused',game.paused);
    $('score').textContent=`${shown.score.A} : ${shown.score.B}`;
-   const sec=shown.matchSeconds;$('clock').textContent=`${shown.half===1?'전반':'후반'} ${String(Math.floor(sec/60)).padStart(2,'0')}:${String(sec%60).padStart(2,'0')}`;
+   const sec=Math.floor(shown.matchSeconds);$('clock').textContent=`${shown.half===1?'전반':'후반'} ${String(Math.floor(sec/60)).padStart(2,'0')}:${String(sec%60).padStart(2,'0')}`;
    $('phase').textContent=game.paused?'일시정지':phases[game.phase];$('pause').textContent=game.paused?'재개':'일시정지';$('speed').textContent=game.speed+'×';$('skip').disabled=game.phase!=='PRESENT';
    $('possession').textContent=`${shown.possessionTeam==='A'?'청해':'홍림'} 공격`;
-   const resultVisible=projection.t>=.6||['FLOW','COMMAND','READY','ADVANCE'].includes(game.phase);
    const owner=shown.players.find(p=>p.id===shown.ball.ownerId),nearest=owner?shown.players.filter(p=>p.team!==owner.team&&p.role!=='GK').sort((a,b)=>distance(a.position,owner.position)-distance(b.position,owner.position))[0]:null;
    const live=owner&&nearest?`${Math.abs(owner.position.z)>14?'측면':'중앙'}에서 ${owner.team==='A'?'청해':'홍림'} ${owner.number}번 소유. 수비수까지 ${Math.round(distance(owner.position,nearest.position))}m.`:'';
-   $('caption').textContent=game.phase==='FLOW'?live:resultVisible?projection.text:'선수들이 움직입니다.';
+   $('caption').textContent=game.phase==='FLOW'?live:projection.text;
+   $('directive').hidden=projection.cut!=='directive';$('directive').textContent=projection.cut==='directive'?projection.text:'';
    $('export-prior').hidden=!incompatibleRecord;
    $('welcome').hidden=game.phase!=='READY';$('review').hidden=game.phase!=='REVIEW'&&game.phase!=='HALFTIME';
    $('observation').textContent=game.phase==='FLOW'?live+' 상대의 준비 동작을 살펴보세요.':game.flow?.observation.text??'선수와 공의 위치를 여기에서 함께 확인합니다.';
    $('advice').textContent=game.flow&&['FLOW','COMMAND'].includes(game.phase)?`참모 제안 · ${CARDS[game.flow.advice.id].name}`:'';
-   $('turn-label').textContent=game.phase==='COMMAND'?'이번 움직임을 확정하세요':game.phase==='FLOW'?'다음 움직임 예약':'지시 도착과 결과';
-   $('timer').textContent=['FLOW','COMMAND'].includes(game.phase)?`${Math.ceil(game.remaining)}초`:'';
+   $('turn-label').textContent=game.phase==='COMMAND'?'누르면 바로 확정':game.phase==='FLOW'?'달리며 상황 확인':'지시 도착과 결과';
+   $('timer').textContent=game.phase==='COMMAND'?`${Math.ceil(game.remaining)}초`:'';
+   $('countdown').hidden=game.phase!=='COMMAND';$('countdown').value=game.phase==='COMMAND'?game.remaining:0;
    $('left').disabled=!!game.replayInputs;$('right').disabled=!!game.replayInputs;$('left').setAttribute('aria-pressed',side==='left');$('right').setAttribute('aria-pressed',side==='right');
    const displayed=['PRESENT','ADVANCE'].includes(game.phase)?game.resolution.committedCommand:game.pending;
    $('pending').textContent=CARDS[displayed.id].name;$('consequence').textContent=CARDS[displayed.id].cost;$('notice').textContent=[notice,assetNotice].filter(Boolean).join(' ');
-   $('confirm').disabled=game.phase!=='COMMAND'||!!game.replayInputs;$('hold').disabled=!['FLOW','COMMAND','HALFTIME'].includes(game.phase)||!!game.replayInputs;
+   $('hold').disabled=!['FLOW','COMMAND','HALFTIME'].includes(game.phase)||!!game.replayInputs;
    const snapshot=game.commandSnapshot(),attack=snapshot.possessionTeam==='A',ids=rules.enabledCards.filter(id=>CARDS[id].kind===(attack?'attack':'defence'));
    const key=ids.join(',');if(cardKey!==key){cardKey=key;for(const button of $('cards').children)button.hidden=!ids.includes(button.dataset.card);}
    for(const button of $('cards').children){const reason=legal(snapshot,'A',command(button.dataset.card,side),rules);button.disabled=button.hidden||!!reason||!['FLOW','COMMAND','HALFTIME'].includes(game.phase)||!!game.replayInputs;button.title=reason??CARDS[button.dataset.card].cost;button.setAttribute('aria-pressed',displayed.id===button.dataset.card);}
