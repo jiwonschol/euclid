@@ -1,4 +1,4 @@
-> 실행 업데이트: 새 경기와 25개 원본 에셋은 `director.html`과 `assets/director/manifest.json`에 연결했다. 이전 시안을 포함한 총 26개 생성 완료, 순 사용 78/300 크레딧, 대기 0, 잔여 222. 아래는 최초 제작 검증 기록이며 현재 구현 상태는 `../director-progress.md`를 따른다.
+> 실행 업데이트: 새 경기와 25개 WebP 배포본은 `director.html`과 `assets/director/manifest.json`에 연결했다. 중복 PNG 6개는 제거했고 제작 시안 페이지는 `assets/director/`의 보존 원본을 참조한다. 이전 시안을 포함한 총 26개 생성 완료, 순 사용 78/300 크레딧, 대기 0, 잔여 222. 아래는 최초 제작 검증 기록이며 현재 구현 상태는 `../director-progress.md`를 따른다.
 
 # 감독 카드 게임 — 이미지 제작 검증
 
@@ -7,8 +7,8 @@
 | 파일 | 원본 크기 | 배경 | 확인한 용도 |
 |---|---|---|---|
 | [encounter-style.png](encounter-style.png) | 2688×1520 | 불투명 | 두 선수의 대치, 팀 색과 화풍 참고. 공·배우가 그려져 있어 배경으로 재사용하지 않음 |
-| [stadium-empty.png](stadium-empty.png) | 2688×1520 | 불투명 | 공·경기 중 선수를 제거한 경기장. 골문/지평선의 카메라 보정은 M2에서 수행 |
-| [striker-ready.png](striker-ready.png) | 1744×2336 | 실제 RGBA | 공이 없는 파란 팀 선수. 동일 참조 이미지로 외형·유니폼 유지 |
+| [stadium-empty.png](../../assets/director/stadium-empty.png) | 2688×1520 | 불투명 | 공·경기 중 선수를 제거한 경기장. 골문/지평선의 카메라 보정은 M2에서 수행 |
+| [striker-ready.png](../../assets/director/striker-ready.png) | 1744×2336 | 실제 RGBA | 공이 없는 파란 팀 선수. 동일 참조 이미지로 외형·유니폼 유지 |
 
 모델은 `gpt_image_2_5`, 설정은 `flare / high / 2k`, 각 1장이다. 최초 장면 작업 ID를 배경·선수 작업의 참조로 사용했다. 생성 요청마다 3크레딧 견적을 확인했고, 세 작업 후 계정 잔액이 910→901로 변했다. 이번 작업 사용액은 **9/300크레딧**, 남은 승인 예산은 **291크레딧**, 진행 중 유료 작업은 0개다. 개별 최종 영수증은 도구 결과에 없으므로 장부에는 작업별 견적과 전체 잔액 차이를 구분했다.
 

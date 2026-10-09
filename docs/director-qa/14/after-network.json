@@ -1,0 +1,69 @@
+[
+  {
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "initialImageBytes": 7705006,
+    "initialImageRequests": 25,
+    "matchCardRequests": 6,
+    "cardPaths": [
+      "/assets/director/card-switch.webp",
+      "/assets/director/card-screen.webp",
+      "/assets/director/card-drop.webp",
+      "/assets/director/card-press.webp",
+      "/assets/director/card-support.webp",
+      "/assets/director/card-inside.webp"
+    ],
+    "networkFailures": [],
+    "pageErrors": [],
+    "encounters": 26,
+    "score": {
+      "A": 0,
+      "B": 0
+    },
+    "phases": [
+      "FLOW",
+      "COMMAND",
+      "PRESENT",
+      "HALFTIME"
+    ]
+  },
+  {
+    "viewport": {
+      "width": 1920,
+      "height": 1080
+    },
+    "initialImageBytes": 7705006,
+    "initialImageRequests": 25,
+    "matchCardRequests": 6,
+    "cardPaths": [
+      "/assets/director/card-support.webp",
+      "/assets/director/card-inside.webp",
+      "/assets/director/card-screen.webp",
+      "/assets/director/card-switch.webp",
+      "/assets/director/card-drop.webp",
+      "/assets/director/card-press.webp"
+    ],
+    "networkFailures": [],
+    "pageErrors": [],
+    "encounters": 26,
+    "score": {
+      "A": 0,
+      "B": 0
+    },
+    "phases": [
+      "FLOW",
+      "COMMAND",
+      "PRESENT",
+      "HALFTIME"
+    ]
+  },
+  {
+    "missingAssetFallback": "일부 그림을 불러오지 못해 기본 표시로 진행합니다.",
+    "phase": "FLOW"
+  },
+  {
+    "secondaryEntriesFailures": []
+  }
+]

@@ -20,6 +20,8 @@ try {
  function save(){if(outcome||incompatibleRecord)return;try{localStorage.setItem(storageKey,game.snapshot());}catch{notice='이 브라우저에 기록을 저장할 공간이 부족합니다.';}}
  function restart(seed,profile=$('profile').value,replayInputs=null){game=new DirectorMatch(rules,seed,profile);game.replayInputs=replayInputs;syncSelection();cardKey='';lastPhase='';notice='';sliceMode=false;incompatibleRecord=null;save();}
  function queue(id,selectedSide=side){if(game.replayInputs)return;const error=game.queue(command(id,selectedSide),crypto.randomUUID());notice=error??`${CARDS[id].name} 예약. 확정 전까지 바꿀 수 있습니다.`;save();return error;}
+ // Keep both sets mounted: no-store must not turn possession changes into image downloads.
+ $('cards').replaceChildren(...rules.enabledCards.map(id=>{const c=CARDS[id],button=document.createElement('button'),i=rules.enabledCards.filter(key=>CARDS[key].kind===c.kind).indexOf(id);button.className='card';button.dataset.card=id;button.setAttribute('aria-label',c.name);button.innerHTML=`${c.art?`<img class="art" src="${scene.manifest.assets[c.art].path}" alt="">`:'<div class="symbol">↗</div>'}<span class="key">${i+1}</span><span class="copy"><strong>${c.name}</strong><small>${c.detail}</small></span>`;const image=button.querySelector('img');if(image)image.onerror=()=>{const symbol=document.createElement('div');symbol.className='symbol';symbol.textContent='↗';image.replaceWith(symbol);assetNotice='일부 그림을 불러오지 못해 기본 표시로 진행합니다.';};button.onclick=()=>queue(id);return button;}));
  $('pause').onclick=()=>{game.paused=!game.paused;save();};
  $('speed').onclick=()=>{game.speed=game.speed===4?1:game.speed*2;};
  $('skip').onclick=()=>{game.skip();save();};
@@ -43,7 +45,7 @@ try {
    if(event.key==='Enter'&&game.phase==='COMMAND')$('confirm').click();
    if(event.key==='Escape')queue('hold');
    if(event.key==='ArrowLeft')setSide('left');if(event.key==='ArrowRight')setSide('right');
-   const n=Number(event.key);if(n>=1&&n<=3)$('cards').children[n-1]?.click();
+   const n=Number(event.key);if(n>=1&&n<=3)$('cards').querySelectorAll('.card:not([hidden])')[n-1]?.click();
  });
  function render() {
    if(lastPhase!==game.phase){
@@ -71,8 +73,8 @@ try {
    $('pending').textContent=CARDS[displayed.id].name;$('consequence').textContent=CARDS[displayed.id].cost;$('notice').textContent=[notice,assetNotice].filter(Boolean).join(' ');
    $('confirm').disabled=game.phase!=='COMMAND'||!!game.replayInputs;$('hold').disabled=!['FLOW','COMMAND','HALFTIME'].includes(game.phase)||!!game.replayInputs;
    const snapshot=game.commandSnapshot(),attack=snapshot.possessionTeam==='A',ids=rules.enabledCards.filter(id=>CARDS[id].kind===(attack?'attack':'defence'));
-   const key=ids.join(',');if(cardKey!==key){cardKey=key;$('cards').replaceChildren(...ids.map((id,i)=>{const c=CARDS[id],button=document.createElement('button');button.className='card';button.dataset.card=id;button.setAttribute('aria-label',c.name);button.innerHTML=`${c.art?`<img class="art" src="assets/director/${c.art}.png" alt="">`:'<div class="symbol">↗</div>'}<span class="key">${i+1}</span><span class="copy"><strong>${c.name}</strong><small>${c.detail}</small></span>`;button.onclick=()=>queue(id);return button;}));}
-   for(const button of $('cards').children){const reason=legal(snapshot,'A',command(button.dataset.card,side),rules);button.disabled=!!reason||!['FLOW','COMMAND','HALFTIME'].includes(game.phase)||!!game.replayInputs;button.title=reason??CARDS[button.dataset.card].cost;button.setAttribute('aria-pressed',displayed.id===button.dataset.card);}
+   const key=ids.join(',');if(cardKey!==key){cardKey=key;for(const button of $('cards').children)button.hidden=!ids.includes(button.dataset.card);}
+   for(const button of $('cards').children){const reason=legal(snapshot,'A',command(button.dataset.card,side),rules);button.disabled=button.hidden||!!reason||!['FLOW','COMMAND','HALFTIME'].includes(game.phase)||!!game.replayInputs;button.title=reason??CARDS[button.dataset.card].cost;button.setAttribute('aria-pressed',displayed.id===button.dataset.card);}
    $('seed-label').textContent=`경기 ${game.state.seed} · ${game.state.encounterIndex}국면`;
    if(lastPhase!==game.phase) {
      lastPhase=game.phase;if(game.phase==='FLOW')notice='';if(game.phase==='PRESENT')notice=`${CARDS[game.resolution.committedCommand.id].name} 전달됨. 결과를 확인하세요.`;save();

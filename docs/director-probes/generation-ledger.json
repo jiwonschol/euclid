@@ -121,7 +121,7 @@
         "34b8633a-0d17-4664-ab2b-3356a5c58cc0"
       ],
       "resultUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3HrIyz4YFlzGN7GR5SaK5i43kmH/hf_20260922_063030_c475f25a-fa95-4776-b1c3-02a33d17271d.png",
-      "file": "striker-ready.png",
+      "file": "assets/director/striker-ready.png",
       "sha256": "1495a91c187fbf19619e1b52fcda1a65f607eef998d4767779c41dce02fca808",
       "pixelWidth": 1744,
       "pixelHeight": 2336,
@@ -172,7 +172,7 @@
         "34b8633a-0d17-4664-ab2b-3356a5c58cc0"
       ],
       "resultUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3HrIyz4YFlzGN7GR5SaK5i43kmH/hf_20260922_063034_84871637-5452-4584-b8dc-f3ba442d613c.png",
-      "file": "stadium-empty.png",
+      "file": "assets/director/stadium-empty.png",
       "sha256": "aec05840c543567a145bdab3ece691cc51d91308b434f385a81beb33c8ade5f2",
       "pixelWidth": 2688,
       "pixelHeight": 1520,
@@ -187,7 +187,7 @@
       "assetId": "defender-ready",
       "status": "completed",
       "jobId": "fbc29555-2459-4221-98ca-f6bd8e411fbf",
-      "file": "defender-ready.png",
+      "file": "assets/director/defender-ready.png",
       "resultUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3HrIyz4YFlzGN7GR5SaK5i43kmH/hf_20260922_080508_fbc29555-2459-4221-98ca-f6bd8e411fbf.png",
       "params": {
         "model": "gpt_image_2_5",
@@ -219,7 +219,7 @@
       "assetId": "keeper-ready",
       "status": "completed",
       "jobId": "fb1013b6-81d1-4c3c-805c-b3d982ead5e0",
-      "file": "keeper-ready.png",
+      "file": "assets/director/keeper-ready.png",
       "resultUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3HrIyz4YFlzGN7GR5SaK5i43kmH/hf_20260922_080510_fb1013b6-81d1-4c3c-805c-b3d982ead5e0.png",
       "params": {
         "model": "gpt_image_2_5",
@@ -251,7 +251,7 @@
       "assetId": "card-support",
       "status": "completed",
       "jobId": "7d74fb8f-e84e-4cb5-a0e4-d9233e2c8d4f",
-      "file": "card-support.png",
+      "file": "assets/director/card-support.png",
       "resultUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3HrIyz4YFlzGN7GR5SaK5i43kmH/hf_20260922_080508_7d74fb8f-e84e-4cb5-a0e4-d9233e2c8d4f.png",
       "params": {
         "model": "gpt_image_2_5",
@@ -283,7 +283,7 @@
       "assetId": "card-screen",
       "status": "completed",
       "jobId": "c16dcbfa-b545-46b6-a86c-a2c067a4b467",
-      "file": "card-screen.png",
+      "file": "assets/director/card-screen.png",
       "resultUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3HrIyz4YFlzGN7GR5SaK5i43kmH/hf_20260922_080508_c16dcbfa-b545-46b6-a86c-a2c067a4b467.png",
       "params": {
         "model": "gpt_image_2_5",
