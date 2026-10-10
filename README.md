@@ -18,7 +18,7 @@
 
 `npm run test:director:quick`은 핵심 계약·카드별 이득/대가·에셋 연결을 검사한다. `npm run test:director`는 여기에 400경기 완주와 320회 결정론 비교를 포함한다. 실행 증거와 남은 일은 [진행 문서](docs/director-progress.md), 구현 계약은 [정본 계획](docs/director_game_plan.md)을 본다.
 
-현재 판정 버전은 `director-1.0.1`이다. 시드와 명령 기록이 같으면 결과가 같고, 진행 시간 설정이 달라진 저장은 자동 변환하지 않는다. 이전 기록을 내보내거나 새 경기를 시작할 수 있다. 이번 화면 변경의 기준은 [이슈 #19](https://github.com/jiwonschol/euclid/issues/19)와 [경기 문법 조사](docs/reference/captain_tsubasa_match_grammar.md)다. 기존 계획의 24초 국면·예약 후 확정 계약은 이 지시로 교체됐다.
+현재 판정 버전은 `director-1.0.2`이다. 같은 판정 버전·규칙에서 시드와 명령 기록이 같으면 결과가 같다. 판정 버전이나 진행 시간 설정이 달라진 저장은 자동 변환하지 않는다. 이전 기록을 내보내거나 새 경기를 시작할 수 있다. 이번 화면 변경의 기준은 [이슈 #19](https://github.com/jiwonschol/euclid/issues/19)와 [경기 문법 조사](docs/reference/captain_tsubasa_match_grammar.md)다. 기존 계획의 24초 국면·예약 후 확정 계약은 이 지시로 교체됐다.
 
 기술 검증과 재미 검증은 구분한다. 고정 시드 400경기에서 합계 1,026회 슛·341골이 발생했다. 경기당 약 2.57회 슛·0.85골이며, 청해와 홍림의 합계도 비대칭이다. 네 입력 전략과 상대 프로필을 섞은 검사이므로 승률 균형을 증명하지 않는다. **공격 기회와 선택의 재미는 사람 플레이 평가가 남아 있다.**
 

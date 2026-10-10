@@ -70,6 +70,12 @@ check('20 seeds replay identically; score and shot accounting use events',()=>{
 check('restore before/after decision and during playback never redraws the result',()=>{
  for(const phase of ['COMMAND','PRESENT','ADVANCE']){const a=ready(72);a.queue(command('support_flank'));if(phase!=='COMMAND')a.commit();if(phase==='ADVANCE')a.skip();const b=DirectorMatch.restore(a.snapshot(),rules);b.paused=false;if(phase==='COMMAND'){a.commit();b.commit();}a.tick(6);b.tick(6);assert.equal(a.resultHash(),b.resultHash());assert.equal(a.records.length,b.records.length);}
 });
+check('restore rejects director-1.0.1 saves after the adjudication version changes',()=>{
+ const previous=copy(rules);previous.version='director-1.0.1';
+ const g=new DirectorMatch(previous,72);g.advancePhase();g.advancePhase();g.commit();
+ assert.throws(()=>DirectorMatch.restore(g.snapshot(),rules),/경기 규칙이 바뀌었습니다/);
+ assert.equal(DirectorMatch.restore(g.snapshot(),previous).resultHash(),g.resultHash());
+});
 check('halftime reservation uses the upcoming kickoff without mutating the current state',()=>{
  const g=new DirectorMatch(rules,42);while(g.phase!=='HALFTIME')g.advancePhase();
  const before=g.resultHash();assert.equal(g.state.ball.ownerId,null);
