@@ -14,7 +14,7 @@ export function chooseAction(s,cmd,rules,changes=[]) {
     let value=(q.position.x-p.position.x)*dir*0.8+Math.min(10,clear)*1.4-distance(q.position,p.position)*0.2;
     if(cmd.id==='support_flank' && changes.some(c=>c.playerId===q.id)) value+=28;
     if(cmd.id==='switch_play') value+=Math.abs(q.position.z-p.position.z)*1.2;
-    if(cmd.id==='run_inside') value+=Math.max(0,22-Math.abs(q.position.z))*1.5;
+    if(cmd.id==='run_inside' && changes.some(c=>c.playerId===q.id)) value+=Math.max(0,22-Math.abs(q.position.z))*1.5;
     return value;
   };
   receivers.sort((a,b)=>score(b)-score(a));

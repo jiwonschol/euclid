@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { DirectorMatch, presentationCuts } from '../js/director/match.js';
-import { command } from '../js/director/cards.js';
+import { command,legal,applyCommand } from '../js/director/cards.js';
 import { copy,hash,isOffside,player,control } from '../js/director/state.js';
-import { resolveEncounter,passingOptions,stats } from '../js/director/resolve.js';
+import { resolveEncounter,passingOptions,chooseAction,stats } from '../js/director/resolve.js';
 import { interpolate } from '../js/ui/scene-player.js';
 const rules=JSON.parse(await readFile(new URL('../data/director/rules.json',import.meta.url)));
 const mainSource=await readFile(new URL('../js/director/main.js',import.meta.url),'utf8');
@@ -25,6 +25,29 @@ check('one reservation replaces/cancels and duplicate commit does not score twic
 check('support actually moves a fullback and leaves exposure in the next state',()=>{
  const g=ready();const s=g.state,before=hash(s),base=resolveEncounter(s,command(),command(),rules),support=resolveEncounter(s,command('support_flank'),command(),rules);
  assert.notEqual(base.afterHash,support.afterHash);const c=support.appliedChanges.find(c=>c.team==='A');assert(c);assert.notDeepEqual(c.from,c.to);assert(support.nextState.tacticalExposure.some(e=>e.kind==='flank'&&e.actorIds.includes(c.playerId)));assert.equal(hash(s),before);
+});
+check('flank support rejects an unreachable opposite fullback and commits only a reachable receiver',()=>{
+ const s=ready().state,p=player(s,'A9'),q=player(s,'A5');s.restart=null;p.position={x:20,z:-28};control(s,p);
+ player(s,'A2').active=false;q.position={x:-28,z:25};const cmd=command('support_flank','left'),before=hash(s);
+ assert.ok(legal(s,'A',cmd,rules),'unreachable opposite fullback must reject');assert.equal(hash(s),before);
+ assert.equal(resolveEncounter(s,cmd,command(),rules).committedCommand.id,'hold');
+ q.position={x:10,z:-25};assert.equal(legal(s,'A',cmd,rules),null);
+ const preview=copy(s),changes=applyCommand(preview,'A',cmd);
+ assert(passingOptions(preview,rules).some(q=>q.id===changes[0].playerId));
+ const committed=resolveEncounter(s,cmd,command(),rules);assert.equal(committed.committedCommand.id,cmd.id);
+ assert.equal(committed.events.find(e=>e.type==='PASS').receiverId,changes[0].playerId);
+});
+check('inside run prioritizes its moved receiver over an idle central midfielder',()=>{
+ const s=ready().state,p=player(s,'A9'),runner=player(s,'A10'),idle=player(s,'A6');s.restart=null;
+ p.position={x:0,z:0};runner.position={x:-10,z:0};idle.position={x:10,z:0};control(s,p);
+ for(const q of s.players.filter(q=>q.team==='A'&&![p.id,runner.id,idle.id].includes(q.id)))q.position={x:-45,z:30};
+ for(const q of s.players.filter(q=>q.team==='B'))q.position={x:40,z:30};
+ const cmd=command('run_inside');assert.equal(legal(s,'A',cmd,rules),null);
+ const preview=copy(s),changes=applyCommand(preview,'A',cmd),candidates=passingOptions(preview,rules);
+ assert.equal(changes[0].playerId,runner.id);assert(candidates.some(q=>q.id===runner.id));assert(candidates.some(q=>q.id===idle.id));
+ assert.equal(chooseAction(preview,cmd,rules,changes).receiverId,runner.id);
+ const committed=resolveEncounter(s,cmd,command(),rules);assert.equal(committed.committedCommand.id,cmd.id);
+ assert.equal(committed.events.find(e=>e.type==='PASS').receiverId,runner.id);
 });
 check('central screen and dropping create different real defensive positions',()=>{
  const g=ready();control(g.state,player(g.state,'B9'));const a=resolveEncounter(g.state,command('screen_middle'),command(),rules),b=resolveEncounter(g.state,command('delay_drop'),command(),rules);
