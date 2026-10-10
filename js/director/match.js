@@ -42,7 +42,7 @@ export class DirectorMatch {
   queue(cmd,id) {
     if(!['FLOW','COMMAND','HALFTIME'].includes(this.phase)) return '현재 지시는 확정됐습니다.';
     if(id&&this.seenCommands.includes(id)) return '이미 접수한 입력입니다.';
-    const s=this.commandSnapshot(), error=legal(s,'A',cmd,this.rules); if(error) return error;
+    const s=this.commandSnapshot(), error=legal(s,'A',cmd,this.rules,(this.halftimeFlow??this.flow)?.opponentIntent); if(error) return error;
     if(id) this.seenCommands.push(id);
     this.commandEvents.push({type:cmd.id==='hold'?'COMMAND_CANCELED':this.pending.id==='hold'?'COMMAND_QUEUED':'COMMAND_REPLACED',encounterId:s.encounterIndex+1,cardId:cmd.id});
     this.pending=copy(cmd); return null;
@@ -51,7 +51,7 @@ export class DirectorMatch {
   commit() {
     if(this.phase!=='COMMAND') return false;
     const id=this.state.encounterIndex+1;if(this.resolvedIds.includes(id)) return false;
-    if(legal(this.state,'A',this.pending,this.rules)) this.pending=command();
+    if(legal(this.state,'A',this.pending,this.rules,this.flow.opponentIntent)) this.pending=command();
     this.commandEvents.push({type:'COMMAND_COMMITTED',encounterId:id,cardId:this.pending.id});
     this.inputLog.push({encounterId:id,command:copy(this.pending)});
     this.resolution=resolveEncounter(this.state,this.pending,this.flow.opponentIntent,this.rules);
@@ -59,7 +59,7 @@ export class DirectorMatch {
   }
   advancePhase() {
     if(['READY','HALFTIME'].includes(this.phase)) this.beginFlow();
-    else if(this.phase==='FLOW') {this.state=copy(this.flow.snapshot);this.state.eventLog.push(...copy(this.flow.events));if(legal(this.state,'A',this.pending,this.rules)){this.commandEvents.push({type:'COMMAND_INVALIDATED',cardId:this.pending.id,reason:legal(this.state,'A',this.pending,this.rules),encounterId:this.flow.id});this.pending=command();}this.setPhase('COMMAND');}
+    else if(this.phase==='FLOW') {this.state=copy(this.flow.snapshot);this.state.eventLog.push(...copy(this.flow.events));const reason=legal(this.state,'A',this.pending,this.rules,this.flow.opponentIntent);if(reason){this.commandEvents.push({type:'COMMAND_INVALIDATED',cardId:this.pending.id,reason,encounterId:this.flow.id});this.pending=command();}this.setPhase('COMMAND');}
     else if(this.phase==='COMMAND') this.commit();
     else if(this.phase==='PRESENT') this.setPhase('ADVANCE');
     else if(this.phase==='ADVANCE') {

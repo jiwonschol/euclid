@@ -47,7 +47,7 @@ export function prepareEncounter(state,rules) {
   events.forEach((e,i)=>{e.id=`f${s.encounterIndex+1}-${i+1}`;e.encounterId=s.encounterIndex+1;});
   const side=p.position.z*direction(s,'A')<0?'left':'right';
   const suggested=p.team==='A'?(wing?'support_flank':'run_inside'):(distance(threat.position,p.position)<7?'delay_drop':'screen_middle');
-  const advice=legal(s,'A',command(suggested,side),rules)?command():command(suggested,side);
+  const advice=legal(s,'A',command(suggested,side),rules,opponentIntent)?command():command(suggested,side);
   return {id:s.encounterIndex+1,from,to:visual(s),initialState,snapshot:s,opponentIntent,events,advice,
     observation:{carrierId:p.id,defenderId:threat.id,space:Math.round(distance(p.position,threat.position)),zone:wing?'측면':'중앙',text:`${wing?'측면':'중앙'}에서 ${p.team==='A'?'청해':'홍림'} ${p.number}번 소유. 수비수까지 ${Math.round(distance(p.position,threat.position))}m.${events.some(e=>e.type==='PREPARE_MOVE')?' 홍림 '+events.filter(e=>e.type==='PREPARE_MOVE').map(e=>player(s,e.actorId).number+'번 '+e.cue).join(' · '):''}`}};
 }

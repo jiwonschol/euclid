@@ -14,19 +14,22 @@ export function chooseAction(s,cmd,rules,changes=[]) {
     let value=(q.position.x-p.position.x)*dir*0.8+Math.min(10,clear)*1.4-distance(q.position,p.position)*0.2;
     if(cmd.id==='support_flank' && changes.some(c=>c.playerId===q.id)) value+=28;
     if(cmd.id==='switch_play') value+=Math.abs(q.position.z-p.position.z)*1.2;
-    if(cmd.id==='run_inside') value+=Math.max(0,22-Math.abs(q.position.z))*1.5;
     return value;
   };
   receivers.sort((a,b)=>score(b)-score(a));
   const q=receivers[0];
-  if(q && (score(q)>5 || cmd.id!=='hold')) return {type:Math.abs(p.position.z)>19&&goalDistance<32&&Math.abs(q.position.z)<12?'CROSS':cmd.id==='switch_play'?'AERIAL_PASS':'PASS',receiverId:q.id};
+  if(q && (score(q)>5 || cmd.id!=='hold')) {
+    const receiver=['support_flank','run_inside'].includes(cmd.id)?receivers.find(q=>changes.some(c=>c.playerId===q.id)):q;
+    const type=Math.abs(p.position.z)>19&&goalDistance<32&&Math.abs(receiver.position.z)<12?'CROSS':cmd.id==='switch_play'?'AERIAL_PASS':'PASS';
+    return {type,receiverId:receiver.id};
+  }
   return {type:'CARRY'};
 }
 export function resolveEncounter(snapshot,userCommand,opponentIntent,rules) {
   const s=copy(snapshot), beforeHash=hash(snapshot), events=[],beats=[],contests=[];
   const rng=createRng(s.rngStates.contest), id=s.encounterIndex+1, beaten=new Set();
   const chosen={A:copy(userCommand),B:copy(opponentIntent)};
-  for(const team of ['A','B']) if(legal(s,team,chosen[team],rules)) chosen[team]=command();
+  for(const team of [other(s.possessionTeam),s.possessionTeam]) if(legal(s,team,chosen[team],rules,chosen[other(team)])) chosen[team]=command();
   const attackTeam=s.possessionTeam, attackCommand=chosen[attackTeam], appliedChanges=[];
   const name=p=>`${p.team==='A'?'청해':'홍림'} ${p.number}번`;
   function emit(type,data={}) {const e={id:`e${id}-${events.length+1}`,encounterId:id,type,...data}; events.push(e); s.eventLog.push(e); return e;}
