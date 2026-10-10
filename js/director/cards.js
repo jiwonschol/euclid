@@ -9,7 +9,7 @@ export const CARDS = {
   delay_drop:{name:'후퇴 지연',kind:'defence',detail:'달려들지 않고 골 방향으로 복귀합니다.',cost:'당장 빼앗을 기회와 전진 공간을 내줍니다.',tempo:0,art:'card-drop'}
 };
 export const command = (id='hold',side='left') => ({id,side});
-export function legal(s, team, cmd, rules) {
+export function legal(s, team, cmd, rules, opponentCommand=command()) {
   const c=CARDS[cmd?.id]; if (!c) return '없는 지시입니다.';
   if(c.kind==='any') return null;
   if(!rules.enabledCards.includes(cmd.id)) return '아직 사용할 수 없는 지시입니다.';
@@ -21,7 +21,9 @@ export function legal(s, team, cmd, rules) {
   if(cmd.id==='press_flank'&&(Math.abs(p.position.z)<10 || Math.sign(p.position.z*direction(s,team))!==(cmd.side==='left'?-1:1)))return '공이 있는 측면을 선택하세요.';
   if(cmd.id==='support_flank' && !teamPlayers(s,team).some(q=>q.role==='FB'&&q.id!==p.id)) return '지원할 풀백이 없습니다.';
   if(cmd.id==='support_flank') {
-    const preview=copy(s),changes=applyCommand(preview,team,cmd),q=preview.players.find(q=>q.id===changes[0].playerId);
+    const preview=copy(s);
+    if(!legal(preview,other(team),opponentCommand,rules)) applyCommand(preview,other(team),opponentCommand);
+    const changes=applyCommand(preview,team,cmd),q=preview.players.find(q=>q.id===changes[0].playerId);
     if(distance(p.position,q.position)>=rules.supportReach || isOffside(preview,carrier(preview),q)) return '이동 뒤 패스를 받을 수 있는 풀백이 없습니다.';
   }
   if(['switch_play','run_inside'].includes(cmd.id)&&!teamPlayers(s,team).some(q=>q.id!==p.id&&q.role!=='GK'&&!isOffside(s,p,q))) return '합법적인 연결 선수가 없습니다.';

@@ -37,6 +37,34 @@ check('flank support rejects an unreachable opposite fullback and commits only a
  const committed=resolveEncounter(s,cmd,command(),rules);assert.equal(committed.committedCommand.id,cmd.id);
  assert.equal(committed.events.find(e=>e.type==='PASS').receiverId,changes[0].playerId);
 });
+check('defensive drop allows seed 32 encounter 21 support through reservation and commit',()=>{
+ const g=new DirectorMatch(rules,32,'patient');
+ while(!(g.phase==='FLOW'&&g.flow.id===21))g.advancePhase();
+ assert.equal(g.flow.snapshot.half,2);assert.equal(g.flow.opponentIntent.id,'delay_drop');
+ assert(g.flow.events.some(e=>e.type==='PREPARE_MOVE'));assert(g.projection().text.includes('골 방향 복귀'));
+ const s=g.commandSnapshot(),cmd=command('support_flank','left'),before=hash(s),preview=copy(s);
+ const early=applyCommand(preview,'A',cmd),q=player(preview,early[0].playerId);assert(isOffside(preview,player(preview,s.ball.ownerId),q));
+ const actual=copy(s);applyCommand(actual,'B',g.flow.opponentIntent);const changes=applyCommand(actual,'A',cmd);
+ assert(passingOptions(actual,rules).some(q=>q.id===changes[0].playerId));
+ assert.equal(legal(s,'A',cmd,rules,g.flow.opponentIntent),null,'defensive drop must allow newly onside fullback');assert.equal(hash(s),before);
+ assert.equal(resolveEncounter(s,cmd,g.flow.opponentIntent,rules).committedCommand.id,cmd.id);
+ assert.equal(g.queue(cmd),null);g.advancePhase();assert.equal(g.pending.id,cmd.id);assert(g.commit());
+ assert.equal(g.resolution.committedCommand.id,cmd.id);assert.equal(g.inputLog.at(-1).command.id,cmd.id);
+ assert.equal(g.resolution.events.find(e=>e.type==='PASS').receiverId,changes[0].playerId);
+});
+check('defensive screen rejects newly offside support before charging its exposure',()=>{
+ const g=ready(),s=g.state,p=player(s,'A9'),cmd=command('support_flank','left'),defence=command('screen_middle');
+ s.restart=null;p.position={x:20,z:-10};control(s,p);player(s,'A2').active=false;player(s,'A5').position={x:49,z:28};
+ for(const q of s.players.filter(q=>q.team==='B'))q.position={x:10,z:30};
+ player(s,'B1').position={x:49,z:0};player(s,'B6').position={x:40,z:0};player(s,'B7').position={x:40,z:0};
+ const before=hash(s),early=copy(s),changes=applyCommand(early,'A',cmd);assert(passingOptions(early,rules).some(q=>q.id===changes[0].playerId));
+ const actual=copy(s);applyCommand(actual,'B',defence);applyCommand(actual,'A',cmd);assert(!passingOptions(actual,rules).some(q=>q.id===changes[0].playerId));
+ assert.ok(legal(s,'A',cmd,rules,defence),'defensive screen must reject newly offside fullback');assert.equal(hash(s),before);
+ const r=resolveEncounter(s,cmd,defence,rules);assert.equal(r.committedCommand.id,'hold');assert(!r.appliedChanges.some(c=>c.team==='A'));assert(!r.nextState.tacticalExposure.some(e=>e.team==='A'&&e.kind==='flank'));
+ assert.equal(r.afterHash,resolveEncounter(s,command('hold','left'),defence,rules).afterHash);
+ g.flow.snapshot=copy(s);g.flow.opponentIntent=defence;assert.ok(g.queue(cmd));
+ g.pending=cmd;g.commit();assert.equal(g.resolution.committedCommand.id,'hold');
+});
 check('inside run prioritizes its moved receiver over an idle central midfielder',()=>{
  const s=ready().state,p=player(s,'A9'),runner=player(s,'A10'),idle=player(s,'A6');s.restart=null;
  p.position={x:0,z:0};runner.position={x:-10,z:0};idle.position={x:10,z:0};control(s,p);

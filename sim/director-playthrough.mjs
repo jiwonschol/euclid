@@ -14,7 +14,7 @@ export function run(seed,strategy,speed=1,skip=false,restore=false){
    for(const e of g.flow.events.filter(e=>e.type==='PREPARE_MOVE'))assert(g.flow.observation.text.includes(e.cue));
   }
   if(g.phase==='COMMAND'){
-   const ids=rules.enabledCards.filter(id=>!legal(g.state,'A',command(id),rules));
+   const ids=rules.enabledCards.filter(id=>!legal(g.state,'A',command(id),rules,g.flow.opponentIntent));
    let id='hold'; if((strategy===1&&g.state.possessionTeam==='A')||(strategy===2&&g.state.possessionTeam==='B')||strategy===3)id=ids[(g.state.encounterIndex+seed)%ids.length]??'hold';
    g.queue(command(id));
   }

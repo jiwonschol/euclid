@@ -26,7 +26,7 @@ export function resolveEncounter(snapshot,userCommand,opponentIntent,rules) {
   const s=copy(snapshot), beforeHash=hash(snapshot), events=[],beats=[],contests=[];
   const rng=createRng(s.rngStates.contest), id=s.encounterIndex+1, beaten=new Set();
   const chosen={A:copy(userCommand),B:copy(opponentIntent)};
-  for(const team of ['A','B']) if(legal(s,team,chosen[team],rules)) chosen[team]=command();
+  for(const team of [other(s.possessionTeam),s.possessionTeam]) if(legal(s,team,chosen[team],rules,chosen[other(team)])) chosen[team]=command();
   const attackTeam=s.possessionTeam, attackCommand=chosen[attackTeam], appliedChanges=[];
   const name=p=>`${p.team==='A'?'청해':'홍림'} ${p.number}번`;
   function emit(type,data={}) {const e={id:`e${id}-${events.length+1}`,encounterId:id,type,...data}; events.push(e); s.eventLog.push(e); return e;}
