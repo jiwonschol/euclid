@@ -2,7 +2,8 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { DirectorMatch, presentationCuts } from '../js/director/match.js';
 import { command,legal,applyCommand } from '../js/director/cards.js';
-import { copy,hash,isOffside,player,control } from '../js/director/state.js';
+import { copy,hash,isOffside,player,control,createState } from '../js/director/state.js';
+import { prepareEncounter } from '../js/director/scenario.js';
 import { resolveEncounter,passingOptions,chooseAction,stats } from '../js/director/resolve.js';
 import { interpolate } from '../js/ui/scene-player.js';
 const rules=JSON.parse(await readFile(new URL('../data/director/rules.json',import.meta.url)));
@@ -76,6 +77,36 @@ check('inside run prioritizes its moved receiver over an idle central midfielder
  assert.equal(chooseAction(preview,cmd,rules,changes).receiverId,runner.id);
  const committed=resolveEncounter(s,cmd,command(),rules);assert.equal(committed.committedCommand.id,cmd.id);
  assert.equal(committed.events.find(e=>e.type==='PASS').receiverId,runner.id);
+});
+check('flank support targets its fullback even when a covered lane loses the score contest',()=>{
+ const s=ready().state,p=player(s,'A9');s.restart=null;
+ for(const q of s.players)q.position=q.team==='A'?{x:-45,z:30}:{x:40,z:30};
+ p.position={x:0,z:-10};player(s,'A2').position={x:5,z:-28};player(s,'A10').position={x:27,z:-10};player(s,'B2').position={x:2.5,z:-19};control(s,p);
+ const cmd=command('support_flank'),preview=copy(s);assert.equal(legal(s,'A',cmd,rules),null);
+ const changes=applyCommand(preview,'A',cmd);assert.equal(changes[0].playerId,'A2');
+ assert.equal(chooseAction(preview,cmd,rules).receiverId,'A10');
+ const action=chooseAction(preview,cmd,rules,changes);assert.equal(action.type,'PASS');assert.equal(action.receiverId,'A2','covered support fullback must win receiver ranking');
+ assert.equal(resolveEncounter(s,cmd,command(),rules).events.find(e=>e.type==='PASS').receiverId,'A2');
+});
+check('inside run targets its reachable runner even before it reaches the central lane',()=>{
+ const s=ready().state,p=player(s,'A9');s.restart=null;
+ for(const q of s.players)q.position=q.team==='A'?{x:-45,z:30}:{x:40,z:30};
+ p.position={x:0,z:20};player(s,'A10').position={x:-45,z:32};player(s,'A6').position={x:20,z:20};control(s,p);
+ const cmd=command('run_inside'),preview=copy(s);assert.equal(legal(s,'A',cmd,rules),null);
+ const changes=applyCommand(preview,'A',cmd);assert.equal(changes[0].playerId,'A10');
+ assert(passingOptions(preview,rules).some(q=>q.id==='A10'));assert.equal(chooseAction(preview,cmd,rules).receiverId,'A6');
+ const action=chooseAction(preview,cmd,rules,changes);assert.equal(action.type,'PASS');assert.equal(action.receiverId,'A10','wide inside runner must win receiver ranking');
+ assert.equal(resolveEncounter(s,cmd,command(),rules).events.find(e=>e.type==='PASS').receiverId,'A10');
+});
+check('scenario never recommends support closed by the pending defensive screen',()=>{
+ const s=createState(2,rules);
+ for(const q of s.players)q.position=q.team==='A'?{x:-45,z:30}:{x:10,z:30};
+ player(s,'A9').position={x:0,z:-20};player(s,'A2').position={x:40,z:32};player(s,'A5').active=false;
+ for(const id of ['B1','B6','B7'])player(s,id).position={x:49,z:0};control(s,player(s,'A9'));
+ const flow=prepareEncounter(s,rules),cmd=command('support_flank');assert.equal(flow.opponentIntent.id,'screen_middle');
+ assert.equal(legal(flow.snapshot,'A',cmd,rules),null);assert.ok(legal(flow.snapshot,'A',cmd,rules,flow.opponentIntent));
+ assert.equal(flow.advice.id,'hold','scenario must not recommend closed support');
+ assert.equal(legal(flow.snapshot,'A',flow.advice,rules,flow.opponentIntent),null);
 });
 check('central screen and dropping create different real defensive positions',()=>{
  const g=ready();control(g.state,player(g.state,'B9'));const a=resolveEncounter(g.state,command('screen_middle'),command(),rules),b=resolveEncounter(g.state,command('delay_drop'),command(),rules);
