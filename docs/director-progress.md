@@ -38,7 +38,7 @@ Chromium에서 시드 42 첫 세 국면을 1배속 가상 시계로 0.5초마다
 - 단계 이슈: M0 #5, M1 #6, M2 #7, M3 #8, M4 #9, M5 #10, M6 #11.
 - 작업 디렉터리: `/Users/jiwon/develop/projects/euclid/.claude/worktrees/director-game`
 - 브랜치: `codex/director-game`, 기준 main: `4cfa70247fe392271961467c7d5850e9d1d12dbb`.
-- 규칙 버전: `director-1.0.1`. 마지막 커밋은 이 브랜치의 `git log -1`로 확인한다.
+- 현재 판정 버전과 저장본 호환성은 위 「지원·침투 카드의 연결 판정」 절을 본다. 마지막 커밋은 이 브랜치의 `git log -1`로 확인한다.
 - 원래 루트 `feature/continuous-match-engine`의 문서·이미지 변경 및 기존 detached worktree는 보존했다.
 - 외부 권한: GitHub 이슈 등록·진행 기록, Higgsfield 누적 300크레딧 내 제작. push/PR/merge/배포/새 의존성은 포함하지 않는다.
 - 실행 서버: `python3 tools/serve.py 8650`, 게임 http://localhost:8650/, 비교 http://localhost:8650/director-lab.html. 서버가 없으면 해당 작업 디렉터리에서 재실행한다. `npm start`는 8642를 사용한다.
