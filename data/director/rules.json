@@ -1,5 +1,5 @@
 {
-  "version": "director-1.0.1",
+  "version": "director-1.0.2",
   "halfSeconds": 2700,
   "durations": {
     "READY": 2,

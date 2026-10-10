@@ -2,37 +2,37 @@
   "matches": 400,
   "replayed": 320,
   "durations": {
-    "min": 596,
-    "max": 644
+    "min": 304,
+    "max": 329
   },
   "goals": {
-    "A": 209,
-    "B": 78
+    "A": 239,
+    "B": 102
   },
   "shots": {
-    "A": 622,
-    "B": 199
+    "A": 732,
+    "B": 294
   },
   "events": {
-    "PREPARE_MOVE": 23199,
-    "COMMAND_APPLIED": 15105,
-    "BEATEN": 1755,
-    "ADVANCE": 347,
-    "COMMAND_EXPIRED": 15105,
-    "SHOT": 821,
-    "MISS": 272,
-    "RESTART_TAKEN": 1100,
-    "PASS": 13059,
-    "INTERCEPT": 1852,
-    "SAVE": 262,
-    "RECEIVE": 10203,
-    "TACKLE_WON": 1496,
-    "GOAL": 287,
+    "PREPARE_MOVE": 23363,
+    "COMMAND_APPLIED": 14980,
+    "BEATEN": 1911,
+    "ADVANCE": 303,
+    "COMMAND_EXPIRED": 14980,
+    "SHOT": 1026,
+    "MISS": 362,
+    "RESTART_TAKEN": 1217,
+    "PASS": 12430,
+    "INTERCEPT": 1969,
+    "SAVE": 323,
+    "RECEIVE": 9561,
+    "TACKLE_WON": 1695,
+    "GOAL": 341,
     "HALFTIME": 400,
-    "PASS_LOOSE": 1004,
-    "LOOSE_RECOVERY": 751,
+    "PASS_LOOSE": 900,
+    "LOOSE_RECOVERY": 675,
     "FULLTIME": 400,
-    "OUT": 190,
-    "FOUL": 15
+    "OUT": 181,
+    "FOUL": 17
   }
 }
