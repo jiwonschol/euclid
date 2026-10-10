@@ -1,4 +1,5 @@
 import { other, direction, carrier, teamPlayers, distance, isOffside, move, copy } from './state.js';
+import { passingOptions } from './resolve.js';
 export const CARDS = {
   hold:{name:'기본 유지',kind:'any',detail:'선수가 현재 공간에서 판단합니다.',cost:'새로운 전술 이동을 지시하지 않습니다.',tempo:0},
   support_flank:{name:'측면 지원',kind:'attack',detail:'풀백이 올라가 패스 길을 하나 더 만듭니다.',cost:'빼앗기면 올라간 풀백 뒤가 열립니다.',tempo:0,art:'card-support'},
@@ -25,9 +26,8 @@ export function legal(s, team, cmd, rules, opponentCommand=command()) {
     const preview=copy(s);
     if(!legal(preview,other(team),opponentCommand,rules)) applyCommand(preview,other(team),opponentCommand);
     if(cmd.id==='run_inside'&&!teamPlayers(preview,team).some(q=>q.id!==p.id&&q.role!=='GK'&&!isOffside(preview,carrier(preview),q))) return '합법적인 연결 선수가 없습니다.';
-    const changes=applyCommand(preview,team,cmd),q=preview.players.find(q=>q.id===changes[0].playerId);
-    const reach=q.role==='FB'?rules.supportReach:rules.passReach;
-    if(distance(p.position,q.position)>=reach || isOffside(preview,carrier(preview),q)) return cmd.id==='support_flank'?'이동 뒤 패스를 받을 수 있는 풀백이 없습니다.':'이동 뒤 패스를 받을 수 있는 침투 선수가 없습니다.';
+    const changes=applyCommand(preview,team,cmd);
+    if(!passingOptions(preview,rules).some(q=>q.id===changes[0].playerId)) return cmd.id==='support_flank'?'이동 뒤 패스를 받을 수 있는 풀백이 없습니다.':'이동 뒤 패스를 받을 수 있는 침투 선수가 없습니다.';
   }
   if(cmd.id==='switch_play'&&!teamPlayers(s,team).some(q=>q.id!==p.id&&q.role!=='GK'&&!isOffside(s,p,q)&&q.position.z*p.position.z<0&&Math.abs(q.position.z-p.position.z)>=20&&distance(q.position,p.position)<65))return '반대편에 연결할 선수가 없습니다.';
   return null;

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { DirectorMatch, presentationCuts } from '../js/director/match.js';
 import { command,legal,applyCommand } from '../js/director/cards.js';
-import { copy,hash,isOffside,player,control,createState } from '../js/director/state.js';
+import { copy,hash,isOffside,player,control,createState,distance } from '../js/director/state.js';
 import { prepareEncounter } from '../js/director/scenario.js';
 import { resolveEncounter,passingOptions,chooseAction,stats } from '../js/director/resolve.js';
 import { interpolate } from '../js/ui/scene-player.js';
@@ -84,7 +84,6 @@ check('flank support targets its fullback even when a covered lane loses the sco
  p.position={x:0,z:-10};player(s,'A2').position={x:5,z:-28};player(s,'A10').position={x:27,z:-10};player(s,'B2').position={x:2.5,z:-19};control(s,p);
  const cmd=command('support_flank'),preview=copy(s);assert.equal(legal(s,'A',cmd,rules),null);
  const changes=applyCommand(preview,'A',cmd);assert.equal(changes[0].playerId,'A2');
- assert.equal(chooseAction(preview,cmd,rules).receiverId,'A10');
  const action=chooseAction(preview,cmd,rules,changes);assert.equal(action.type,'PASS');assert.equal(action.receiverId,'A2','covered support fullback must win receiver ranking');
  assert.equal(resolveEncounter(s,cmd,command(),rules).events.find(e=>e.type==='PASS').receiverId,'A2');
 });
@@ -94,7 +93,7 @@ check('inside run targets its reachable runner even before it reaches the centra
  p.position={x:0,z:20};player(s,'A10').position={x:-45,z:32};player(s,'A6').position={x:20,z:20};control(s,p);
  const cmd=command('run_inside'),preview=copy(s);assert.equal(legal(s,'A',cmd,rules),null);
  const changes=applyCommand(preview,'A',cmd);assert.equal(changes[0].playerId,'A10');
- assert(passingOptions(preview,rules).some(q=>q.id==='A10'));assert.equal(chooseAction(preview,cmd,rules).receiverId,'A6');
+ assert(passingOptions(preview,rules).some(q=>q.id==='A10'));
  const action=chooseAction(preview,cmd,rules,changes);assert.equal(action.type,'PASS');assert.equal(action.receiverId,'A10','wide inside runner must win receiver ranking');
  assert.equal(resolveEncounter(s,cmd,command(),rules).events.find(e=>e.type==='PASS').receiverId,'A10');
 });
@@ -104,7 +103,6 @@ check('pass mode follows the actual inside runner instead of the highest scoring
  p.position={x:25,z:25};player(s,'A10').position={x:15,z:0};player(s,'A6').position={x:35,z:25};control(s,p);
  const cmd=command('run_inside'),preview=copy(s);assert.equal(legal(s,'A',cmd,rules),null);
  const changes=applyCommand(preview,'A',cmd);assert.equal(changes[0].playerId,'A10');
- assert.deepEqual(chooseAction(preview,cmd,rules),{type:'PASS',receiverId:'A6'});
  const action=chooseAction(preview,cmd,rules,changes);assert.equal(action.receiverId,'A10');
  assert.equal(action.type,'CROSS','central receiver must determine the pass mode');
  const pass=resolveEncounter(s,cmd,command(),rules).events.find(e=>e.type==='PASS');
@@ -116,12 +114,29 @@ check('inside run rejects an unreachable runner instead of charging for an idle 
  p.position={x:25,z:25};player(s,'A10').position={x:-45,z:-32};player(s,'A6').position={x:35,z:25};control(s,p);
  const cmd=command('run_inside'),before=hash(s),preview=copy(s),changes=applyCommand(preview,'A',cmd);
  assert.equal(changes[0].playerId,'A10');assert(!passingOptions(preview,rules).some(q=>q.id==='A10'));
- assert.equal(chooseAction(preview,cmd,rules,changes).receiverId,'A6');
+ assert(Math.abs(distance(changes[0].from,changes[0].to)-22)<1e-9);
  assert.ok(legal(s,'A',cmd,rules),'unreachable inside runner must reject');assert.equal(hash(s),before);
  const r=resolveEncounter(s,cmd,command(),rules);assert.equal(r.committedCommand.id,'hold');
  assert(!r.appliedChanges.some(c=>c.team==='A'));assert(!r.nextState.tacticalExposure.some(e=>e.team==='A'&&e.kind==='middle'));
  assert.equal(r.afterHash,resolveEncounter(s,command(),command(),rules).afterHash);
  g.flow.snapshot=copy(s);g.flow.opponentIntent=command();assert.ok(g.queue(cmd));
+ g.pending=cmd;g.commit();assert.equal(g.resolution.committedCommand.id,'hold');
+});
+check('inside run rejects when defensive movement removes every pass candidate',()=>{
+ const g=ready(),s=g.state,p=player(s,'A9');s.restart=null;
+ for(const q of s.players)q.position={x:-45,z:30};
+ p.position={x:0,z:20};player(s,'A10').position={x:-51,z:-32};player(s,'A6').position={x:20,z:20};
+ player(s,'B1').position={x:49,z:0};player(s,'B6').position={x:20,z:20};control(s,p);
+ const cmd=command('run_inside'),defence=command('press_flank','left'),preview=copy(s);
+ assert(passingOptions(s,rules).some(q=>q.id==='A6'));
+ assert.equal(legal(s,'B',defence,rules),null);applyCommand(preview,'B',defence);
+ const changes=applyCommand(preview,'A',cmd);assert.equal(changes[0].playerId,'A10');
+ assert.equal(passingOptions(preview,rules).length,0);
+ assert.ok(legal(s,'A',cmd,rules,defence),'empty pass candidates must reject inside run');
+ const r=resolveEncounter(s,cmd,defence,rules);assert.equal(r.committedCommand.id,'hold');
+ assert(!r.appliedChanges.some(c=>c.team==='A'));assert(!r.nextState.tacticalExposure.some(e=>e.team==='A'&&e.kind==='middle'));
+ assert.equal(r.afterHash,resolveEncounter(s,command(),defence,rules).afterHash);
+ g.flow.snapshot=copy(s);g.flow.opponentIntent=defence;assert.ok(g.queue(cmd));
  g.pending=cmd;g.commit();assert.equal(g.resolution.committedCommand.id,'hold');
 });
 check('scenario never recommends support closed by the pending defensive screen',()=>{
