@@ -19,8 +19,8 @@ export function chooseAction(s,cmd,rules,changes=[]) {
   receivers.sort((a,b)=>score(b)-score(a));
   const q=receivers[0];
   if(q && (score(q)>5 || cmd.id!=='hold')) {
-    const type=Math.abs(p.position.z)>19&&goalDistance<32&&Math.abs(q.position.z)<12?'CROSS':cmd.id==='switch_play'?'AERIAL_PASS':'PASS';
     const receiver=['support_flank','run_inside'].includes(cmd.id)?receivers.find(q=>changes.some(c=>c.playerId===q.id))??q:q;
+    const type=Math.abs(p.position.z)>19&&goalDistance<32&&Math.abs(receiver.position.z)<12?'CROSS':cmd.id==='switch_play'?'AERIAL_PASS':'PASS';
     return {type,receiverId:receiver.id};
   }
   return {type:'CARRY'};

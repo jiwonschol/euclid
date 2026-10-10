@@ -20,13 +20,15 @@ export function legal(s, team, cmd, rules, opponentCommand=command()) {
   if(s.restart?.type==='PK') return '페널티킥은 키커의 슛으로 진행합니다.';
   if(cmd.id==='press_flank'&&(Math.abs(p.position.z)<10 || Math.sign(p.position.z*direction(s,team))!==(cmd.side==='left'?-1:1)))return '공이 있는 측면을 선택하세요.';
   if(cmd.id==='support_flank' && !teamPlayers(s,team).some(q=>q.role==='FB'&&q.id!==p.id)) return '지원할 풀백이 없습니다.';
-  if(cmd.id==='support_flank') {
+  if(cmd.id==='switch_play'&&!teamPlayers(s,team).some(q=>q.id!==p.id&&q.role!=='GK'&&!isOffside(s,p,q))) return '합법적인 연결 선수가 없습니다.';
+  if(['support_flank','run_inside'].includes(cmd.id)) {
     const preview=copy(s);
     if(!legal(preview,other(team),opponentCommand,rules)) applyCommand(preview,other(team),opponentCommand);
+    if(cmd.id==='run_inside'&&!teamPlayers(preview,team).some(q=>q.id!==p.id&&q.role!=='GK'&&!isOffside(preview,carrier(preview),q))) return '합법적인 연결 선수가 없습니다.';
     const changes=applyCommand(preview,team,cmd),q=preview.players.find(q=>q.id===changes[0].playerId);
-    if(distance(p.position,q.position)>=rules.supportReach || isOffside(preview,carrier(preview),q)) return '이동 뒤 패스를 받을 수 있는 풀백이 없습니다.';
+    const reach=q.role==='FB'?rules.supportReach:rules.passReach;
+    if(distance(p.position,q.position)>=reach || isOffside(preview,carrier(preview),q)) return cmd.id==='support_flank'?'이동 뒤 패스를 받을 수 있는 풀백이 없습니다.':'이동 뒤 패스를 받을 수 있는 침투 선수가 없습니다.';
   }
-  if(['switch_play','run_inside'].includes(cmd.id)&&!teamPlayers(s,team).some(q=>q.id!==p.id&&q.role!=='GK'&&!isOffside(s,p,q))) return '합법적인 연결 선수가 없습니다.';
   if(cmd.id==='switch_play'&&!teamPlayers(s,team).some(q=>q.id!==p.id&&q.role!=='GK'&&!isOffside(s,p,q)&&q.position.z*p.position.z<0&&Math.abs(q.position.z-p.position.z)>=20&&distance(q.position,p.position)<65))return '반대편에 연결할 선수가 없습니다.';
   return null;
 }

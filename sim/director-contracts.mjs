@@ -98,6 +98,32 @@ check('inside run targets its reachable runner even before it reaches the centra
  const action=chooseAction(preview,cmd,rules,changes);assert.equal(action.type,'PASS');assert.equal(action.receiverId,'A10','wide inside runner must win receiver ranking');
  assert.equal(resolveEncounter(s,cmd,command(),rules).events.find(e=>e.type==='PASS').receiverId,'A10');
 });
+check('pass mode follows the actual inside runner instead of the highest scoring idle receiver',()=>{
+ const s=ready().state,p=player(s,'A9');s.restart=null;
+ for(const q of s.players)q.position=q.team==='A'?{x:-45,z:30}:{x:45,z:30};
+ p.position={x:25,z:25};player(s,'A10').position={x:15,z:0};player(s,'A6').position={x:35,z:25};control(s,p);
+ const cmd=command('run_inside'),preview=copy(s);assert.equal(legal(s,'A',cmd,rules),null);
+ const changes=applyCommand(preview,'A',cmd);assert.equal(changes[0].playerId,'A10');
+ assert.deepEqual(chooseAction(preview,cmd,rules),{type:'PASS',receiverId:'A6'});
+ const action=chooseAction(preview,cmd,rules,changes);assert.equal(action.receiverId,'A10');
+ assert.equal(action.type,'CROSS','central receiver must determine the pass mode');
+ const pass=resolveEncounter(s,cmd,command(),rules).events.find(e=>e.type==='PASS');
+ assert.equal(pass.receiverId,'A10');assert.equal(pass.mode,'CROSS');
+});
+check('inside run rejects an unreachable runner instead of charging for an idle receiver',()=>{
+ const g=ready(),s=g.state,p=player(s,'A9');s.restart=null;
+ for(const q of s.players)q.position=q.team==='A'?{x:-45,z:30}:{x:45,z:30};
+ p.position={x:25,z:25};player(s,'A10').position={x:-45,z:-32};player(s,'A6').position={x:35,z:25};control(s,p);
+ const cmd=command('run_inside'),before=hash(s),preview=copy(s),changes=applyCommand(preview,'A',cmd);
+ assert.equal(changes[0].playerId,'A10');assert(!passingOptions(preview,rules).some(q=>q.id==='A10'));
+ assert.equal(chooseAction(preview,cmd,rules,changes).receiverId,'A6');
+ assert.ok(legal(s,'A',cmd,rules),'unreachable inside runner must reject');assert.equal(hash(s),before);
+ const r=resolveEncounter(s,cmd,command(),rules);assert.equal(r.committedCommand.id,'hold');
+ assert(!r.appliedChanges.some(c=>c.team==='A'));assert(!r.nextState.tacticalExposure.some(e=>e.team==='A'&&e.kind==='middle'));
+ assert.equal(r.afterHash,resolveEncounter(s,command(),command(),rules).afterHash);
+ g.flow.snapshot=copy(s);g.flow.opponentIntent=command();assert.ok(g.queue(cmd));
+ g.pending=cmd;g.commit();assert.equal(g.resolution.committedCommand.id,'hold');
+});
 check('scenario never recommends support closed by the pending defensive screen',()=>{
  const s=createState(2,rules);
  for(const q of s.players)q.position=q.team==='A'?{x:-45,z:30}:{x:10,z:30};
