@@ -1,0 +1,32 @@
+[
+  {
+    "width": 375,
+    "title": "유클리드 · 선택 비교",
+    "url": "http://localhost:8653/director-lab.html",
+    "caption": [
+      "청해 8번 중앙 길목 커버 · 청해 6번 중앙 길목 커버",
+      "청해 4번 골 방향 복귀 · 청해 5번 골 방향 복귀 · 청해 6번 골 방향 복귀 · 청해 8번 골 방향 복귀 · 청해 10번 골 방향 복귀 · 청해 11번 골 방향 복귀"
+    ],
+    "cuts": [
+      "movement",
+      "movement"
+    ],
+    "overlay": false,
+    "errors": []
+  },
+  {
+    "width": 1280,
+    "title": "유클리드 · 선택 비교",
+    "url": "http://localhost:8653/director-lab.html",
+    "caption": [
+      "청해 8번 중앙 길목 커버 · 청해 6번 중앙 길목 커버",
+      "청해 4번 골 방향 복귀 · 청해 5번 골 방향 복귀 · 청해 6번 골 방향 복귀 · 청해 8번 골 방향 복귀 · 청해 10번 골 방향 복귀 · 청해 11번 골 방향 복귀"
+    ],
+    "cuts": [
+      "movement",
+      "movement"
+    ],
+    "overlay": false,
+    "errors": []
+  }
+]

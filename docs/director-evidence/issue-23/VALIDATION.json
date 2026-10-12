@@ -1,0 +1,337 @@
+{
+  "head": "2be9c1883c69180718ab9d9ef9d2a292bdb8f739",
+  "browserRuns": 120,
+  "frames": 19779,
+  "labels": 21058,
+  "movement": [
+    {
+      "width": 1280,
+      "cut": "movement",
+      "frames": 700,
+      "labels": 2000,
+      "maxActors": 7,
+      "failures": 0
+    },
+    {
+      "width": 1920,
+      "cut": "movement",
+      "frames": 700,
+      "labels": 2000,
+      "maxActors": 7,
+      "failures": 0
+    },
+    {
+      "width": 375,
+      "cut": "movement",
+      "frames": 700,
+      "labels": 2000,
+      "maxActors": 7,
+      "failures": 0
+    },
+    {
+      "width": 740,
+      "cut": "movement",
+      "frames": 700,
+      "labels": 2000,
+      "maxActors": 7,
+      "failures": 0
+    }
+  ],
+  "failures": 0,
+  "errors": 0,
+  "preservedMovementCases": 42,
+  "runHeight1280": {
+    "min": 237.703125,
+    "max": 237.703125
+  },
+  "summary": [
+    {
+      "width": 1280,
+      "cut": "choose",
+      "frames": 374,
+      "labels": 374,
+      "maxActors": 1,
+      "failures": 0
+    },
+    {
+      "width": 1280,
+      "cut": "run",
+      "frames": 394,
+      "labels": 394,
+      "maxActors": 1,
+      "failures": 0
+    },
+    {
+      "width": 1280,
+      "cut": "wide",
+      "frames": 360,
+      "labels": 360,
+      "maxActors": 1,
+      "failures": 0
+    },
+    {
+      "width": 1280,
+      "cut": "face",
+      "frames": 302,
+      "labels": 302,
+      "maxActors": 1,
+      "failures": 0
+    },
+    {
+      "width": 1280,
+      "cut": "movement",
+      "frames": 700,
+      "labels": 2000,
+      "maxActors": 7,
+      "failures": 0
+    },
+    {
+      "width": 1280,
+      "cut": "opponent",
+      "frames": 496,
+      "labels": 496,
+      "maxActors": 1,
+      "failures": 0
+    },
+    {
+      "width": 1280,
+      "cut": "ours",
+      "frames": 558,
+      "labels": 558,
+      "maxActors": 1,
+      "failures": 0
+    },
+    {
+      "width": 1280,
+      "cut": "result",
+      "frames": 557,
+      "labels": 557,
+      "maxActors": 1,
+      "failures": 0
+    },
+    {
+      "width": 1280,
+      "cut": "ADVANCE",
+      "frames": 224,
+      "labels": 224,
+      "maxActors": 1,
+      "failures": 0
+    },
+    {
+      "width": 1920,
+      "cut": "choose",
+      "frames": 374,
+      "labels": 374,
+      "maxActors": 1,
+      "failures": 0
+    },
+    {
+      "width": 1920,
+      "cut": "run",
+      "frames": 394,
+      "labels": 394,
+      "maxActors": 1,
+      "failures": 0
+    },
+    {
+      "width": 1920,
+      "cut": "wide",
+      "frames": 360,
+      "labels": 360,
+      "maxActors": 1,
+      "failures": 0
+    },
+    {
+      "width": 1920,
+      "cut": "face",
+      "frames": 302,
+      "labels": 302,
+      "maxActors": 1,
+      "failures": 0
+    },
+    {
+      "width": 1920,
+      "cut": "movement",
+      "frames": 700,
+      "labels": 2000,
+      "maxActors": 7,
+      "failures": 0
+    },
+    {
+      "width": 1920,
+      "cut": "opponent",
+      "frames": 496,
+      "labels": 496,
+      "maxActors": 1,
+      "failures": 0
+    },
+    {
+      "width": 1920,
+      "cut": "ours",
+      "frames": 558,
+      "labels": 558,
+      "maxActors": 1,
+      "failures": 0
+    },
+    {
+      "width": 1920,
+      "cut": "result",
+      "frames": 558,
+      "labels": 558,
+      "maxActors": 1,
+      "failures": 0
+    },
+    {
+      "width": 1920,
+      "cut": "ADVANCE",
+      "frames": 224,
+      "labels": 224,
+      "maxActors": 1,
+      "failures": 0
+    },
+    {
+      "width": 375,
+      "cut": "choose",
+      "frames": 374,
+      "labels": 374,
+      "maxActors": 1,
+      "failures": 0
+    },
+    {
+      "width": 375,
+      "cut": "run",
+      "frames": 394,
+      "labels": 394,
+      "maxActors": 1,
+      "failures": 0
+    },
+    {
+      "width": 375,
+      "cut": "wide",
+      "frames": 360,
+      "labels": 360,
+      "maxActors": 1,
+      "failures": 0
+    },
+    {
+      "width": 375,
+      "cut": "face",
+      "frames": 302,
+      "labels": 302,
+      "maxActors": 1,
+      "failures": 0
+    },
+    {
+      "width": 375,
+      "cut": "movement",
+      "frames": 700,
+      "labels": 2000,
+      "maxActors": 7,
+      "failures": 0
+    },
+    {
+      "width": 375,
+      "cut": "opponent",
+      "frames": 496,
+      "labels": 496,
+      "maxActors": 1,
+      "failures": 0
+    },
+    {
+      "width": 375,
+      "cut": "ours",
+      "frames": 558,
+      "labels": 558,
+      "maxActors": 1,
+      "failures": 0
+    },
+    {
+      "width": 375,
+      "cut": "result",
+      "frames": 555,
+      "labels": 555,
+      "maxActors": 1,
+      "failures": 0
+    },
+    {
+      "width": 375,
+      "cut": "ADVANCE",
+      "frames": 224,
+      "labels": 224,
+      "maxActors": 1,
+      "failures": 0
+    },
+    {
+      "width": 740,
+      "cut": "choose",
+      "frames": 374,
+      "labels": 374,
+      "maxActors": 1,
+      "failures": 0
+    },
+    {
+      "width": 740,
+      "cut": "run",
+      "frames": 394,
+      "labels": 394,
+      "maxActors": 1,
+      "failures": 0
+    },
+    {
+      "width": 740,
+      "cut": "wide",
+      "frames": 360,
+      "labels": 360,
+      "maxActors": 1,
+      "failures": 0
+    },
+    {
+      "width": 740,
+      "cut": "face",
+      "frames": 302,
+      "labels": 302,
+      "maxActors": 1,
+      "failures": 0
+    },
+    {
+      "width": 740,
+      "cut": "movement",
+      "frames": 700,
+      "labels": 2000,
+      "maxActors": 7,
+      "failures": 0
+    },
+    {
+      "width": 740,
+      "cut": "opponent",
+      "frames": 496,
+      "labels": 496,
+      "maxActors": 1,
+      "failures": 0
+    },
+    {
+      "width": 740,
+      "cut": "ours",
+      "frames": 558,
+      "labels": 558,
+      "maxActors": 1,
+      "failures": 0
+    },
+    {
+      "width": 740,
+      "cut": "result",
+      "frames": 556,
+      "labels": 556,
+      "maxActors": 1,
+      "failures": 0
+    },
+    {
+      "width": 740,
+      "cut": "ADVANCE",
+      "frames": 224,
+      "labels": 224,
+      "maxActors": 1,
+      "failures": 0
+    }
+  ]
+}

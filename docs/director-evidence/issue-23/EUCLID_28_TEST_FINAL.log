@@ -1,0 +1,91 @@
+npm notice run euclid-proto@0.1.0 test:director
+npm notice run node sim/director-contracts.mjs && node sim/director-tactics.mjs && node sim/director-assets.mjs && node sim/director-playthrough.mjs
+PASS card button uses opponent intent to allow the newly onside support
+PASS reservation uses opponent intent to accept the newly onside support
+PASS commit uses opponent intent to retain the newly onside support
+PASS a rejected side change keeps the selection on the reserved side
+PASS replay keeps side selection aligned with its reservation and locks both controls
+PASS one reservation replaces/cancels and duplicate commit does not score twice
+PASS support actually moves a fullback and leaves exposure in the next state
+PASS flank support rejects an unreachable opposite fullback and commits only a reachable receiver
+PASS defensive drop allows seed 32 encounter 21 support through reservation and commit
+PASS defensive screen rejects newly offside support before charging its exposure
+PASS inside run prioritizes its moved receiver over an idle central midfielder
+PASS flank support targets its fullback even when a covered lane loses the score contest
+PASS inside run targets its reachable runner even before it reaches the central lane
+PASS pass mode follows the actual inside runner instead of the highest scoring idle receiver
+PASS inside run rejects an unreachable runner instead of charging for an idle receiver
+PASS inside run rejects when defensive movement removes every pass candidate
+PASS scenario never recommends support closed by the pending defensive screen
+PASS central screen and dropping create different real defensive positions
+PASS opponent intent cannot read a private reservation
+PASS FLOW preserves possession and core is independent of frame step
+PASS offside uses ball and second-last opponent at release, with restart exemptions
+PASS 20 seeds replay identically; score and shot accounting use events
+PASS restore before/after decision and during playback never redraws the result
+PASS restore rejects director-1.0.1 saves after the adjudication version changes
+PASS halftime reservation uses the upcoming kickoff without mutating the current state
+PASS replay source survives snapshots and existing records still restore
+PASS presentation names only recorded movers and reveals scores on the result cut
+27 contract groups passed.
+PASS main.js FLOW click → directive → movement → opponent → ours → ball → result → running
+PASS main.js COMMAND click → directive → movement → opponent → ours → ball → result → running
+PASS main.js HALFTIME click → directive → movement → opponent → ours → ball → result → running
+PASS support benefit: adds an available fullback receiver
+PASS support cost: the same fullback can no longer cover the space behind
+PASS switch benefit: reaches opposite wing beyond short-pass range
+PASS switch cost: spends 30 extra match seconds with a longer contested pass
+PASS inside benefit: moves a striker forward into the central lane
+PASS inside cost: vacates the former support position and retains that gap on turnover
+PASS press benefit: two defenders arrive in the ball-side duel
+PASS press cost: nearest central cover is drawn away from the middle
+PASS screen benefit: central receiving lane gains coverage
+PASS screen cost: ball-side midfielder abandons the wing
+PASS drop benefit: covering midfielders get closer to their own goal
+PASS drop cost: closest midfielder gives the carrier extra room
+PASS restart side and taker remain valid for kickoff, throw, goal kick, corner and free kick
+PASS penalty only allows hold and records one shot with exactly one outcome
+PASS presentation and reduced motion never mutate resolution, RNG, or future state
+PASS three-encounter sample ends on third ADVANCE boundary at default speed
+PASS changed rules cannot silently reinterpret a saved match
+PASS wing carrier cuts inward at the end line instead of running in place
+18 tactical and rule checks passed.
+PASS 25 asset hashes/dimensions, 6 card images, rules consumers, HTML entries
+{
+  "matches": 400,
+  "replayed": 320,
+  "durations": {
+    "min": 304,
+    "max": 329
+  },
+  "goals": {
+    "A": 239,
+    "B": 103
+  },
+  "shots": {
+    "A": 732,
+    "B": 295
+  },
+  "events": {
+    "PREPARE_MOVE": 23363,
+    "COMMAND_APPLIED": 14980,
+    "BEATEN": 1909,
+    "ADVANCE": 302,
+    "COMMAND_EXPIRED": 14980,
+    "SHOT": 1027,
+    "MISS": 362,
+    "RESTART_TAKEN": 1219,
+    "PASS": 12431,
+    "INTERCEPT": 1969,
+    "SAVE": 323,
+    "RECEIVE": 9560,
+    "TACKLE_WON": 1695,
+    "GOAL": 342,
+    "HALFTIME": 400,
+    "PASS_LOOSE": 902,
+    "LOOSE_RECOVERY": 676,
+    "FULLTIME": 400,
+    "OUT": 182,
+    "FOUL": 17
+  }
+}
