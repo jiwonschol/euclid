@@ -226,3 +226,4 @@ check('presentation names only recorded movers and reveals scores on the result 
  assert(defendingCuts.find(c=>c.cut==='opponent').actorIds.every(id=>id.startsWith('B')));assert(defendingCuts.find(c=>c.cut==='ours').actorIds.every(id=>id.startsWith('A')));
 });
 console.log(`${checks} contract groups passed.`);
+await import('./director-ui.mjs');

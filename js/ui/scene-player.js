@@ -19,7 +19,7 @@ export class ScenePlayer {
   drawActor(ctx,p,key,x,y,height,silhouette=false,face=false) {
     const fallback=p.role==='GK'?(p.team==='A'?'keeper-ready':'keeper-green-ready'):p.team==='A'?'striker-ready':'defender-ready';
     if(!this.images[key])key=fallback;
-    const img=this.images[key],meta=this.manifest.assets[key];let contact=null;
+    const img=this.images[key],meta=this.manifest.assets[key];let contact=null,actorTop=y-height;
     ctx.save();
     if(img){
       const b=meta.contentBounds,anchor=meta.anchors?.ground?.point??meta.anchors?.groundProjection?.point??[(b[0]+b[2])/2,b[3]];
@@ -28,6 +28,7 @@ export class ScenePlayer {
         ctx.drawImage(img,(b[0]+b[2]-size)/2,b[1],size,size,x-height/2,y-height,height,height);
       }else{
         const factor=Math.min(height/(b[3]-b[1]),height*1.1/(b[2]-b[0]));
+        actorTop=y+(b[1]-anchor[1])*factor;
         const flip=meta.facing==='left'?-1:1;
         const glove=key.includes('dive')?meta.anchors?.gloveContact?.point:null;
         if(glove)contact={x:x+(glove[0]-anchor[0])*factor*flip,y:y+(glove[1]-anchor[1])*factor};
@@ -41,8 +42,9 @@ export class ScenePlayer {
     }
     ctx.restore();
     if(!silhouette){
-      ctx.font='bold 14px system-ui';ctx.textAlign='center';ctx.fillStyle='#101e2be8';ctx.fillRect(x-43,y-34,86,24);
-      ctx.fillStyle='#fff';ctx.fillText(`${p.team==='A'?'청해':'홍림'} ${p.number}번`,x,y-17);
+      const labelTop=actorTop-30;
+      ctx.font='bold 14px system-ui';ctx.textAlign='center';ctx.fillStyle='#101e2be8';ctx.fillRect(x-43,labelTop,86,24);
+      ctx.fillStyle='#fff';ctx.fillText(`${p.team==='A'?'청해':'홍림'} ${p.number}번`,x,labelTop+17);
     }
     return contact;
   }
@@ -57,8 +59,9 @@ export class ScenePlayer {
     ctx.clearRect(0,0,w,h);
     const bench=['READY','HALFTIME','REVIEW'].includes(frame.kind),shot=['GOAL','SAVE','MISS'].includes(frame.kind);
     const bg=this.images[bench?'stadium-bench':shot&&cut==='result'?'stadium-goal':'stadium-empty']??this.images['stadium-empty'];
-    const running=frame.kind==='FLOW',offset=running&&!reduced?-frame.t*w*.18:0;
-    if(bg){if(cut==='result'&&frame.kind==='GOAL')ctx.drawImage(bg,bg.naturalWidth*.67,bg.naturalHeight*.30,bg.naturalWidth*.33,bg.naturalHeight*.40,0,0,w,h);else ctx.drawImage(bg,offset,0,w,h);if(offset)ctx.drawImage(bg,offset+w,0,w,h);}
+    const running=frame.kind==='FLOW',panning=running&&!reduced,offset=panning?-frame.t*w*.18:0;
+    // Pan one oversized image: the supplied stadium is not a seamless tile.
+    if(bg){if(cut==='result'&&frame.kind==='GOAL')ctx.drawImage(bg,bg.naturalWidth*.67,bg.naturalHeight*.30,bg.naturalWidth*.33,bg.naturalHeight*.40,0,0,w,h);else ctx.drawImage(bg,offset,0,w*(panning?1.18:1),h);}
     else{ctx.fillStyle='#548349';ctx.fillRect(0,0,w,h);}
     if(cut==='ball'){
       ctx.fillStyle='#437fa8';ctx.fillRect(0,0,w,h);
@@ -71,7 +74,8 @@ export class ScenePlayer {
     const lead=s.players.find(p=>p.id===frame.from.ball.ownerId);
     const ids=frame.actorIds??[],players=ids.map(id=>s.players.find(p=>p.id===id)).filter(Boolean);
     const choose=frame.kind==='COMMAND';
-    let actors=bench||cut==='directive'||cut==='ball'?[]:cut==='movement'?players:choose?[lead].filter(Boolean):running?[lead].filter(Boolean):cut==='result'?[s.players.find(p=>p.id===s.ball.ownerId)??players[0]].filter(Boolean):players.slice(0,1);
+    const advancing=frame.kind==='ADVANCE',nextActor=advancing?(lead??s.players.filter(p=>p.active&&p.team===s.possessionTeam&&p.role!=='GK').sort((a,b)=>distance(a.position,s.ball)-distance(b.position,s.ball))[0]):null;
+    let actors=bench||cut==='directive'||cut==='ball'?[]:advancing?[nextActor].filter(Boolean):cut==='movement'?players:choose?[lead].filter(Boolean):running?[lead].filter(Boolean):cut==='result'?[s.players.find(p=>p.id===s.ball.ownerId)??players[0]].filter(Boolean):players.slice(0,1);
     if(cut==='result'&&frame.kind==='GOAL')actors=[];
     let catchPoint=null;
     for(const [i,p] of actors.entries()){
@@ -82,7 +86,7 @@ export class ScenePlayer {
         if(running||cut==='movement'||cut==='opponent')key=prefix+'-run';
         if(['ours','opponent'].includes(cut))key=prefix+(frame.attackingActor&&['PASS','AERIAL_PASS','CROSS','INTERCEPT','GOAL','SAVE','MISS'].includes(frame.kind)?'-kick':'-run');
       }
-      const height=Math.min(h*(wide?.38:face?.52:.68),w/(actors.length>1?actors.length*1.25:1.1)),x=w*(actors.length>1?(i+.5)/actors.length:choose?.40:.5);
+      const height=Math.min(h*(wide?.38:face?.52:w<740?.58:.68),w/(actors.length>1?actors.length*1.25:1.1)),x=w*(actors.length>1?(i+.5)/actors.length:choose?.40:.5);
       const bounce=running&&!reduced?Math.sin(frame.t*Math.PI*12)*h*.009:0;
       catchPoint=this.drawActor(ctx,p,key,x,h*.81+bounce,height,false,face)??catchPoint;
     }
