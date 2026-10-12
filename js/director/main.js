@@ -51,7 +51,10 @@ try {
      if(game.phase==='COMMAND'&&game.replayInputs){const entry=game.replayInputs.find(x=>x.encounterId===game.state.encounterIndex+1);game.queue(entry?.command??command());side=game.pending.side;game.commit();}
      if(game.phase==='FLOW'&&game.pending.id==='hold'){const s=game.commandSnapshot();if(s.ball.z!==0)side=s.ball.z*direction(s,'A')<0?'left':'right';}
    }
-   const projection=game.projection(), shown=scene.draw(projection,$('reduced').checked);
+   const projection=game.projection();
+   $('caption').setAttribute('style','');
+   if(projection.cut==='movement')$('caption').textContent=projection.text;
+   const shown=scene.draw(projection,$('reduced').checked);
    $('game').dataset.phase=game.phase;$('game').dataset.encounter=String(game.state.encounterIndex);$('game').classList.toggle('paused',game.paused);
    $('score').textContent=`${shown.score.A} : ${shown.score.B}`;
    const sec=Math.floor(shown.matchSeconds);$('clock').textContent=`${shown.half===1?'전반':'후반'} ${String(Math.floor(sec/60)).padStart(2,'0')}:${String(sec%60).padStart(2,'0')}`;

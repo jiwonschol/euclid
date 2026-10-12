@@ -16,10 +16,10 @@ export class ScenePlayer {
     for(const entry of entries.filter(([name])=>!first.includes(name)))void load(entry);
   }
   context(canvas) {const box=canvas.getBoundingClientRect(),dpr=Math.min(2,window.devicePixelRatio||1),w=Math.round(box.width*dpr),h=Math.round(box.height*dpr);if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;}const ctx=canvas.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);return {ctx,w:box.width,h:box.height};}
-  drawActor(ctx,p,key,x,y,height,silhouette=false,face=false) {
+  drawActor(ctx,p,key,x,y,height,silhouette=false,face=false,labelWidth=86) {
     const fallback=p.role==='GK'?(p.team==='A'?'keeper-ready':'keeper-green-ready'):p.team==='A'?'striker-ready':'defender-ready';
     if(!this.images[key])key=fallback;
-    const img=this.images[key],meta=this.manifest.assets[key];let contact=null;
+    const img=this.images[key],meta=this.manifest.assets[key];let contact=null,actorTop=y-height;
     ctx.save();
     if(img){
       const b=meta.contentBounds,anchor=meta.anchors?.ground?.point??meta.anchors?.groundProjection?.point??[(b[0]+b[2])/2,b[3]];
@@ -28,6 +28,7 @@ export class ScenePlayer {
         ctx.drawImage(img,(b[0]+b[2]-size)/2,b[1],size,size,x-height/2,y-height,height,height);
       }else{
         const factor=Math.min(height/(b[3]-b[1]),height*1.1/(b[2]-b[0]));
+        actorTop=y+(b[1]-anchor[1])*factor;
         const flip=meta.facing==='left'?-1:1;
         const glove=key.includes('dive')?meta.anchors?.gloveContact?.point:null;
         if(glove)contact={x:x+(glove[0]-anchor[0])*factor*flip,y:y+(glove[1]-anchor[1])*factor};
@@ -41,8 +42,11 @@ export class ScenePlayer {
     }
     ctx.restore();
     if(!silhouette){
-      ctx.font='bold 14px system-ui';ctx.textAlign='center';ctx.fillStyle='#101e2be8';ctx.fillRect(x-43,y-34,86,24);
-      ctx.fillStyle='#fff';ctx.fillText(`${p.team==='A'?'청해':'홍림'} ${p.number}번`,x,y-17);
+      const compact=labelWidth<86,labelTop=actorTop-(compact?42:30);
+      ctx.font=`bold ${compact?12:14}px system-ui`;ctx.textAlign='center';ctx.fillStyle='#101e2be8';ctx.fillRect(x-labelWidth/2,labelTop,labelWidth,compact?36:24);
+      ctx.fillStyle='#fff';
+      if(compact){ctx.fillText(p.team==='A'?'청해':'홍림',x,labelTop+14);ctx.fillText(`${p.number}번`,x,labelTop+29);}
+      else ctx.fillText(`${p.team==='A'?'청해':'홍림'} ${p.number}번`,x,labelTop+17);
     }
     return contact;
   }
@@ -57,8 +61,9 @@ export class ScenePlayer {
     ctx.clearRect(0,0,w,h);
     const bench=['READY','HALFTIME','REVIEW'].includes(frame.kind),shot=['GOAL','SAVE','MISS'].includes(frame.kind);
     const bg=this.images[bench?'stadium-bench':shot&&cut==='result'?'stadium-goal':'stadium-empty']??this.images['stadium-empty'];
-    const running=frame.kind==='FLOW',offset=running&&!reduced?-frame.t*w*.18:0;
-    if(bg){if(cut==='result'&&frame.kind==='GOAL')ctx.drawImage(bg,bg.naturalWidth*.67,bg.naturalHeight*.30,bg.naturalWidth*.33,bg.naturalHeight*.40,0,0,w,h);else ctx.drawImage(bg,offset,0,w,h);if(offset)ctx.drawImage(bg,offset+w,0,w,h);}
+    const running=frame.kind==='FLOW',panning=running&&!reduced,offset=panning?-frame.t*w*.18:0;
+    // Pan one oversized image: the supplied stadium is not a seamless tile.
+    if(bg){if(cut==='result'&&frame.kind==='GOAL')ctx.drawImage(bg,bg.naturalWidth*.67,bg.naturalHeight*.30,bg.naturalWidth*.33,bg.naturalHeight*.40,0,0,w,h);else ctx.drawImage(bg,offset,0,w*(panning?1.18:1),h);}
     else{ctx.fillStyle='#548349';ctx.fillRect(0,0,w,h);}
     if(cut==='ball'){
       ctx.fillStyle='#437fa8';ctx.fillRect(0,0,w,h);
@@ -71,8 +76,18 @@ export class ScenePlayer {
     const lead=s.players.find(p=>p.id===frame.from.ball.ownerId);
     const ids=frame.actorIds??[],players=ids.map(id=>s.players.find(p=>p.id===id)).filter(Boolean);
     const choose=frame.kind==='COMMAND';
-    let actors=bench||cut==='directive'||cut==='ball'?[]:cut==='movement'?players:choose?[lead].filter(Boolean):running?[lead].filter(Boolean):cut==='result'?[s.players.find(p=>p.id===s.ball.ownerId)??players[0]].filter(Boolean):players.slice(0,1);
+    const advancing=frame.kind==='ADVANCE',nextActor=advancing?(lead??s.players.filter(p=>p.active&&p.team===s.possessionTeam&&p.role!=='GK').sort((a,b)=>distance(a.position,s.ball)-distance(b.position,s.ball))[0]):null;
+    let actors=bench||cut==='directive'||cut==='ball'?[]:advancing?[nextActor].filter(Boolean):cut==='movement'?players:choose?[lead].filter(Boolean):running?[lead].filter(Boolean):cut==='result'?[s.players.find(p=>p.id===s.ball.ownerId)??players[0]].filter(Boolean):players.slice(0,1);
     if(cut==='result'&&frame.kind==='GOAL')actors=[];
+    const hud=this.canvas.parentElement.querySelector('.stage-top');
+    const labelFloor=hud?hud.getBoundingClientRect().bottom-this.canvas.getBoundingClientRect().top+6:6;
+    const labelWidth=cut==='movement'&&w<=740?Math.min(86,w/actors.length-8):86;
+    const caption=this.canvas.parentElement.querySelector('#caption, .caption');
+    if(cut==='movement'&&labelWidth===86&&caption?.id==='caption'){
+      const box=caption.getBoundingClientRect(),top=box.top-this.canvas.getBoundingClientRect().top;
+      if(top<h*.81+6&&box.height<=h*.19-6)caption.style.bottom=`${h*.19-6-box.height}px`;
+    }
+    const ground=labelWidth<86&&caption?Math.min(h*.81,caption.getBoundingClientRect().top-this.canvas.getBoundingClientRect().top-6):h*.81;
     let catchPoint=null;
     for(const [i,p] of actors.entries()){
       const prefix=p.team==='A'?'striker':'defender',wide=cut==='wide',face=cut==='face';
@@ -82,14 +97,14 @@ export class ScenePlayer {
         if(running||cut==='movement'||cut==='opponent')key=prefix+'-run';
         if(['ours','opponent'].includes(cut))key=prefix+(frame.attackingActor&&['PASS','AERIAL_PASS','CROSS','INTERCEPT','GOAL','SAVE','MISS'].includes(frame.kind)?'-kick':'-run');
       }
-      const height=Math.min(h*(wide?.38:face?.52:.68),w/(actors.length>1?actors.length*1.25:1.1)),x=w*(actors.length>1?(i+.5)/actors.length:choose?.40:.5);
       const bounce=running&&!reduced?Math.sin(frame.t*Math.PI*12)*h*.009:0;
-      catchPoint=this.drawActor(ctx,p,key,x,h*.81+bounce,height,false,face)??catchPoint;
+      const y=ground+bounce,height=Math.min(h*(wide?.38:face?.52:w<=740?.58:.68),w/(actors.length>1?actors.length*1.25:1.1),ground-labelFloor-(labelWidth<86?42:30)),x=w*(actors.length>1?(i+.5)/actors.length:choose?.40:.5);
+      catchPoint=this.drawActor(ctx,p,key,x,y,height,false,face,labelWidth)??catchPoint;
     }
     if(choose&&players[1]) {
       // Tint only the actor on an isolated canvas; source-atop on the stage would tint the whole background.
       const layer=this.silhouette??=document.createElement('canvas');layer.width=Math.ceil(w);layer.height=Math.ceil(h);
-      this.drawActor(layer.getContext('2d'),players[1],players[1].team==='A'?'striker-ready':'defender-ready',w*.72,h*.94,h*.7,true);
+      this.drawActor(layer.getContext('2d'),players[1],players[1].team==='A'?'striker-ready':'defender-ready',w*.72,h*.94,h*(w<=740?.58:.7),true);
       ctx.drawImage(layer,0,0);
     }
     if(cut==='directive'){
