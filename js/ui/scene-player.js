@@ -16,7 +16,7 @@ export class ScenePlayer {
     for(const entry of entries.filter(([name])=>!first.includes(name)))void load(entry);
   }
   context(canvas) {const box=canvas.getBoundingClientRect(),dpr=Math.min(2,window.devicePixelRatio||1),w=Math.round(box.width*dpr),h=Math.round(box.height*dpr);if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;}const ctx=canvas.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);return {ctx,w:box.width,h:box.height};}
-  drawActor(ctx,p,key,x,y,height,silhouette=false,face=false) {
+  drawActor(ctx,p,key,x,y,height,silhouette=false,face=false,labelWidth=86) {
     const fallback=p.role==='GK'?(p.team==='A'?'keeper-ready':'keeper-green-ready'):p.team==='A'?'striker-ready':'defender-ready';
     if(!this.images[key])key=fallback;
     const img=this.images[key],meta=this.manifest.assets[key];let contact=null,actorTop=y-height;
@@ -42,9 +42,11 @@ export class ScenePlayer {
     }
     ctx.restore();
     if(!silhouette){
-      const labelTop=actorTop-30;
-      ctx.font='bold 14px system-ui';ctx.textAlign='center';ctx.fillStyle='#101e2be8';ctx.fillRect(x-43,labelTop,86,24);
-      ctx.fillStyle='#fff';ctx.fillText(`${p.team==='A'?'청해':'홍림'} ${p.number}번`,x,labelTop+17);
+      const compact=labelWidth<86,labelTop=actorTop-(compact?42:30);
+      ctx.font=`bold ${compact?12:14}px system-ui`;ctx.textAlign='center';ctx.fillStyle='#101e2be8';ctx.fillRect(x-labelWidth/2,labelTop,labelWidth,compact?36:24);
+      ctx.fillStyle='#fff';
+      if(compact){ctx.fillText(p.team==='A'?'청해':'홍림',x,labelTop+14);ctx.fillText(`${p.number}번`,x,labelTop+29);}
+      else ctx.fillText(`${p.team==='A'?'청해':'홍림'} ${p.number}번`,x,labelTop+17);
     }
     return contact;
   }
@@ -79,6 +81,9 @@ export class ScenePlayer {
     if(cut==='result'&&frame.kind==='GOAL')actors=[];
     const hud=this.canvas.parentElement.querySelector('.stage-top');
     const labelFloor=hud?hud.getBoundingClientRect().bottom-this.canvas.getBoundingClientRect().top+6:6;
+    const labelWidth=cut==='movement'&&w<=740?Math.min(86,w/actors.length-8):86;
+    const caption=this.canvas.parentElement.querySelector('#caption, .caption');
+    const ground=labelWidth<86&&caption?Math.min(h*.81,caption.getBoundingClientRect().top-this.canvas.getBoundingClientRect().top-6):h*.81;
     let catchPoint=null;
     for(const [i,p] of actors.entries()){
       const prefix=p.team==='A'?'striker':'defender',wide=cut==='wide',face=cut==='face';
@@ -89,8 +94,8 @@ export class ScenePlayer {
         if(['ours','opponent'].includes(cut))key=prefix+(frame.attackingActor&&['PASS','AERIAL_PASS','CROSS','INTERCEPT','GOAL','SAVE','MISS'].includes(frame.kind)?'-kick':'-run');
       }
       const bounce=running&&!reduced?Math.sin(frame.t*Math.PI*12)*h*.009:0;
-      const y=h*.81+bounce,height=Math.min(h*(wide?.38:face?.52:w<=740?.58:.68),w/(actors.length>1?actors.length*1.25:1.1),y-labelFloor-30),x=w*(actors.length>1?(i+.5)/actors.length:choose?.40:.5);
-      catchPoint=this.drawActor(ctx,p,key,x,y,height,false,face)??catchPoint;
+      const y=ground+bounce,height=Math.min(h*(wide?.38:face?.52:w<=740?.58:.68),w/(actors.length>1?actors.length*1.25:1.1),ground-labelFloor-(labelWidth<86?42:30)),x=w*(actors.length>1?(i+.5)/actors.length:choose?.40:.5);
+      catchPoint=this.drawActor(ctx,p,key,x,y,height,false,face,labelWidth)??catchPoint;
     }
     if(choose&&players[1]) {
       // Tint only the actor on an isolated canvas; source-atop on the stage would tint the whole background.
