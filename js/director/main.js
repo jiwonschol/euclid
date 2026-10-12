@@ -1,5 +1,5 @@
 import { DirectorMatch } from './match.js';
-import { CARDS,command,legal } from './cards.js';
+import { CARDS,command,cardButtonReason } from './cards.js';
 import { stats } from './resolve.js';
 import {distance,direction} from './state.js';
 import { ScenePlayer } from '../ui/scene-player.js';
@@ -74,7 +74,7 @@ try {
    $('hold').disabled=!['FLOW','COMMAND','HALFTIME'].includes(game.phase)||!!game.replayInputs;
    const snapshot=game.commandSnapshot(),attack=snapshot.possessionTeam==='A',ids=rules.enabledCards.filter(id=>CARDS[id].kind===(attack?'attack':'defence'));
    const key=ids.join(',');if(cardKey!==key){cardKey=key;for(const button of $('cards').children)button.hidden=!ids.includes(button.dataset.card);}
-   for(const button of $('cards').children){const reason=legal(snapshot,'A',command(button.dataset.card,side),rules,(game.halftimeFlow??game.flow)?.opponentIntent);button.disabled=button.hidden||!!reason||!['FLOW','COMMAND','HALFTIME'].includes(game.phase)||!!game.replayInputs;button.title=reason??CARDS[button.dataset.card].cost;button.setAttribute('aria-pressed',displayed.id===button.dataset.card);}
+   for(const button of $('cards').children){const reason=cardButtonReason(snapshot,command(button.dataset.card,side),game);button.disabled=button.hidden||!!reason||!['FLOW','COMMAND','HALFTIME'].includes(game.phase)||!!game.replayInputs;button.title=reason??CARDS[button.dataset.card].cost;button.setAttribute('aria-pressed',displayed.id===button.dataset.card);}
    $('seed-label').textContent=`경기 ${game.state.seed} · ${game.state.encounterIndex}국면`;
    if(lastPhase!==game.phase) {
      lastPhase=game.phase;if(game.phase==='FLOW')notice='';if(game.phase==='PRESENT')notice=`${CARDS[game.resolution.committedCommand.id].name} 전달됨. 결과를 확인하세요.`;save();

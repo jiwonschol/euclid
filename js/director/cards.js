@@ -10,6 +10,9 @@ export const CARDS = {
   delay_drop:{name:'후퇴 지연',kind:'defence',detail:'달려들지 않고 골 방향으로 복귀합니다.',cost:'당장 빼앗을 기회와 전진 공간을 내줍니다.',tempo:0,art:'card-drop'}
 };
 export const command = (id='hold',side='left') => ({id,side});
+export function cardButtonReason(snapshot,cmd,{rules,flow,halftimeFlow}) {
+  return legal(snapshot,'A',cmd,rules,(halftimeFlow??flow)?.opponentIntent);
+}
 export function legal(s, team, cmd, rules, opponentCommand=command()) {
   const c=CARDS[cmd?.id]; if (!c) return '없는 지시입니다.';
   if(c.kind==='any') return null;
