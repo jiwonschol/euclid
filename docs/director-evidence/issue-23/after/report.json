@@ -1,0 +1,2573 @@
+{
+  "mode": "after",
+  "layouts": [
+    {
+      "width": 1280,
+      "overflow": 0,
+      "phase": "COMMAND",
+      "frame": {
+        "kind": "COMMAND",
+        "cut": "choose",
+        "actors": "A9",
+        "boxes": [
+          {
+            "key": "striker-ready",
+            "box": {
+              "left": 443.17150890346767,
+              "right": 596.6335520149953,
+              "top": 60.41237113402059,
+              "bottom": 332.4123711340206
+            },
+            "label": {
+              "left": 469,
+              "right": 555,
+              "top": 30.41237113402059,
+              "bottom": 54.41237113402059
+            }
+          }
+        ],
+        "background": [
+          {
+            "src": "http://localhost:8653/assets/director/stadium-empty.webp",
+            "args": [
+              0,
+              0,
+              1280,
+              400
+            ]
+          }
+        ],
+        "text": "카드를 누르면 바로 진행합니다.",
+        "t": 1
+      },
+      "scene": {
+        "x": 0,
+        "y": 60,
+        "width": 1280,
+        "height": 400,
+        "top": 60,
+        "right": 1280,
+        "bottom": 460,
+        "left": 0
+      },
+      "hud": [
+        {
+          "x": 22,
+          "y": 76,
+          "width": 87.890625,
+          "height": 34.296875,
+          "top": 76,
+          "right": 109.890625,
+          "bottom": 110.296875,
+          "left": 22
+        },
+        {
+          "x": 569.328125,
+          "y": 76,
+          "width": 141.34375,
+          "height": 34.296875,
+          "top": 76,
+          "right": 710.671875,
+          "bottom": 110.296875,
+          "left": 569.328125
+        },
+        {
+          "x": 1170.109375,
+          "y": 76,
+          "width": 87.890625,
+          "height": 34.296875,
+          "top": 76,
+          "right": 1258,
+          "bottom": 110.296875,
+          "left": 1170.109375
+        }
+      ],
+      "cards": [
+        {
+          "id": "support_flank",
+          "box": {
+            "x": 292,
+            "y": 515,
+            "width": 230.328125,
+            "height": 158,
+            "top": 515,
+            "right": 522.328125,
+            "bottom": 673,
+            "left": 292
+          },
+          "texts": [
+            {
+              "text": "측면 지원",
+              "font": "15px",
+              "box": {
+                "x": 303,
+                "y": 598.78125,
+                "width": 64.171875,
+                "height": 17,
+                "top": 598.78125,
+                "right": 367.171875,
+                "bottom": 615.78125,
+                "left": 303
+              },
+              "clipped": false
+            },
+            {
+              "text": "풀백이 올라가 패스 길을 하나 더 만듭니다.",
+              "font": "11px",
+              "box": {
+                "x": 303,
+                "y": 622.53125,
+                "width": 208.328125,
+                "height": 29.6875,
+                "top": 622.53125,
+                "right": 511.328125,
+                "bottom": 652.21875,
+                "left": 303
+              },
+              "clipped": false
+            }
+          ]
+        },
+        {
+          "id": "switch_play",
+          "box": {
+            "x": 532.328125,
+            "y": 515,
+            "width": 230.34375,
+            "height": 158,
+            "top": 515,
+            "right": 762.671875,
+            "bottom": 673,
+            "left": 532.328125
+          },
+          "texts": [
+            {
+              "text": "반대쪽 전환",
+              "font": "15px",
+              "box": {
+                "x": 543.328125,
+                "y": 606.203125,
+                "width": 79.171875,
+                "height": 17,
+                "top": 606.203125,
+                "right": 622.5,
+                "bottom": 623.203125,
+                "left": 543.328125
+              },
+              "clipped": false
+            },
+            {
+              "text": "반대편 선수에게 길게 연결합니다.",
+              "font": "11px",
+              "box": {
+                "x": 543.328125,
+                "y": 629.953125,
+                "width": 208.34375,
+                "height": 14.84375,
+                "top": 629.953125,
+                "right": 751.671875,
+                "bottom": 644.796875,
+                "left": 543.328125
+              },
+              "clipped": false
+            }
+          ]
+        },
+        {
+          "id": "run_inside",
+          "box": {
+            "x": 772.671875,
+            "y": 515,
+            "width": 230.328125,
+            "height": 158,
+            "top": 515,
+            "right": 1003,
+            "bottom": 673,
+            "left": 772.671875
+          },
+          "texts": [
+            {
+              "text": "중앙 침투",
+              "font": "15px",
+              "box": {
+                "x": 783.671875,
+                "y": 606.203125,
+                "width": 64.171875,
+                "height": 17,
+                "top": 606.203125,
+                "right": 847.84375,
+                "bottom": 623.203125,
+                "left": 783.671875
+              },
+              "clipped": false
+            },
+            {
+              "text": "중앙 선수가 수비 사이로 움직입니다.",
+              "font": "11px",
+              "box": {
+                "x": 783.671875,
+                "y": 629.953125,
+                "width": 208.328125,
+                "height": 14.84375,
+                "top": 629.953125,
+                "right": 992,
+                "bottom": 644.796875,
+                "left": 783.671875
+              },
+              "clipped": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "width": 1920,
+      "overflow": 0,
+      "phase": "COMMAND",
+      "frame": {
+        "kind": "COMMAND",
+        "cut": "choose",
+        "actors": "A9",
+        "boxes": [
+          {
+            "key": "striker-ready",
+            "box": {
+              "left": 643.5925023430178,
+              "right": 920.9751452671042,
+              "top": 109.19536570755469,
+              "bottom": 600.8353657075547
+            },
+            "label": {
+              "left": 725,
+              "right": 811,
+              "top": 79.19536082474218,
+              "bottom": 103.19536082474218
+            }
+          }
+        ],
+        "background": [
+          {
+            "src": "http://localhost:8653/assets/director/stadium-empty.webp",
+            "args": [
+              0,
+              0,
+              1920,
+              723
+            ]
+          }
+        ],
+        "text": "카드를 누르면 바로 진행합니다.",
+        "t": 1
+      },
+      "scene": {
+        "x": 0,
+        "y": 70,
+        "width": 1920,
+        "height": 723,
+        "top": 70,
+        "right": 1920,
+        "bottom": 793,
+        "left": 0
+      },
+      "hud": [
+        {
+          "x": 22,
+          "y": 86,
+          "width": 87.890625,
+          "height": 34.296875,
+          "top": 86,
+          "right": 109.890625,
+          "bottom": 120.296875,
+          "left": 22
+        },
+        {
+          "x": 889.328125,
+          "y": 86,
+          "width": 141.34375,
+          "height": 34.296875,
+          "top": 86,
+          "right": 1030.671875,
+          "bottom": 120.296875,
+          "left": 889.328125
+        },
+        {
+          "x": 1810.109375,
+          "y": 86,
+          "width": 87.890625,
+          "height": 34.296875,
+          "top": 86,
+          "right": 1898,
+          "bottom": 120.296875,
+          "left": 1810.109375
+        }
+      ],
+      "cards": [
+        {
+          "id": "support_flank",
+          "box": {
+            "x": 355,
+            "y": 851,
+            "width": 270,
+            "height": 181,
+            "top": 851,
+            "right": 625,
+            "bottom": 1032,
+            "left": 355
+          },
+          "texts": [
+            {
+              "text": "측면 지원",
+              "font": "17px",
+              "box": {
+                "x": 366,
+                "y": 959.40625,
+                "width": 72.734375,
+                "height": 19,
+                "top": 959.40625,
+                "right": 438.734375,
+                "bottom": 978.40625,
+                "left": 366
+              },
+              "clipped": false
+            },
+            {
+              "text": "풀백이 올라가 패스 길을 하나 더 만듭니다.",
+              "font": "13px",
+              "box": {
+                "x": 366,
+                "y": 986.046875,
+                "width": 248,
+                "height": 17.546875,
+                "top": 986.046875,
+                "right": 614,
+                "bottom": 1003.59375,
+                "left": 366
+              },
+              "clipped": false
+            }
+          ]
+        },
+        {
+          "id": "switch_play",
+          "box": {
+            "x": 635,
+            "y": 851,
+            "width": 270,
+            "height": 181,
+            "top": 851,
+            "right": 905,
+            "bottom": 1032,
+            "left": 635
+          },
+          "texts": [
+            {
+              "text": "반대쪽 전환",
+              "font": "17px",
+              "box": {
+                "x": 646,
+                "y": 959.40625,
+                "width": 89.734375,
+                "height": 19,
+                "top": 959.40625,
+                "right": 735.734375,
+                "bottom": 978.40625,
+                "left": 646
+              },
+              "clipped": false
+            },
+            {
+              "text": "반대편 선수에게 길게 연결합니다.",
+              "font": "13px",
+              "box": {
+                "x": 646,
+                "y": 986.046875,
+                "width": 248,
+                "height": 17.546875,
+                "top": 986.046875,
+                "right": 894,
+                "bottom": 1003.59375,
+                "left": 646
+              },
+              "clipped": false
+            }
+          ]
+        },
+        {
+          "id": "run_inside",
+          "box": {
+            "x": 915,
+            "y": 851,
+            "width": 270,
+            "height": 181,
+            "top": 851,
+            "right": 1185,
+            "bottom": 1032,
+            "left": 915
+          },
+          "texts": [
+            {
+              "text": "중앙 침투",
+              "font": "17px",
+              "box": {
+                "x": 926,
+                "y": 959.40625,
+                "width": 72.734375,
+                "height": 19,
+                "top": 959.40625,
+                "right": 998.734375,
+                "bottom": 978.40625,
+                "left": 926
+              },
+              "clipped": false
+            },
+            {
+              "text": "중앙 선수가 수비 사이로 움직입니다.",
+              "font": "13px",
+              "box": {
+                "x": 926,
+                "y": 986.046875,
+                "width": 248,
+                "height": 17.546875,
+                "top": 986.046875,
+                "right": 1174,
+                "bottom": 1003.59375,
+                "left": 926
+              },
+              "clipped": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "width": 375,
+      "overflow": 0,
+      "phase": "COMMAND",
+      "frame": {
+        "kind": "COMMAND",
+        "cut": "choose",
+        "actors": "A9",
+        "boxes": [
+          {
+            "key": "striker-ready",
+            "box": {
+              "left": 100.09934395501406,
+              "right": 211.3593252108716,
+              "top": 84.29896296864933,
+              "bottom": 281.4989629686493
+            },
+            "label": {
+              "left": 107,
+              "right": 193,
+              "top": 54.298969072164994,
+              "bottom": 78.298969072165
+            }
+          }
+        ],
+        "background": [
+          {
+            "src": "http://localhost:8653/assets/director/stadium-empty.webp",
+            "args": [
+              0,
+              0,
+              375,
+              340
+            ]
+          }
+        ],
+        "text": "카드를 누르면 바로 진행합니다.",
+        "t": 1
+      },
+      "scene": {
+        "x": 0,
+        "y": 91.390625,
+        "width": 375,
+        "height": 340,
+        "top": 91.390625,
+        "right": 375,
+        "bottom": 431.390625,
+        "left": 0
+      },
+      "hud": [
+        {
+          "x": 10,
+          "y": 101.390625,
+          "width": 67.34375,
+          "height": 27.390625,
+          "top": 101.390625,
+          "right": 77.34375,
+          "bottom": 128.78125,
+          "left": 10
+        },
+        {
+          "x": 122.828125,
+          "y": 101.390625,
+          "width": 129.34375,
+          "height": 27.390625,
+          "top": 101.390625,
+          "right": 252.171875,
+          "bottom": 128.78125,
+          "left": 122.828125
+        },
+        {
+          "x": 297.65625,
+          "y": 101.390625,
+          "width": 67.34375,
+          "height": 27.390625,
+          "top": 101.390625,
+          "right": 365,
+          "bottom": 128.78125,
+          "left": 297.65625
+        }
+      ],
+      "cards": [
+        {
+          "id": "support_flank",
+          "box": {
+            "x": 12,
+            "y": 483.390625,
+            "width": 110.328125,
+            "height": 190,
+            "top": 483.390625,
+            "right": 122.328125,
+            "bottom": 673.390625,
+            "left": 12
+          },
+          "texts": [
+            {
+              "text": "측면 지원",
+              "font": "14px",
+              "box": {
+                "x": 21,
+                "y": 572.65625,
+                "width": 59.890625,
+                "height": 16,
+                "top": 572.65625,
+                "right": 80.890625,
+                "bottom": 588.65625,
+                "left": 21
+              },
+              "clipped": false
+            },
+            {
+              "text": "풀백이 올라가 패스 길을 하나 더 만듭니다.",
+              "font": "12px",
+              "box": {
+                "x": 21,
+                "y": 594.953125,
+                "width": 92.328125,
+                "height": 52.171875,
+                "top": 594.953125,
+                "right": 113.328125,
+                "bottom": 647.125,
+                "left": 21
+              },
+              "clipped": false
+            }
+          ]
+        },
+        {
+          "id": "switch_play",
+          "box": {
+            "x": 132.328125,
+            "y": 483.390625,
+            "width": 110.34375,
+            "height": 190,
+            "top": 483.390625,
+            "right": 242.671875,
+            "bottom": 673.390625,
+            "left": 132.328125
+          },
+          "texts": [
+            {
+              "text": "반대쪽 전환",
+              "font": "14px",
+              "box": {
+                "x": 141.328125,
+                "y": 581.34375,
+                "width": 73.890625,
+                "height": 16,
+                "top": 581.34375,
+                "right": 215.21875,
+                "bottom": 597.34375,
+                "left": 141.328125
+              },
+              "clipped": false
+            },
+            {
+              "text": "반대편 선수에게 길게 연결합니다.",
+              "font": "12px",
+              "box": {
+                "x": 141.328125,
+                "y": 603.640625,
+                "width": 92.34375,
+                "height": 34.78125,
+                "top": 603.640625,
+                "right": 233.671875,
+                "bottom": 638.421875,
+                "left": 141.328125
+              },
+              "clipped": false
+            }
+          ]
+        },
+        {
+          "id": "run_inside",
+          "box": {
+            "x": 252.671875,
+            "y": 483.390625,
+            "width": 110.328125,
+            "height": 190,
+            "top": 483.390625,
+            "right": 363,
+            "bottom": 673.390625,
+            "left": 252.671875
+          },
+          "texts": [
+            {
+              "text": "중앙 침투",
+              "font": "14px",
+              "box": {
+                "x": 261.671875,
+                "y": 572.65625,
+                "width": 59.890625,
+                "height": 16,
+                "top": 572.65625,
+                "right": 321.5625,
+                "bottom": 588.65625,
+                "left": 261.671875
+              },
+              "clipped": false
+            },
+            {
+              "text": "중앙 선수가 수비 사이로 움직입니다.",
+              "font": "12px",
+              "box": {
+                "x": 261.671875,
+                "y": 594.953125,
+                "width": 92.328125,
+                "height": 52.171875,
+                "top": 594.953125,
+                "right": 354,
+                "bottom": 647.125,
+                "left": 261.671875
+              },
+              "clipped": false
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "advance": [
+    {
+      "width": 1280,
+      "frames": [
+        {
+          "kind": "ADVANCE",
+          "cut": "ADVANCE",
+          "actors": "A9",
+          "boxes": [
+            {
+              "key": "striker-ready",
+              "box": {
+                "left": 571.1715089034676,
+                "right": 724.6335520149953,
+                "top": 60.41237113402059,
+                "bottom": 332.4123711340206
+              },
+              "label": {
+                "left": 597,
+                "right": 683,
+                "top": 30.41237113402059,
+                "bottom": 54.41237113402059
+              }
+            }
+          ],
+          "background": [
+            {
+              "src": "http://localhost:8653/assets/director/stadium-empty.webp",
+              "args": [
+                0,
+                0,
+                1280,
+                400
+              ]
+            }
+          ],
+          "text": "청해 9번 → 2번, 패스 연결. 청해 2번 → 9번, 패스 연결. · 이동한 청해 2번에게 연결",
+          "t": 1
+        },
+        {
+          "kind": "ADVANCE",
+          "cut": "ADVANCE",
+          "actors": "A9",
+          "boxes": [
+            {
+              "key": "striker-ready",
+              "box": {
+                "left": 571.1715089034676,
+                "right": 724.6335520149953,
+                "top": 60.41237113402059,
+                "bottom": 332.4123711340206
+              },
+              "label": {
+                "left": 597,
+                "right": 683,
+                "top": 30.41237113402059,
+                "bottom": 54.41237113402059
+              }
+            }
+          ],
+          "background": [
+            {
+              "src": "http://localhost:8653/assets/director/stadium-empty.webp",
+              "args": [
+                0,
+                0,
+                1280,
+                400
+              ]
+            }
+          ],
+          "text": "청해 9번 → 2번, 패스 연결. 청해 2번 → 9번, 패스 연결. · 이동한 청해 2번에게 연결",
+          "t": 1
+        },
+        {
+          "kind": "ADVANCE",
+          "cut": "ADVANCE",
+          "actors": "A9",
+          "boxes": [
+            {
+              "key": "striker-ready",
+              "box": {
+                "left": 571.1715089034676,
+                "right": 724.6335520149953,
+                "top": 60.41237113402059,
+                "bottom": 332.4123711340206
+              },
+              "label": {
+                "left": 597,
+                "right": 683,
+                "top": 30.41237113402059,
+                "bottom": 54.41237113402059
+              }
+            }
+          ],
+          "background": [
+            {
+              "src": "http://localhost:8653/assets/director/stadium-empty.webp",
+              "args": [
+                0,
+                0,
+                1280,
+                400
+              ]
+            }
+          ],
+          "text": "청해 9번 → 2번, 패스 연결. 청해 2번 → 9번, 패스 연결. · 이동한 청해 2번에게 연결",
+          "t": 1
+        },
+        {
+          "kind": "ADVANCE",
+          "cut": "ADVANCE",
+          "actors": "A9",
+          "boxes": [
+            {
+              "key": "striker-ready",
+              "box": {
+                "left": 571.1715089034676,
+                "right": 724.6335520149953,
+                "top": 60.41237113402059,
+                "bottom": 332.4123711340206
+              },
+              "label": {
+                "left": 597,
+                "right": 683,
+                "top": 30.41237113402059,
+                "bottom": 54.41237113402059
+              }
+            }
+          ],
+          "background": [
+            {
+              "src": "http://localhost:8653/assets/director/stadium-empty.webp",
+              "args": [
+                0,
+                0,
+                1280,
+                400
+              ]
+            }
+          ],
+          "text": "청해 9번 → 2번, 패스 연결. 청해 2번 → 9번, 패스 연결. · 이동한 청해 2번에게 연결",
+          "t": 1
+        },
+        {
+          "kind": "ADVANCE",
+          "cut": "ADVANCE",
+          "actors": "A9",
+          "boxes": [
+            {
+              "key": "striker-ready",
+              "box": {
+                "left": 571.1715089034676,
+                "right": 724.6335520149953,
+                "top": 60.41237113402059,
+                "bottom": 332.4123711340206
+              },
+              "label": {
+                "left": 597,
+                "right": 683,
+                "top": 30.41237113402059,
+                "bottom": 54.41237113402059
+              }
+            }
+          ],
+          "background": [
+            {
+              "src": "http://localhost:8653/assets/director/stadium-empty.webp",
+              "args": [
+                0,
+                0,
+                1280,
+                400
+              ]
+            }
+          ],
+          "text": "청해 9번 → 2번, 패스 연결. 청해 2번 → 9번, 패스 연결. · 이동한 청해 2번에게 연결",
+          "t": 1
+        },
+        {
+          "kind": "ADVANCE",
+          "cut": "ADVANCE",
+          "actors": "A9",
+          "boxes": [
+            {
+              "key": "striker-ready",
+              "box": {
+                "left": 571.1715089034676,
+                "right": 724.6335520149953,
+                "top": 60.41237113402059,
+                "bottom": 332.4123711340206
+              },
+              "label": {
+                "left": 597,
+                "right": 683,
+                "top": 30.41237113402059,
+                "bottom": 54.41237113402059
+              }
+            }
+          ],
+          "background": [
+            {
+              "src": "http://localhost:8653/assets/director/stadium-empty.webp",
+              "args": [
+                0,
+                0,
+                1280,
+                400
+              ]
+            }
+          ],
+          "text": "청해 9번 → 2번, 패스 연결. 청해 2번 → 9번, 패스 연결. · 이동한 청해 2번에게 연결",
+          "t": 1
+        },
+        {
+          "kind": "ADVANCE",
+          "cut": "ADVANCE",
+          "actors": "A9",
+          "boxes": [
+            {
+              "key": "striker-ready",
+              "box": {
+                "left": 571.1715089034676,
+                "right": 724.6335520149953,
+                "top": 60.41237113402059,
+                "bottom": 332.4123711340206
+              },
+              "label": {
+                "left": 597,
+                "right": 683,
+                "top": 30.41237113402059,
+                "bottom": 54.41237113402059
+              }
+            }
+          ],
+          "background": [
+            {
+              "src": "http://localhost:8653/assets/director/stadium-empty.webp",
+              "args": [
+                0,
+                0,
+                1280,
+                400
+              ]
+            }
+          ],
+          "text": "청해 9번 → 2번, 패스 연결. 청해 2번 → 9번, 패스 연결. · 이동한 청해 2번에게 연결",
+          "t": 1
+        },
+        {
+          "kind": "ADVANCE",
+          "cut": "ADVANCE",
+          "actors": "A9",
+          "boxes": [
+            {
+              "key": "striker-ready",
+              "box": {
+                "left": 571.1715089034676,
+                "right": 724.6335520149953,
+                "top": 60.41237113402059,
+                "bottom": 332.4123711340206
+              },
+              "label": {
+                "left": 597,
+                "right": 683,
+                "top": 30.41237113402059,
+                "bottom": 54.41237113402059
+              }
+            }
+          ],
+          "background": [
+            {
+              "src": "http://localhost:8653/assets/director/stadium-empty.webp",
+              "args": [
+                0,
+                0,
+                1280,
+                400
+              ]
+            }
+          ],
+          "text": "청해 9번 → 2번, 패스 연결. 청해 2번 → 9번, 패스 연결. · 이동한 청해 2번에게 연결",
+          "t": 1
+        },
+        {
+          "kind": "ADVANCE",
+          "cut": "ADVANCE",
+          "actors": "A9",
+          "boxes": [
+            {
+              "key": "striker-ready",
+              "box": {
+                "left": 571.1715089034676,
+                "right": 724.6335520149953,
+                "top": 60.41237113402059,
+                "bottom": 332.4123711340206
+              },
+              "label": {
+                "left": 597,
+                "right": 683,
+                "top": 30.41237113402059,
+                "bottom": 54.41237113402059
+              }
+            }
+          ],
+          "background": [
+            {
+              "src": "http://localhost:8653/assets/director/stadium-empty.webp",
+              "args": [
+                0,
+                0,
+                1280,
+                400
+              ]
+            }
+          ],
+          "text": "청해 9번 → 2번, 패스 연결. 청해 2번 → 9번, 패스 연결. · 이동한 청해 2번에게 연결",
+          "t": 1
+        },
+        {
+          "kind": "ADVANCE",
+          "cut": "ADVANCE",
+          "actors": "A9",
+          "boxes": [
+            {
+              "key": "striker-ready",
+              "box": {
+                "left": 571.1715089034676,
+                "right": 724.6335520149953,
+                "top": 60.41237113402059,
+                "bottom": 332.4123711340206
+              },
+              "label": {
+                "left": 597,
+                "right": 683,
+                "top": 30.41237113402059,
+                "bottom": 54.41237113402059
+              }
+            }
+          ],
+          "background": [
+            {
+              "src": "http://localhost:8653/assets/director/stadium-empty.webp",
+              "args": [
+                0,
+                0,
+                1280,
+                400
+              ]
+            }
+          ],
+          "text": "청해 9번 → 2번, 패스 연결. 청해 2번 → 9번, 패스 연결. · 이동한 청해 2번에게 연결",
+          "t": 1
+        },
+        {
+          "kind": "ADVANCE",
+          "cut": "ADVANCE",
+          "actors": "A9",
+          "boxes": [
+            {
+              "key": "striker-ready",
+              "box": {
+                "left": 571.1715089034676,
+                "right": 724.6335520149953,
+                "top": 60.41237113402059,
+                "bottom": 332.4123711340206
+              },
+              "label": {
+                "left": 597,
+                "right": 683,
+                "top": 30.41237113402059,
+                "bottom": 54.41237113402059
+              }
+            }
+          ],
+          "background": [
+            {
+              "src": "http://localhost:8653/assets/director/stadium-empty.webp",
+              "args": [
+                0,
+                0,
+                1280,
+                400
+              ]
+            }
+          ],
+          "text": "청해 9번 → 2번, 패스 연결. 청해 2번 → 9번, 패스 연결. · 이동한 청해 2번에게 연결",
+          "t": 1
+        },
+        {
+          "kind": "ADVANCE",
+          "cut": "ADVANCE",
+          "actors": "A9",
+          "boxes": [
+            {
+              "key": "striker-ready",
+              "box": {
+                "left": 571.1715089034676,
+                "right": 724.6335520149953,
+                "top": 60.41237113402059,
+                "bottom": 332.4123711340206
+              },
+              "label": {
+                "left": 597,
+                "right": 683,
+                "top": 30.41237113402059,
+                "bottom": 54.41237113402059
+              }
+            }
+          ],
+          "background": [
+            {
+              "src": "http://localhost:8653/assets/director/stadium-empty.webp",
+              "args": [
+                0,
+                0,
+                1280,
+                400
+              ]
+            }
+          ],
+          "text": "청해 9번 → 2번, 패스 연결. 청해 2번 → 9번, 패스 연결. · 이동한 청해 2번에게 연결",
+          "t": 1
+        },
+        {
+          "kind": "ADVANCE",
+          "cut": "ADVANCE",
+          "actors": "A9",
+          "boxes": [
+            {
+              "key": "striker-ready",
+              "box": {
+                "left": 571.1715089034676,
+                "right": 724.6335520149953,
+                "top": 60.41237113402059,
+                "bottom": 332.4123711340206
+              },
+              "label": {
+                "left": 597,
+                "right": 683,
+                "top": 30.41237113402059,
+                "bottom": 54.41237113402059
+              }
+            }
+          ],
+          "background": [
+            {
+              "src": "http://localhost:8653/assets/director/stadium-empty.webp",
+              "args": [
+                0,
+                0,
+                1280,
+                400
+              ]
+            }
+          ],
+          "text": "청해 9번 → 2번, 패스 연결. 청해 2번 → 9번, 패스 연결. · 이동한 청해 2번에게 연결",
+          "t": 1
+        },
+        {
+          "kind": "ADVANCE",
+          "cut": "ADVANCE",
+          "actors": "A9",
+          "boxes": [
+            {
+              "key": "striker-ready",
+              "box": {
+                "left": 571.1715089034676,
+                "right": 724.6335520149953,
+                "top": 60.41237113402059,
+                "bottom": 332.4123711340206
+              },
+              "label": {
+                "left": 597,
+                "right": 683,
+                "top": 30.41237113402059,
+                "bottom": 54.41237113402059
+              }
+            }
+          ],
+          "background": [
+            {
+              "src": "http://localhost:8653/assets/director/stadium-empty.webp",
+              "args": [
+                0,
+                0,
+                1280,
+                400
+              ]
+            }
+          ],
+          "text": "청해 9번 → 2번, 패스 연결. 청해 2번 → 9번, 패스 연결. · 이동한 청해 2번에게 연결",
+          "t": 1
+        },
+        {
+          "kind": "ADVANCE",
+          "cut": "ADVANCE",
+          "actors": "A9",
+          "boxes": [
+            {
+              "key": "striker-ready",
+              "box": {
+                "left": 571.1715089034676,
+                "right": 724.6335520149953,
+                "top": 60.41237113402059,
+                "bottom": 332.4123711340206
+              },
+              "label": {
+                "left": 597,
+                "right": 683,
+                "top": 30.41237113402059,
+                "bottom": 54.41237113402059
+              }
+            }
+          ],
+          "background": [
+            {
+              "src": "http://localhost:8653/assets/director/stadium-empty.webp",
+              "args": [
+                0,
+                0,
+                1280,
+                400
+              ]
+            }
+          ],
+          "text": "청해 9번 → 2번, 패스 연결. 청해 2번 → 9번, 패스 연결. · 이동한 청해 2번에게 연결",
+          "t": 1
+        },
+        {
+          "kind": "ADVANCE",
+          "cut": "ADVANCE",
+          "actors": "A9",
+          "boxes": [
+            {
+              "key": "striker-ready",
+              "box": {
+                "left": 571.1715089034676,
+                "right": 724.6335520149953,
+                "top": 60.41237113402059,
+                "bottom": 332.4123711340206
+              },
+              "label": {
+                "left": 597,
+                "right": 683,
+                "top": 30.41237113402059,
+                "bottom": 54.41237113402059
+              }
+            }
+          ],
+          "background": [
+            {
+              "src": "http://localhost:8653/assets/director/stadium-empty.webp",
+              "args": [
+                0,
+                0,
+                1280,
+                400
+              ]
+            }
+          ],
+          "text": "청해 9번 → 2번, 패스 연결. 청해 2번 → 9번, 패스 연결. · 이동한 청해 2번에게 연결",
+          "t": 1
+        }
+      ]
+    },
+    {
+      "width": 1920,
+      "frames": [
+        {
+          "kind": "ADVANCE",
+          "cut": "ADVANCE",
+          "actors": "A9",
+          "boxes": [
+            {
+              "key": "striker-ready",
+              "box": {
+                "left": 835.5925023430178,
+                "right": 1112.9751452671042,
+                "top": 109.19536570755469,
+                "bottom": 600.8353657075547
+              },
+              "label": {
+                "left": 917,
+                "right": 1003,
+                "top": 79.19536082474218,
+                "bottom": 103.19536082474218
+              }
+            }
+          ],
+          "background": [
+            {
+              "src": "http://localhost:8653/assets/director/stadium-empty.webp",
+              "args": [
+                0,
+                0,
+                1920,
+                723
+              ]
+            }
+          ],
+          "text": "청해 9번 → 2번, 패스 연결. 청해 2번 → 9번, 패스 연결. · 이동한 청해 2번에게 연결",
+          "t": 1
+        },
+        {
+          "kind": "ADVANCE",
+          "cut": "ADVANCE",
+          "actors": "A9",
+          "boxes": [
+            {
+              "key": "striker-ready",
+              "box": {
+                "left": 835.5925023430178,
+                "right": 1112.9751452671042,
+                "top": 109.19536570755469,
+                "bottom": 600.8353657075547
+              },
+              "label": {
+                "left": 917,
+                "right": 1003,
+                "top": 79.19536082474218,
+                "bottom": 103.19536082474218
+              }
+            }
+          ],
+          "background": [
+            {
+              "src": "http://localhost:8653/assets/director/stadium-empty.webp",
+              "args": [
+                0,
+                0,
+                1920,
+                723
+              ]
+            }
+          ],
+          "text": "청해 9번 → 2번, 패스 연결. 청해 2번 → 9번, 패스 연결. · 이동한 청해 2번에게 연결",
+          "t": 1
+        },
+        {
+          "kind": "ADVANCE",
+          "cut": "ADVANCE",
+          "actors": "A9",
+          "boxes": [
+            {
+              "key": "striker-ready",
+              "box": {
+                "left": 835.5925023430178,
+                "right": 1112.9751452671042,
+                "top": 109.19536570755469,
+                "bottom": 600.8353657075547
+              },
+              "label": {
+                "left": 917,
+                "right": 1003,
+                "top": 79.19536082474218,
+                "bottom": 103.19536082474218
+              }
+            }
+          ],
+          "background": [
+            {
+              "src": "http://localhost:8653/assets/director/stadium-empty.webp",
+              "args": [
+                0,
+                0,
+                1920,
+                723
+              ]
+            }
+          ],
+          "text": "청해 9번 → 2번, 패스 연결. 청해 2번 → 9번, 패스 연결. · 이동한 청해 2번에게 연결",
+          "t": 1
+        },
+        {
+          "kind": "ADVANCE",
+          "cut": "ADVANCE",
+          "actors": "A9",
+          "boxes": [
+            {
+              "key": "striker-ready",
+              "box": {
+                "left": 835.5925023430178,
+                "right": 1112.9751452671042,
+                "top": 109.19536570755469,
+                "bottom": 600.8353657075547
+              },
+              "label": {
+                "left": 917,
+                "right": 1003,
+                "top": 79.19536082474218,
+                "bottom": 103.19536082474218
+              }
+            }
+          ],
+          "background": [
+            {
+              "src": "http://localhost:8653/assets/director/stadium-empty.webp",
+              "args": [
+                0,
+                0,
+                1920,
+                723
+              ]
+            }
+          ],
+          "text": "청해 9번 → 2번, 패스 연결. 청해 2번 → 9번, 패스 연결. · 이동한 청해 2번에게 연결",
+          "t": 1
+        },
+        {
+          "kind": "ADVANCE",
+          "cut": "ADVANCE",
+          "actors": "A9",
+          "boxes": [
+            {
+              "key": "striker-ready",
+              "box": {
+                "left": 835.5925023430178,
+                "right": 1112.9751452671042,
+                "top": 109.19536570755469,
+                "bottom": 600.8353657075547
+              },
+              "label": {
+                "left": 917,
+                "right": 1003,
+                "top": 79.19536082474218,
+                "bottom": 103.19536082474218
+              }
+            }
+          ],
+          "background": [
+            {
+              "src": "http://localhost:8653/assets/director/stadium-empty.webp",
+              "args": [
+                0,
+                0,
+                1920,
+                723
+              ]
+            }
+          ],
+          "text": "청해 9번 → 2번, 패스 연결. 청해 2번 → 9번, 패스 연결. · 이동한 청해 2번에게 연결",
+          "t": 1
+        },
+        {
+          "kind": "ADVANCE",
+          "cut": "ADVANCE",
+          "actors": "A9",
+          "boxes": [
+            {
+              "key": "striker-ready",
+              "box": {
+                "left": 835.5925023430178,
+                "right": 1112.9751452671042,
+                "top": 109.19536570755469,
+                "bottom": 600.8353657075547
+              },
+              "label": {
+                "left": 917,
+                "right": 1003,
+                "top": 79.19536082474218,
+                "bottom": 103.19536082474218
+              }
+            }
+          ],
+          "background": [
+            {
+              "src": "http://localhost:8653/assets/director/stadium-empty.webp",
+              "args": [
+                0,
+                0,
+                1920,
+                723
+              ]
+            }
+          ],
+          "text": "청해 9번 → 2번, 패스 연결. 청해 2번 → 9번, 패스 연결. · 이동한 청해 2번에게 연결",
+          "t": 1
+        },
+        {
+          "kind": "ADVANCE",
+          "cut": "ADVANCE",
+          "actors": "A9",
+          "boxes": [
+            {
+              "key": "striker-ready",
+              "box": {
+                "left": 835.5925023430178,
+                "right": 1112.9751452671042,
+                "top": 109.19536570755469,
+                "bottom": 600.8353657075547
+              },
+              "label": {
+                "left": 917,
+                "right": 1003,
+                "top": 79.19536082474218,
+                "bottom": 103.19536082474218
+              }
+            }
+          ],
+          "background": [
+            {
+              "src": "http://localhost:8653/assets/director/stadium-empty.webp",
+              "args": [
+                0,
+                0,
+                1920,
+                723
+              ]
+            }
+          ],
+          "text": "청해 9번 → 2번, 패스 연결. 청해 2번 → 9번, 패스 연결. · 이동한 청해 2번에게 연결",
+          "t": 1
+        },
+        {
+          "kind": "ADVANCE",
+          "cut": "ADVANCE",
+          "actors": "A9",
+          "boxes": [
+            {
+              "key": "striker-ready",
+              "box": {
+                "left": 835.5925023430178,
+                "right": 1112.9751452671042,
+                "top": 109.19536570755469,
+                "bottom": 600.8353657075547
+              },
+              "label": {
+                "left": 917,
+                "right": 1003,
+                "top": 79.19536082474218,
+                "bottom": 103.19536082474218
+              }
+            }
+          ],
+          "background": [
+            {
+              "src": "http://localhost:8653/assets/director/stadium-empty.webp",
+              "args": [
+                0,
+                0,
+                1920,
+                723
+              ]
+            }
+          ],
+          "text": "청해 9번 → 2번, 패스 연결. 청해 2번 → 9번, 패스 연결. · 이동한 청해 2번에게 연결",
+          "t": 1
+        },
+        {
+          "kind": "ADVANCE",
+          "cut": "ADVANCE",
+          "actors": "A9",
+          "boxes": [
+            {
+              "key": "striker-ready",
+              "box": {
+                "left": 835.5925023430178,
+                "right": 1112.9751452671042,
+                "top": 109.19536570755469,
+                "bottom": 600.8353657075547
+              },
+              "label": {
+                "left": 917,
+                "right": 1003,
+                "top": 79.19536082474218,
+                "bottom": 103.19536082474218
+              }
+            }
+          ],
+          "background": [
+            {
+              "src": "http://localhost:8653/assets/director/stadium-empty.webp",
+              "args": [
+                0,
+                0,
+                1920,
+                723
+              ]
+            }
+          ],
+          "text": "청해 9번 → 2번, 패스 연결. 청해 2번 → 9번, 패스 연결. · 이동한 청해 2번에게 연결",
+          "t": 1
+        },
+        {
+          "kind": "ADVANCE",
+          "cut": "ADVANCE",
+          "actors": "A9",
+          "boxes": [
+            {
+              "key": "striker-ready",
+              "box": {
+                "left": 835.5925023430178,
+                "right": 1112.9751452671042,
+                "top": 109.19536570755469,
+                "bottom": 600.8353657075547
+              },
+              "label": {
+                "left": 917,
+                "right": 1003,
+                "top": 79.19536082474218,
+                "bottom": 103.19536082474218
+              }
+            }
+          ],
+          "background": [
+            {
+              "src": "http://localhost:8653/assets/director/stadium-empty.webp",
+              "args": [
+                0,
+                0,
+                1920,
+                723
+              ]
+            }
+          ],
+          "text": "청해 9번 → 2번, 패스 연결. 청해 2번 → 9번, 패스 연결. · 이동한 청해 2번에게 연결",
+          "t": 1
+        },
+        {
+          "kind": "ADVANCE",
+          "cut": "ADVANCE",
+          "actors": "A9",
+          "boxes": [
+            {
+              "key": "striker-ready",
+              "box": {
+                "left": 835.5925023430178,
+                "right": 1112.9751452671042,
+                "top": 109.19536570755469,
+                "bottom": 600.8353657075547
+              },
+              "label": {
+                "left": 917,
+                "right": 1003,
+                "top": 79.19536082474218,
+                "bottom": 103.19536082474218
+              }
+            }
+          ],
+          "background": [
+            {
+              "src": "http://localhost:8653/assets/director/stadium-empty.webp",
+              "args": [
+                0,
+                0,
+                1920,
+                723
+              ]
+            }
+          ],
+          "text": "청해 9번 → 2번, 패스 연결. 청해 2번 → 9번, 패스 연결. · 이동한 청해 2번에게 연결",
+          "t": 1
+        },
+        {
+          "kind": "ADVANCE",
+          "cut": "ADVANCE",
+          "actors": "A9",
+          "boxes": [
+            {
+              "key": "striker-ready",
+              "box": {
+                "left": 835.5925023430178,
+                "right": 1112.9751452671042,
+                "top": 109.19536570755469,
+                "bottom": 600.8353657075547
+              },
+              "label": {
+                "left": 917,
+                "right": 1003,
+                "top": 79.19536082474218,
+                "bottom": 103.19536082474218
+              }
+            }
+          ],
+          "background": [
+            {
+              "src": "http://localhost:8653/assets/director/stadium-empty.webp",
+              "args": [
+                0,
+                0,
+                1920,
+                723
+              ]
+            }
+          ],
+          "text": "청해 9번 → 2번, 패스 연결. 청해 2번 → 9번, 패스 연결. · 이동한 청해 2번에게 연결",
+          "t": 1
+        },
+        {
+          "kind": "ADVANCE",
+          "cut": "ADVANCE",
+          "actors": "A9",
+          "boxes": [
+            {
+              "key": "striker-ready",
+              "box": {
+                "left": 835.5925023430178,
+                "right": 1112.9751452671042,
+                "top": 109.19536570755469,
+                "bottom": 600.8353657075547
+              },
+              "label": {
+                "left": 917,
+                "right": 1003,
+                "top": 79.19536082474218,
+                "bottom": 103.19536082474218
+              }
+            }
+          ],
+          "background": [
+            {
+              "src": "http://localhost:8653/assets/director/stadium-empty.webp",
+              "args": [
+                0,
+                0,
+                1920,
+                723
+              ]
+            }
+          ],
+          "text": "청해 9번 → 2번, 패스 연결. 청해 2번 → 9번, 패스 연결. · 이동한 청해 2번에게 연결",
+          "t": 1
+        },
+        {
+          "kind": "ADVANCE",
+          "cut": "ADVANCE",
+          "actors": "A9",
+          "boxes": [
+            {
+              "key": "striker-ready",
+              "box": {
+                "left": 835.5925023430178,
+                "right": 1112.9751452671042,
+                "top": 109.19536570755469,
+                "bottom": 600.8353657075547
+              },
+              "label": {
+                "left": 917,
+                "right": 1003,
+                "top": 79.19536082474218,
+                "bottom": 103.19536082474218
+              }
+            }
+          ],
+          "background": [
+            {
+              "src": "http://localhost:8653/assets/director/stadium-empty.webp",
+              "args": [
+                0,
+                0,
+                1920,
+                723
+              ]
+            }
+          ],
+          "text": "청해 9번 → 2번, 패스 연결. 청해 2번 → 9번, 패스 연결. · 이동한 청해 2번에게 연결",
+          "t": 1
+        },
+        {
+          "kind": "ADVANCE",
+          "cut": "ADVANCE",
+          "actors": "A9",
+          "boxes": [
+            {
+              "key": "striker-ready",
+              "box": {
+                "left": 835.5925023430178,
+                "right": 1112.9751452671042,
+                "top": 109.19536570755469,
+                "bottom": 600.8353657075547
+              },
+              "label": {
+                "left": 917,
+                "right": 1003,
+                "top": 79.19536082474218,
+                "bottom": 103.19536082474218
+              }
+            }
+          ],
+          "background": [
+            {
+              "src": "http://localhost:8653/assets/director/stadium-empty.webp",
+              "args": [
+                0,
+                0,
+                1920,
+                723
+              ]
+            }
+          ],
+          "text": "청해 9번 → 2번, 패스 연결. 청해 2번 → 9번, 패스 연결. · 이동한 청해 2번에게 연결",
+          "t": 1
+        },
+        {
+          "kind": "ADVANCE",
+          "cut": "ADVANCE",
+          "actors": "A9",
+          "boxes": [
+            {
+              "key": "striker-ready",
+              "box": {
+                "left": 835.5925023430178,
+                "right": 1112.9751452671042,
+                "top": 109.19536570755469,
+                "bottom": 600.8353657075547
+              },
+              "label": {
+                "left": 917,
+                "right": 1003,
+                "top": 79.19536082474218,
+                "bottom": 103.19536082474218
+              }
+            }
+          ],
+          "background": [
+            {
+              "src": "http://localhost:8653/assets/director/stadium-empty.webp",
+              "args": [
+                0,
+                0,
+                1920,
+                723
+              ]
+            }
+          ],
+          "text": "청해 9번 → 2번, 패스 연결. 청해 2번 → 9번, 패스 연결. · 이동한 청해 2번에게 연결",
+          "t": 1
+        }
+      ]
+    },
+    {
+      "width": 375,
+      "frames": [
+        {
+          "kind": "ADVANCE",
+          "cut": "ADVANCE",
+          "actors": "A9",
+          "boxes": [
+            {
+              "key": "striker-ready",
+              "box": {
+                "left": 137.59934395501406,
+                "right": 248.8593252108716,
+                "top": 84.29896296864933,
+                "bottom": 281.4989629686493
+              },
+              "label": {
+                "left": 144.5,
+                "right": 230.5,
+                "top": 54.298969072164994,
+                "bottom": 78.298969072165
+              }
+            }
+          ],
+          "background": [
+            {
+              "src": "http://localhost:8653/assets/director/stadium-empty.webp",
+              "args": [
+                0,
+                0,
+                375,
+                340
+              ]
+            }
+          ],
+          "text": "청해 9번 → 2번, 패스 연결. 청해 2번 → 9번, 패스 연결. · 이동한 청해 2번에게 연결",
+          "t": 1
+        },
+        {
+          "kind": "ADVANCE",
+          "cut": "ADVANCE",
+          "actors": "A9",
+          "boxes": [
+            {
+              "key": "striker-ready",
+              "box": {
+                "left": 137.59934395501406,
+                "right": 248.8593252108716,
+                "top": 84.29896296864933,
+                "bottom": 281.4989629686493
+              },
+              "label": {
+                "left": 144.5,
+                "right": 230.5,
+                "top": 54.298969072164994,
+                "bottom": 78.298969072165
+              }
+            }
+          ],
+          "background": [
+            {
+              "src": "http://localhost:8653/assets/director/stadium-empty.webp",
+              "args": [
+                0,
+                0,
+                375,
+                340
+              ]
+            }
+          ],
+          "text": "청해 9번 → 2번, 패스 연결. 청해 2번 → 9번, 패스 연결. · 이동한 청해 2번에게 연결",
+          "t": 1
+        },
+        {
+          "kind": "ADVANCE",
+          "cut": "ADVANCE",
+          "actors": "A9",
+          "boxes": [
+            {
+              "key": "striker-ready",
+              "box": {
+                "left": 137.59934395501406,
+                "right": 248.8593252108716,
+                "top": 84.29896296864933,
+                "bottom": 281.4989629686493
+              },
+              "label": {
+                "left": 144.5,
+                "right": 230.5,
+                "top": 54.298969072164994,
+                "bottom": 78.298969072165
+              }
+            }
+          ],
+          "background": [
+            {
+              "src": "http://localhost:8653/assets/director/stadium-empty.webp",
+              "args": [
+                0,
+                0,
+                375,
+                340
+              ]
+            }
+          ],
+          "text": "청해 9번 → 2번, 패스 연결. 청해 2번 → 9번, 패스 연결. · 이동한 청해 2번에게 연결",
+          "t": 1
+        },
+        {
+          "kind": "ADVANCE",
+          "cut": "ADVANCE",
+          "actors": "A9",
+          "boxes": [
+            {
+              "key": "striker-ready",
+              "box": {
+                "left": 137.59934395501406,
+                "right": 248.8593252108716,
+                "top": 84.29896296864933,
+                "bottom": 281.4989629686493
+              },
+              "label": {
+                "left": 144.5,
+                "right": 230.5,
+                "top": 54.298969072164994,
+                "bottom": 78.298969072165
+              }
+            }
+          ],
+          "background": [
+            {
+              "src": "http://localhost:8653/assets/director/stadium-empty.webp",
+              "args": [
+                0,
+                0,
+                375,
+                340
+              ]
+            }
+          ],
+          "text": "청해 9번 → 2번, 패스 연결. 청해 2번 → 9번, 패스 연결. · 이동한 청해 2번에게 연결",
+          "t": 1
+        },
+        {
+          "kind": "ADVANCE",
+          "cut": "ADVANCE",
+          "actors": "A9",
+          "boxes": [
+            {
+              "key": "striker-ready",
+              "box": {
+                "left": 137.59934395501406,
+                "right": 248.8593252108716,
+                "top": 84.29896296864933,
+                "bottom": 281.4989629686493
+              },
+              "label": {
+                "left": 144.5,
+                "right": 230.5,
+                "top": 54.298969072164994,
+                "bottom": 78.298969072165
+              }
+            }
+          ],
+          "background": [
+            {
+              "src": "http://localhost:8653/assets/director/stadium-empty.webp",
+              "args": [
+                0,
+                0,
+                375,
+                340
+              ]
+            }
+          ],
+          "text": "청해 9번 → 2번, 패스 연결. 청해 2번 → 9번, 패스 연결. · 이동한 청해 2번에게 연결",
+          "t": 1
+        },
+        {
+          "kind": "ADVANCE",
+          "cut": "ADVANCE",
+          "actors": "A9",
+          "boxes": [
+            {
+              "key": "striker-ready",
+              "box": {
+                "left": 137.59934395501406,
+                "right": 248.8593252108716,
+                "top": 84.29896296864933,
+                "bottom": 281.4989629686493
+              },
+              "label": {
+                "left": 144.5,
+                "right": 230.5,
+                "top": 54.298969072164994,
+                "bottom": 78.298969072165
+              }
+            }
+          ],
+          "background": [
+            {
+              "src": "http://localhost:8653/assets/director/stadium-empty.webp",
+              "args": [
+                0,
+                0,
+                375,
+                340
+              ]
+            }
+          ],
+          "text": "청해 9번 → 2번, 패스 연결. 청해 2번 → 9번, 패스 연결. · 이동한 청해 2번에게 연결",
+          "t": 1
+        },
+        {
+          "kind": "ADVANCE",
+          "cut": "ADVANCE",
+          "actors": "A9",
+          "boxes": [
+            {
+              "key": "striker-ready",
+              "box": {
+                "left": 137.59934395501406,
+                "right": 248.8593252108716,
+                "top": 84.29896296864933,
+                "bottom": 281.4989629686493
+              },
+              "label": {
+                "left": 144.5,
+                "right": 230.5,
+                "top": 54.298969072164994,
+                "bottom": 78.298969072165
+              }
+            }
+          ],
+          "background": [
+            {
+              "src": "http://localhost:8653/assets/director/stadium-empty.webp",
+              "args": [
+                0,
+                0,
+                375,
+                340
+              ]
+            }
+          ],
+          "text": "청해 9번 → 2번, 패스 연결. 청해 2번 → 9번, 패스 연결. · 이동한 청해 2번에게 연결",
+          "t": 1
+        },
+        {
+          "kind": "ADVANCE",
+          "cut": "ADVANCE",
+          "actors": "A9",
+          "boxes": [
+            {
+              "key": "striker-ready",
+              "box": {
+                "left": 137.59934395501406,
+                "right": 248.8593252108716,
+                "top": 84.29896296864933,
+                "bottom": 281.4989629686493
+              },
+              "label": {
+                "left": 144.5,
+                "right": 230.5,
+                "top": 54.298969072164994,
+                "bottom": 78.298969072165
+              }
+            }
+          ],
+          "background": [
+            {
+              "src": "http://localhost:8653/assets/director/stadium-empty.webp",
+              "args": [
+                0,
+                0,
+                375,
+                340
+              ]
+            }
+          ],
+          "text": "청해 9번 → 2번, 패스 연결. 청해 2번 → 9번, 패스 연결. · 이동한 청해 2번에게 연결",
+          "t": 1
+        },
+        {
+          "kind": "ADVANCE",
+          "cut": "ADVANCE",
+          "actors": "A9",
+          "boxes": [
+            {
+              "key": "striker-ready",
+              "box": {
+                "left": 137.59934395501406,
+                "right": 248.8593252108716,
+                "top": 84.29896296864933,
+                "bottom": 281.4989629686493
+              },
+              "label": {
+                "left": 144.5,
+                "right": 230.5,
+                "top": 54.298969072164994,
+                "bottom": 78.298969072165
+              }
+            }
+          ],
+          "background": [
+            {
+              "src": "http://localhost:8653/assets/director/stadium-empty.webp",
+              "args": [
+                0,
+                0,
+                375,
+                340
+              ]
+            }
+          ],
+          "text": "청해 9번 → 2번, 패스 연결. 청해 2번 → 9번, 패스 연결. · 이동한 청해 2번에게 연결",
+          "t": 1
+        },
+        {
+          "kind": "ADVANCE",
+          "cut": "ADVANCE",
+          "actors": "A9",
+          "boxes": [
+            {
+              "key": "striker-ready",
+              "box": {
+                "left": 137.59934395501406,
+                "right": 248.8593252108716,
+                "top": 84.29896296864933,
+                "bottom": 281.4989629686493
+              },
+              "label": {
+                "left": 144.5,
+                "right": 230.5,
+                "top": 54.298969072164994,
+                "bottom": 78.298969072165
+              }
+            }
+          ],
+          "background": [
+            {
+              "src": "http://localhost:8653/assets/director/stadium-empty.webp",
+              "args": [
+                0,
+                0,
+                375,
+                340
+              ]
+            }
+          ],
+          "text": "청해 9번 → 2번, 패스 연결. 청해 2번 → 9번, 패스 연결. · 이동한 청해 2번에게 연결",
+          "t": 1
+        },
+        {
+          "kind": "ADVANCE",
+          "cut": "ADVANCE",
+          "actors": "A9",
+          "boxes": [
+            {
+              "key": "striker-ready",
+              "box": {
+                "left": 137.59934395501406,
+                "right": 248.8593252108716,
+                "top": 84.29896296864933,
+                "bottom": 281.4989629686493
+              },
+              "label": {
+                "left": 144.5,
+                "right": 230.5,
+                "top": 54.298969072164994,
+                "bottom": 78.298969072165
+              }
+            }
+          ],
+          "background": [
+            {
+              "src": "http://localhost:8653/assets/director/stadium-empty.webp",
+              "args": [
+                0,
+                0,
+                375,
+                340
+              ]
+            }
+          ],
+          "text": "청해 9번 → 2번, 패스 연결. 청해 2번 → 9번, 패스 연결. · 이동한 청해 2번에게 연결",
+          "t": 1
+        },
+        {
+          "kind": "ADVANCE",
+          "cut": "ADVANCE",
+          "actors": "A9",
+          "boxes": [
+            {
+              "key": "striker-ready",
+              "box": {
+                "left": 137.59934395501406,
+                "right": 248.8593252108716,
+                "top": 84.29896296864933,
+                "bottom": 281.4989629686493
+              },
+              "label": {
+                "left": 144.5,
+                "right": 230.5,
+                "top": 54.298969072164994,
+                "bottom": 78.298969072165
+              }
+            }
+          ],
+          "background": [
+            {
+              "src": "http://localhost:8653/assets/director/stadium-empty.webp",
+              "args": [
+                0,
+                0,
+                375,
+                340
+              ]
+            }
+          ],
+          "text": "청해 9번 → 2번, 패스 연결. 청해 2번 → 9번, 패스 연결. · 이동한 청해 2번에게 연결",
+          "t": 1
+        },
+        {
+          "kind": "ADVANCE",
+          "cut": "ADVANCE",
+          "actors": "A9",
+          "boxes": [
+            {
+              "key": "striker-ready",
+              "box": {
+                "left": 137.59934395501406,
+                "right": 248.8593252108716,
+                "top": 84.29896296864933,
+                "bottom": 281.4989629686493
+              },
+              "label": {
+                "left": 144.5,
+                "right": 230.5,
+                "top": 54.298969072164994,
+                "bottom": 78.298969072165
+              }
+            }
+          ],
+          "background": [
+            {
+              "src": "http://localhost:8653/assets/director/stadium-empty.webp",
+              "args": [
+                0,
+                0,
+                375,
+                340
+              ]
+            }
+          ],
+          "text": "청해 9번 → 2번, 패스 연결. 청해 2번 → 9번, 패스 연결. · 이동한 청해 2번에게 연결",
+          "t": 1
+        },
+        {
+          "kind": "ADVANCE",
+          "cut": "ADVANCE",
+          "actors": "A9",
+          "boxes": [
+            {
+              "key": "striker-ready",
+              "box": {
+                "left": 137.59934395501406,
+                "right": 248.8593252108716,
+                "top": 84.29896296864933,
+                "bottom": 281.4989629686493
+              },
+              "label": {
+                "left": 144.5,
+                "right": 230.5,
+                "top": 54.298969072164994,
+                "bottom": 78.298969072165
+              }
+            }
+          ],
+          "background": [
+            {
+              "src": "http://localhost:8653/assets/director/stadium-empty.webp",
+              "args": [
+                0,
+                0,
+                375,
+                340
+              ]
+            }
+          ],
+          "text": "청해 9번 → 2번, 패스 연결. 청해 2번 → 9번, 패스 연결. · 이동한 청해 2번에게 연결",
+          "t": 1
+        },
+        {
+          "kind": "ADVANCE",
+          "cut": "ADVANCE",
+          "actors": "A9",
+          "boxes": [
+            {
+              "key": "striker-ready",
+              "box": {
+                "left": 137.59934395501406,
+                "right": 248.8593252108716,
+                "top": 84.29896296864933,
+                "bottom": 281.4989629686493
+              },
+              "label": {
+                "left": 144.5,
+                "right": 230.5,
+                "top": 54.298969072164994,
+                "bottom": 78.298969072165
+              }
+            }
+          ],
+          "background": [
+            {
+              "src": "http://localhost:8653/assets/director/stadium-empty.webp",
+              "args": [
+                0,
+                0,
+                375,
+                340
+              ]
+            }
+          ],
+          "text": "청해 9번 → 2번, 패스 연결. 청해 2번 → 9번, 패스 연결. · 이동한 청해 2번에게 연결",
+          "t": 1
+        },
+        {
+          "kind": "ADVANCE",
+          "cut": "ADVANCE",
+          "actors": "A9",
+          "boxes": [
+            {
+              "key": "striker-ready",
+              "box": {
+                "left": 137.59934395501406,
+                "right": 248.8593252108716,
+                "top": 84.29896296864933,
+                "bottom": 281.4989629686493
+              },
+              "label": {
+                "left": 144.5,
+                "right": 230.5,
+                "top": 54.298969072164994,
+                "bottom": 78.298969072165
+              }
+            }
+          ],
+          "background": [
+            {
+              "src": "http://localhost:8653/assets/director/stadium-empty.webp",
+              "args": [
+                0,
+                0,
+                375,
+                340
+              ]
+            }
+          ],
+          "text": "청해 9번 → 2번, 패스 연결. 청해 2번 → 9번, 패스 연결. · 이동한 청해 2번에게 연결",
+          "t": 1
+        }
+      ]
+    }
+  ],
+  "running": [
+    {
+      "width": 1280,
+      "frame": {
+        "kind": "FLOW",
+        "cut": "run",
+        "actors": "A9",
+        "boxes": [
+          {
+            "key": "striker-run",
+            "box": {
+              "left": 555.1895910780669,
+              "right": 726.0743494423792,
+              "top": 50.5157470703125,
+              "bottom": 322.5157470703125
+            },
+            "label": {
+              "left": 597,
+              "right": 683,
+              "top": 20.515737654529573,
+              "bottom": 44.51573765452957
+            }
+          }
+        ],
+        "background": [
+          {
+            "src": "http://localhost:8653/assets/director/stadium-empty.webp",
+            "args": [
+              -112.60276363636372,
+              0,
+              1510.3999999999999,
+              400
+            ]
+          }
+        ],
+        "text": "측면에서 청해 9번 소유. 수비수까지 13m. 홍림 5번 골 방향 복귀 · 8번 골 방향 복귀 · 11번 골 방향 복귀",
+        "t": 0.4887272727272731
+      },
+      "seam": 1167,
+      "diff": 1.0791666666666666,
+      "nearby": [
+        0.6041666666666666,
+        1.0083333333333333,
+        0.9791666666666666,
+        0.7708333333333334
+      ]
+    },
+    {
+      "width": 1920,
+      "frame": {
+        "kind": "FLOW",
+        "cut": "run",
+        "actors": "A9",
+        "boxes": [
+          {
+            "key": "striker-run",
+            "box": {
+              "left": 806.705185873606,
+              "right": 1115.5793866171005,
+              "top": 91.3072045898437,
+              "bottom": 582.9472045898439
+            },
+            "label": {
+              "left": 917,
+              "right": 1003,
+              "top": 61.30719581056218,
+              "bottom": 85.30719581056218
+            }
+          }
+        ],
+        "background": [
+          {
+            "src": "http://localhost:8653/assets/director/stadium-empty.webp",
+            "args": [
+              -168.90414545454558,
+              0,
+              2265.6,
+              723
+            ]
+          }
+        ],
+        "text": "측면에서 청해 9번 소유. 수비수까지 13m. 홍림 5번 골 방향 복귀 · 8번 골 방향 복귀 · 11번 골 방향 복귀",
+        "t": 0.4887272727272731
+      },
+      "seam": 1751,
+      "diff": 0.5370370370370371,
+      "nearby": [
+        0.4837962962962963,
+        0.5995370370370371,
+        0.6111111111111112,
+        0.6342592592592593
+      ]
+    }
+  ],
+  "lab": [
+    {
+      "ms": 0,
+      "cuts": [
+        "directive",
+        "directive"
+      ],
+      "texts": [
+        "측면 지원! 청해 2번 지원 합류",
+        "지시 없음, 그대로 간다"
+      ]
+    },
+    {
+      "ms": 2380,
+      "cuts": [
+        "movement",
+        "movement"
+      ],
+      "texts": [
+        "청해 2번 지원 합류",
+        "움직인 선수 없음"
+      ]
+    },
+    {
+      "ms": 5580,
+      "cuts": [
+        "opponent",
+        "opponent"
+      ],
+      "texts": [
+        "홍림 11번 패스 길을 막는다",
+        "홍림 11번 패스 길을 막는다"
+      ]
+    },
+    {
+      "ms": 7580,
+      "cuts": [
+        "ours",
+        "ours"
+      ],
+      "texts": [
+        "청해 9번 패스!",
+        "청해 9번 패스!"
+      ]
+    },
+    {
+      "ms": 9800,
+      "cuts": [
+        "ball",
+        "ball"
+      ],
+      "texts": [
+        "공을 따라간다",
+        "공을 따라간다"
+      ]
+    },
+    {
+      "ms": 11580,
+      "cuts": [
+        "result",
+        "result"
+      ],
+      "texts": [
+        "홍림 11번이 패스 길에서 끊었습니다. 소유권 전환. · 청해 2번 지원 합류 · 이동한 채 홍림 소유",
+        "홍림 11번이 패스 길에서 끊었습니다. 소유권 전환. · 추가 지시 이동 없음"
+      ]
+    },
+    {
+      "ms": 13980,
+      "cuts": [
+        "ADVANCE",
+        "ADVANCE"
+      ],
+      "texts": [
+        "홍림 11번이 패스 길에서 끊었습니다. 소유권 전환. · 청해 2번 지원 합류 · 이동한 채 홍림 소유",
+        "홍림 11번이 패스 길에서 끊었습니다. 소유권 전환. · 추가 지시 이동 없음"
+      ]
+    }
+  ],
+  "failure": {
+    "cardSymbol": true,
+    "cardImage": false,
+    "notice": "기본 유지 전달됨. 결과를 확인하세요. 일부 그림을 불러오지 못해 기본 표시로 진행합니다.",
+    "frame": {
+      "kind": "SAVE",
+      "cut": "result",
+      "actors": "B1",
+      "boxes": [
+        {
+          "key": "keeper-green-ready",
+          "box": {
+            "left": 537.6523517382414,
+            "right": 767.3783231083845,
+            "top": 59.78732106339464,
+            "bottom": 331.7873210633947
+          },
+          "label": {
+            "left": 597,
+            "right": 683,
+            "top": 29.787321063394643,
+            "bottom": 53.78732106339464
+          }
+        }
+      ],
+      "background": [
+        {
+          "src": "http://localhost:8653/assets/director/stadium-goal.webp",
+          "args": [
+            0,
+            0,
+            1280,
+            400
+          ]
+        }
+      ],
+      "text": "홍림 골키퍼가 잡았습니다. · 추가 지시 이동 없음",
+      "t": 0.4999999999999997
+    }
+  }
+}

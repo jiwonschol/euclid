@@ -1,0 +1,39 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: FLOW must execute the full montage and return to running
++ actual - expected
+
+  [
+    'directive',
+    'movement',
++   'ours',
+    'opponent',
+-   'ours',
+    'ball',
+    'result',
+    'ADVANCE',
+    'run'
+  ]
+
+    at file:///home/buzz-hyuncheol/.buzz/REPOS/euclid/.claude/worktrees/buzz-23/sim/director-ui.mjs:58:9 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: [
+    'directive', 'movement',
+    'ours',      'opponent',
+    'ball',      'result',
+    'ADVANCE',   'run'
+  ],
+  expected: [
+    'directive', 'movement',
+    'opponent',  'ours',
+    'ball',      'result',
+    'ADVANCE',   'run'
+  ],
+  operator: 'deepStrictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.23.2

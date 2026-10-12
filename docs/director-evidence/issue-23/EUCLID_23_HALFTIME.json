@@ -1,0 +1,94 @@
+[
+  {
+    "mode": "continue",
+    "phase": "FLOW",
+    "caption": "중앙에서 홍림 10번 소유. 수비수까지 13m.",
+    "pending": "기본 유지"
+  },
+  {
+    "mode": "card",
+    "phase": "PRESENT",
+    "caption": "중앙 차단! 청해 7번 중앙 길목 커버 · 청해 8번 중앙 길목 커버",
+    "pending": "중앙 차단"
+  },
+  {
+    "mode": "mobile-defence",
+    "cards": [
+      {
+        "id": "press_flank",
+        "box": {
+          "x": 12,
+          "y": 483.390625,
+          "width": 110.328125,
+          "height": 190,
+          "top": 483.390625,
+          "right": 122.328125,
+          "bottom": 673.390625,
+          "left": 12
+        },
+        "texts": [
+          {
+            "font": "14px",
+            "bottom": 597.34375,
+            "clipped": false
+          },
+          {
+            "font": "12px",
+            "bottom": 638.421875,
+            "clipped": false
+          }
+        ]
+      },
+      {
+        "id": "screen_middle",
+        "box": {
+          "x": 132.328125,
+          "y": 483.390625,
+          "width": 110.34375,
+          "height": 190,
+          "top": 483.390625,
+          "right": 242.671875,
+          "bottom": 673.390625,
+          "left": 132.328125
+        },
+        "texts": [
+          {
+            "font": "14px",
+            "bottom": 597.34375,
+            "clipped": false
+          },
+          {
+            "font": "12px",
+            "bottom": 638.421875,
+            "clipped": false
+          }
+        ]
+      },
+      {
+        "id": "delay_drop",
+        "box": {
+          "x": 252.671875,
+          "y": 483.390625,
+          "width": 110.328125,
+          "height": 190,
+          "top": 483.390625,
+          "right": 363,
+          "bottom": 673.390625,
+          "left": 252.671875
+        },
+        "texts": [
+          {
+            "font": "14px",
+            "bottom": 588.65625,
+            "clipped": false
+          },
+          {
+            "font": "12px",
+            "bottom": 647.125,
+            "clipped": false
+          }
+        ]
+      }
+    ]
+  }
+]
