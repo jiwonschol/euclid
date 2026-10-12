@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { DirectorMatch, presentationCuts } from '../js/director/match.js';
-import { command,legal,applyCommand } from '../js/director/cards.js';
+import { command,legal,applyCommand,cardButtonReason } from '../js/director/cards.js';
 import { copy,hash,isOffside,player,control,createState,distance } from '../js/director/state.js';
 import { prepareEncounter } from '../js/director/scenario.js';
 import { resolveEncounter,passingOptions,chooseAction,stats } from '../js/director/resolve.js';
@@ -11,6 +11,32 @@ const mainSource=await readFile(new URL('../js/director/main.js',import.meta.url
 let checks=0;
 function check(name,fn){fn();checks++;console.log('PASS',name);}
 function ready(seed=42){const g=new DirectorMatch(rules,seed);g.advancePhase();g.advancePhase();return g;}
+function dropSupportDecision(){
+ const g=new DirectorMatch(rules,32,'patient');
+ while(!(g.phase==='FLOW'&&g.flow.id===21))g.advancePhase();
+ g.advancePhase();
+ const cmd=command('support_flank','left'),s=g.commandSnapshot();
+ assert.equal(g.flow.opponentIntent.id,'delay_drop');
+ assert.ok(legal(s,'A',cmd,rules),'fixture must reject without opponent intent');
+ assert.equal(legal(s,'A',cmd,rules,g.flow.opponentIntent),null,'fixture must allow with defensive drop');
+ return {g,cmd,s};
+}
+check('card button uses opponent intent to allow the newly onside support',()=>{
+ const {g,cmd,s}=dropSupportDecision(),before=hash(g);
+ assert.equal(cardButtonReason(s,cmd,g),null,'button must include opponentIntent');
+ assert.equal(hash(g),before,'button argument assembly must be pure');
+});
+check('reservation uses opponent intent to accept the newly onside support',()=>{
+ const {g,cmd}=dropSupportDecision();
+ assert.equal(g.queue(cmd),null,'reservation must include opponentIntent');
+ assert.deepEqual(g.pending,cmd);
+});
+check('commit uses opponent intent to retain the newly onside support',()=>{
+ const {g,cmd}=dropSupportDecision();
+ g.pending=copy(cmd);assert(g.commit());
+ assert.deepEqual(g.inputLog.at(-1).command,cmd,'commit must include opponentIntent before recording input');
+ assert.equal(g.resolution.committedCommand.id,cmd.id);
+});
 check('a rejected side change keeps the selection on the reserved side',()=>{
  assert.match(mainSource,/function queue\(id,selectedSide=side\).*return error;/);
  assert.match(mainSource,/function setSide\(value\).*const error=queue\(game\.pending\.id,value\);side=error\?game\.pending\.side:value;/);
