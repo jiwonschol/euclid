@@ -52,7 +52,7 @@ try {
      if(game.phase==='FLOW'&&game.pending.id==='hold'){const s=game.commandSnapshot();if(s.ball.z!==0)side=s.ball.z*direction(s,'A')<0?'left':'right';}
    }
    const projection=game.projection();
-   $('caption').style.bottom='';
+   $('caption').setAttribute('style','');
    if(projection.cut==='movement')$('caption').textContent=projection.text;
    const shown=scene.draw(projection,$('reduced').checked);
    $('game').dataset.phase=game.phase;$('game').dataset.encounter=String(game.state.encounterIndex);$('game').classList.toggle('paused',game.paused);
