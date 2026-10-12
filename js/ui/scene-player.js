@@ -77,6 +77,8 @@ export class ScenePlayer {
     const advancing=frame.kind==='ADVANCE',nextActor=advancing?(lead??s.players.filter(p=>p.active&&p.team===s.possessionTeam&&p.role!=='GK').sort((a,b)=>distance(a.position,s.ball)-distance(b.position,s.ball))[0]):null;
     let actors=bench||cut==='directive'||cut==='ball'?[]:advancing?[nextActor].filter(Boolean):cut==='movement'?players:choose?[lead].filter(Boolean):running?[lead].filter(Boolean):cut==='result'?[s.players.find(p=>p.id===s.ball.ownerId)??players[0]].filter(Boolean):players.slice(0,1);
     if(cut==='result'&&frame.kind==='GOAL')actors=[];
+    const hud=this.canvas.parentElement.querySelector('.stage-top');
+    const labelFloor=hud?hud.getBoundingClientRect().bottom-this.canvas.getBoundingClientRect().top+6:6;
     let catchPoint=null;
     for(const [i,p] of actors.entries()){
       const prefix=p.team==='A'?'striker':'defender',wide=cut==='wide',face=cut==='face';
@@ -86,14 +88,14 @@ export class ScenePlayer {
         if(running||cut==='movement'||cut==='opponent')key=prefix+'-run';
         if(['ours','opponent'].includes(cut))key=prefix+(frame.attackingActor&&['PASS','AERIAL_PASS','CROSS','INTERCEPT','GOAL','SAVE','MISS'].includes(frame.kind)?'-kick':'-run');
       }
-      const height=Math.min(h*(wide?.38:face?.52:w<740?.58:.68),w/(actors.length>1?actors.length*1.25:1.1)),x=w*(actors.length>1?(i+.5)/actors.length:choose?.40:.5);
       const bounce=running&&!reduced?Math.sin(frame.t*Math.PI*12)*h*.009:0;
-      catchPoint=this.drawActor(ctx,p,key,x,h*.81+bounce,height,false,face)??catchPoint;
+      const y=h*.81+bounce,height=Math.min(h*(wide?.38:face?.52:w<=740?.58:.68),w/(actors.length>1?actors.length*1.25:1.1),y-labelFloor-30),x=w*(actors.length>1?(i+.5)/actors.length:choose?.40:.5);
+      catchPoint=this.drawActor(ctx,p,key,x,y,height,false,face)??catchPoint;
     }
     if(choose&&players[1]) {
       // Tint only the actor on an isolated canvas; source-atop on the stage would tint the whole background.
       const layer=this.silhouette??=document.createElement('canvas');layer.width=Math.ceil(w);layer.height=Math.ceil(h);
-      this.drawActor(layer.getContext('2d'),players[1],players[1].team==='A'?'striker-ready':'defender-ready',w*.72,h*.94,h*.7,true);
+      this.drawActor(layer.getContext('2d'),players[1],players[1].team==='A'?'striker-ready':'defender-ready',w*.72,h*.94,h*(w<=740?.58:.7),true);
       ctx.drawImage(layer,0,0);
     }
     if(cut==='directive'){

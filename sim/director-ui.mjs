@@ -22,7 +22,7 @@ async function screen(snapshot=null){
   append(child){this.children.push(child);}
   setAttribute(key,value){this[key]=value;}
   querySelector(selector){return selector==='img'&&this.innerHTML?.includes('<img')?new Element():null;}
-  click(){this.onclick?.();}
+  click(){if(!this.disabled)this.onclick?.();}
  }
  const document={getElementById(id){if(!elements.has(id))elements.set(id,new Element());return elements.get(id);},createElement(){return new Element();},addEventListener(){}};
  class ScenePlayer {
