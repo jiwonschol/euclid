@@ -83,6 +83,10 @@ export class ScenePlayer {
     const labelFloor=hud?hud.getBoundingClientRect().bottom-this.canvas.getBoundingClientRect().top+6:6;
     const labelWidth=cut==='movement'&&w<=740?Math.min(86,w/actors.length-8):86;
     const caption=this.canvas.parentElement.querySelector('#caption, .caption');
+    if(cut==='movement'&&labelWidth===86&&caption?.id==='caption'){
+      const box=caption.getBoundingClientRect(),top=box.top-this.canvas.getBoundingClientRect().top;
+      if(top<h*.81+6&&box.height<=h*.19-6)caption.style.bottom=`${h*.19-6-box.height}px`;
+    }
     const ground=labelWidth<86&&caption?Math.min(h*.81,caption.getBoundingClientRect().top-this.canvas.getBoundingClientRect().top-6):h*.81;
     let catchPoint=null;
     for(const [i,p] of actors.entries()){
