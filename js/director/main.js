@@ -93,7 +93,7 @@ try {
  function loop(now) {
    const elapsed=Math.min(.1,(now-lastTime)/1000);lastTime=now;game.tick(elapsed);
    if(sliceMode&&game.state.encounterIndex===3&&game.phase==='FLOW'){game.paused=true;sliceMode=false;notice='첫 세 국면이 끝났습니다. 재개하면 한 경기를 계속합니다.';save();}
-   render();if(now-lastSave>3000){save();lastSave=now;}requestAnimationFrame(loop);
+   render();if(!game.paused&&game.phase!=='REVIEW'&&now-lastSave>3000){save();lastSave=now;}requestAnimationFrame(loop);
  }
  requestAnimationFrame(loop);
 } catch(error){$('caption').textContent=error.message;$('welcome').hidden=true;console.error(error);}
