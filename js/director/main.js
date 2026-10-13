@@ -23,7 +23,7 @@ try {
  // Keep both sets mounted: no-store must not turn possession changes into image downloads.
  $('cards').replaceChildren(...rules.enabledCards.map(id=>{const c=CARDS[id],button=document.createElement('button'),i=rules.enabledCards.filter(key=>CARDS[key].kind===c.kind).indexOf(id);button.className='card';button.dataset.card=id;button.setAttribute('aria-label',c.name);button.innerHTML=`${c.art?`<img class="art" src="${scene.manifest.assets[c.art].path}" alt="">`:'<div class="symbol">↗</div>'}<span class="key">${i+1}</span><span class="copy"><strong>${c.name}</strong><small>${c.detail}</small></span>`;const image=button.querySelector('img');if(image)image.onerror=()=>{const symbol=document.createElement('div');symbol.className='symbol';symbol.textContent='↗';image.replaceWith(symbol);assetNotice='일부 그림을 불러오지 못해 기본 표시로 진행합니다.';};button.onclick=()=>queue(id);return button;}));
  $('pause').onclick=()=>{game.paused=!game.paused;save();};
- $('speed').onclick=()=>{game.speed=game.speed===4?1:game.speed*2;};
+ $('speed').onclick=()=>{game.speed=game.speed===4?1:game.speed*2;save();};
  $('skip').onclick=()=>{game.skip();save();};
  $('new').onclick=()=>restart((Date.now()>>>0)||1);
  $('begin').onclick=()=>{incompatibleRecord=null;game.state.profile=$('profile').value;game.paused=false;game.advancePhase();save();};
@@ -93,7 +93,7 @@ try {
  function loop(now) {
    const elapsed=Math.min(.1,(now-lastTime)/1000);lastTime=now;game.tick(elapsed);
    if(sliceMode&&game.state.encounterIndex===3&&game.phase==='FLOW'){game.paused=true;sliceMode=false;notice='첫 세 국면이 끝났습니다. 재개하면 한 경기를 계속합니다.';save();}
-   render();if(now-lastSave>3000){save();lastSave=now;}requestAnimationFrame(loop);
+   render();if(!game.paused&&game.phase!=='REVIEW'&&now-lastSave>3000){save();lastSave=now;}requestAnimationFrame(loop);
  }
  requestAnimationFrame(loop);
 } catch(error){$('caption').textContent=error.message;$('welcome').hidden=true;console.error(error);}
