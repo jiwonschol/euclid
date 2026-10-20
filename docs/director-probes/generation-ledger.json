@@ -1,0 +1,185 @@
+{
+  "schemaVersion": 1,
+  "project": "euclid",
+  "updatedDate": "2026-09-22",
+  "purpose": "Director-game plan production proof. No playable game implemented.",
+  "budget": {
+    "authorizedCredits": 300,
+    "quotedCompletedCredits": 9,
+    "observedBatchDebitCredits": 9,
+    "accountBalanceBefore": 910,
+    "accountBalanceAfter": 901,
+    "pendingReservedCredits": 0,
+    "budgetUsedCredits": 9,
+    "remainingAuthorizedCredits": 291,
+    "verification": "Three completed jobs quoted at 3 credits each; account balance decreased from 910 to 901 over these submissions. Per-job final receipts were not exposed by these tool responses. No other paid jobs were submitted by this task.",
+    "rule": "Before each submission: budgetUsedCredits + pendingReservedCredits + newQuotedCredits <= authorizedCredits. Query pending IDs before retrying. Log refunds only when verified.",
+    "allocations": [
+      {
+        "category": "style_and_production_proof",
+        "cap": 30,
+        "used": 9
+      },
+      {
+        "category": "shipping_static_assets",
+        "cap": 120,
+        "used": 0
+      },
+      {
+        "category": "corrections_and_consistency",
+        "cap": 70,
+        "used": 0
+      },
+      {
+        "category": "optional_sprite_or_video_trial",
+        "cap": 30,
+        "used": 0
+      },
+      {
+        "category": "in_game_revision_reserve",
+        "cap": 50,
+        "used": 0
+      }
+    ]
+  },
+  "verification": {
+    "date": "2026-09-22",
+    "reviewer": "primary agent",
+    "scope": [
+      "Downloaded original PNGs and verified dimensions / SHA-256",
+      "Read alpha bytes of striker PNG: 0..254; fully transparent border pixels present",
+      "Viewed original images",
+      "Viewed actual browser composition on stadium, white, and dark backgrounds"
+    ],
+    "pending": [
+      "User style selection",
+      "Pose animation quality",
+      "Camera/foot anchor calibration in playable M2 scene",
+      "Shipping-size optimization and integration"
+    ],
+    "isPlayable": false
+  },
+  "jobs": [
+    {
+      "assetId": "encounter-style",
+      "status": "completed",
+      "jobId": "34b8633a-0d17-4664-ab2b-3356a5c58cc0",
+      "provider": "Higgsfield MCP",
+      "model": "gpt_image_2_5",
+      "quotedCredits": 3,
+      "chargedCredits": null,
+      "chargeEvidence": "aggregate balance delta in budget",
+      "allocation": "style_and_production_proof",
+      "prompt": "Create one original production concept illustration for a 2D cinematic football tactics game. Widescreen 16:9. The visual purpose is to make a tactical confrontation readable before the coach chooses the next instruction. Crisp hand-drawn sports-anime linework, controlled cel shading, strong expressive silhouettes, contemporary clean digital finish, vibrant grass green, deep royal blue and warm brick red, restrained pale-cream highlights. No pixel art, no photorealism, no 3D-rendered look. Side-on low camera at player waist height, clear flat soccer pitch perspective. At left-center a focused young adult East Asian male striker in a plain royal-blue short-sleeved jersey with a single cream shoulder stripe, plain cream shorts, blue socks, black cleats, short slightly tousled black hair, controls exactly one normal black-and-white football just in front of his right boot. At right-center one athletic young adult defender in plain brick-red jersey, dark red shorts and red socks, short dark hair, faces the striker, crouched and preparing to block. Two meters of clear readable space between them; neither has collided or kicked yet. In the far right middle-distance one small blue teammate is moving into an open wing lane, and a distant white goal is visible with one small yellow-shirt goalkeeper. Main actors are full-body and completely inside frame with margin around heads and boots. A modest football stadium crowd and roof in the background, daylight, clear pitch markings. Show a football situation, not a promotional poster. Upper 15 percent mostly simple stadium/sky; lower 15 percent uninterrupted grass reserved for future interface overlay. No text, no letters, no numbers on kits, no card frames, no UI, no arrows, no logos, no emblems, no speech balloons. Original characters only. Do not reproduce any existing anime character or existing game screenshot. High quality finished illustration, a reusable visual reference for the first playable encounter.",
+      "params": {
+        "aspect_ratio": "16:9",
+        "variant": "flare",
+        "quality": "high",
+        "resolution": "2k",
+        "count": 1,
+        "use_unlim": false
+      },
+      "referenceJobIds": [],
+      "resultUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3HrIyz4YFlzGN7GR5SaK5i43kmH/hf_20260922_062644_34b8633a-0d17-4664-ab2b-3356a5c58cc0.png",
+      "file": "encounter-style.png",
+      "sha256": "8218f751d139abc9e48168b8486c063c18a15e8f599c7da05b5fe2cc64dd21a8",
+      "pixelWidth": 2688,
+      "pixelHeight": 1520,
+      "fileBytes": 5780079,
+      "hasAlpha": false,
+      "role": "Visual style and tactical encounter reference; contains actors and ball; do not use as reusable stage background.",
+      "reviewStatus": "prototype_visual_check_passed",
+      "shippingApproved": false,
+      "anchor": null
+    },
+    {
+      "assetId": "striker-ready",
+      "status": "completed",
+      "jobId": "c475f25a-fa95-4776-b1c3-02a33d17271d",
+      "provider": "Higgsfield MCP",
+      "model": "gpt_image_2_5",
+      "quotedCredits": 3,
+      "chargedCredits": null,
+      "chargeEvidence": "aggregate balance delta in budget",
+      "allocation": "style_and_production_proof",
+      "prompt": "Use the supplied illustration as the strict character and drawing-style reference. Produce exactly ONE isolated full-body game character: the royal-blue-shirted striker from the left side of the reference, preserving his face, short tousled black hair, royal blue jersey with one cream shoulder stripe, cream shorts, blue socks, black football boots, lean athletic young-adult proportions, crisp sports-anime linework and cel shading. Three-quarter side view facing RIGHT. A balanced active ready stance, slightly bent knees, torso upright, arms naturally ready to run. Both hands and both complete boots clearly visible with generous transparent margin. No football and no other object; the ball will be rendered separately by game code. TRUE transparent RGBA background, no stadium, no grass, no ground plane, no checkerboard printed in the image, no cast shadow beyond the character, no UI, no text, no badge, no numbers, no logo. One character only, not a character sheet and not multiple poses. Consistent production cutout suitable for reuse in a 2D football scene.",
+      "params": {
+        "aspect_ratio": "3:4",
+        "reference_images": [
+          "34b8633a-0d17-4664-ab2b-3356a5c58cc0"
+        ],
+        "variant": "flare",
+        "quality": "high",
+        "resolution": "2k",
+        "background": "transparent",
+        "count": 1,
+        "use_unlim": false
+      },
+      "referenceJobIds": [
+        "34b8633a-0d17-4664-ab2b-3356a5c58cc0"
+      ],
+      "resultUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3HrIyz4YFlzGN7GR5SaK5i43kmH/hf_20260922_063030_c475f25a-fa95-4776-b1c3-02a33d17271d.png",
+      "file": "striker-ready.png",
+      "sha256": "1495a91c187fbf19619e1b52fcda1a65f607eef998d4767779c41dce02fca808",
+      "pixelWidth": 1744,
+      "pixelHeight": 2336,
+      "fileBytes": 2949630,
+      "hasAlpha": true,
+      "role": "Single blue-team actor, facing right; ball is separate; isolated pose for initial composition.",
+      "reviewStatus": "prototype_visual_check_passed",
+      "shippingApproved": false,
+      "anchor": {
+        "normalized": [
+          0.5,
+          0.95
+        ],
+        "status": "provisional; calibrate actual feet to M2 ground plane"
+      },
+      "alphaInspection": {
+        "min": 0,
+        "max": 254,
+        "transparentPixels": 3029165,
+        "partiallyTransparentPixels": 1044819,
+        "fullyOpaquePixels": 0
+      }
+    },
+    {
+      "assetId": "stadium-empty",
+      "status": "completed",
+      "jobId": "84871637-5452-4584-b8dc-f3ba442d613c",
+      "provider": "Higgsfield MCP",
+      "model": "gpt_image_2_5",
+      "quotedCredits": 3,
+      "chargedCredits": null,
+      "chargeEvidence": "aggregate balance delta in budget",
+      "allocation": "style_and_production_proof",
+      "prompt": "Use the supplied image as a strict visual reference for the same football stadium, lighting, palette, grass, pitch perspective, crowd and crisp clean sports-anime illustration style. Create an EMPTY reusable widescreen stadium background plate. Remove every foreground and on-pitch human including blue striker, red defender, far teammate and goalkeeper. Remove the football. Keep the spectator crowd only as indistinct painted background spectators in the stands. Keep the white football goal in the right middle distance, the distant stadium roof, clear blue daylight sky, readable field markings, broad open playing surface. Preserve camera at player-waist height and side-on field perspective so separate character cutouts can be placed at left-center and right-center on the same ground plane. Lower 20 percent is open uninterrupted grass. Do not fill removed areas with any new characters or objects. Opaque image, 16:9. No text, no numbers, no logos, no UI, no cards, no arrows, no photorealism. A clean game background, not a poster.",
+      "params": {
+        "aspect_ratio": "16:9",
+        "reference_images": [
+          "34b8633a-0d17-4664-ab2b-3356a5c58cc0"
+        ],
+        "variant": "flare",
+        "quality": "high",
+        "resolution": "2k",
+        "background": "opaque",
+        "count": 1,
+        "use_unlim": false
+      },
+      "referenceJobIds": [
+        "34b8633a-0d17-4664-ab2b-3356a5c58cc0"
+      ],
+      "resultUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3HrIyz4YFlzGN7GR5SaK5i43kmH/hf_20260922_063034_84871637-5452-4584-b8dc-f3ba442d613c.png",
+      "file": "stadium-empty.png",
+      "sha256": "aec05840c543567a145bdab3ece691cc51d91308b434f385a81beb33c8ade5f2",
+      "pixelWidth": 2688,
+      "pixelHeight": 1520,
+      "fileBytes": 6416616,
+      "hasAlpha": false,
+      "role": "Reusable empty stadium plate, no on-pitch actors or ball; needs camera calibration in M2.",
+      "reviewStatus": "prototype_visual_check_passed",
+      "shippingApproved": false,
+      "anchor": null
+    }
+  ]
+}
